@@ -64,4 +64,21 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // Compose UI
+
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.material3)
+
+    // Required for @Preview
+    implementation(libs.androidx.compose.ui.tooling.preview)
+
+    // Optional but recommended for preview rendering
+    debugImplementation(libs.androidx.compose.ui.tooling)
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.core)
+
+
 }
