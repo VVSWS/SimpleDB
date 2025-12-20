@@ -1,0 +1,34 @@
+package ru.tusur.data.local
+
+import android.content.Context
+import androidx.room.Room
+import ru.tusur.stop.data.local.database.AppDatabase
+import ru.tusur.stop.data.local.database.migration.AppDatabaseMigrations
+import java.io.File
+
+class DatabaseProvider(private val context: Context) {
+
+    private var currentDatabase: AppDatabase? = null
+    private var currentDbFile: File? = null
+
+    fun getDatabase(dbFile: File): AppDatabase {
+        if (currentDbFile != dbFile || currentDatabase == null) {
+            currentDatabase?.close()
+            currentDatabase = Room.databaseBuilder(
+                context,
+                AppDatabase::class.java,
+                dbFile
+            )
+                .fallbackToDestructiveMigration() // Только для первой активации
+                .build()
+            currentDbFile = dbFile
+        }
+        return currentDatabase!!
+    }
+
+    fun closeDatabase() {
+        currentDatabase?.close()
+        currentDatabase = null
+        currentDbFile = null
+    }
+}

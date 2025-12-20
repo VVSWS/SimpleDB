@@ -1,0 +1,20 @@
+package ru.tusur.data.mapper
+
+import ru.tusur.data.local.entity.LocationEntity
+import ru.tusur.stop.data.local.entity.ModelEntity
+import ru.tusur.stop.data.local.entity.YearEntity
+import ru.tusur.stop.domain.model.Location
+import ru.tusur.stop.domain.model.Model
+import ru.tusur.stop.domain.model.Year
+
+class ReferenceDataMapper {
+
+    fun toEntity(domain: Year): YearEntity = YearEntity(domain.value)
+    fun toDomain(entity: YearEntity): Year = Year(entity.value)
+
+    fun toEntity(domain: Model): ModelEntity = ModelEntity(domain.name)
+    fun toDomain(entity: ModelEntity): Model = Model(entity.name)
+
+    fun toEntity(domain: Location): LocationEntity = LocationEntity(domain.name)
+    fun toDomain(entity: LocationEntity): Location = Location(entity.name)
+}
