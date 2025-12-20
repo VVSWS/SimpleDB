@@ -1,7 +1,7 @@
 package ru.tusur.domain.usecase.reference
 
-import ru.tusur.stop.domain.model.Model
-import ru.tusur.stop.domain.repository.ReferenceDataRepository
+import ru.tusur.domain.model.Model
+import ru.tusur.domain.repository.ReferenceDataRepository
 
 class AddModelUseCase(
     private val repository: ReferenceDataRepository

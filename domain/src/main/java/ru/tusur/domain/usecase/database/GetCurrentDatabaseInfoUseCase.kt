@@ -1,7 +1,9 @@
 package ru.tusur.domain.usecase.database
 
 import kotlinx.coroutines.flow.Flow
-import ru.tusur.stop.domain.repository.FaultRepository
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import ru.tusur.domain.repository.FaultRepository
 
 class GetCurrentDatabaseInfoUseCase(
     private val faultRepository: FaultRepository
@@ -12,16 +14,17 @@ class GetCurrentDatabaseInfoUseCase(
         val entryCount: Int = 0
     )
 
-    operator fun invoke(): Flow<DbInfo> {
-        return faultRepository.getAllEntries().map { entries ->
-            DbInfo(
-                isActive = true,
-                filename = "current.db",
-                entryCount = entries.size
-            )
-        }.catch { emit(DbInfo(isActive = false)) }
+    operator fun invoke(): Flow<DbInfo> = flow {
+        try {
+            faultRepository.getAllEntries().collect { entries ->
+                emit(DbInfo(
+                    isActive = true,
+                    filename = "current.db",
+                    entryCount = entries.size
+                ))
+            }
+        } catch (e: Exception) {
+            emit(DbInfo(isActive = false))
+        }
     }
-
-    private fun <T> Flow<T>.catch(block: suspend (Throwable) -> Unit): Flow<T> =
-        this
 }

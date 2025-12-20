@@ -1,9 +1,9 @@
 package ru.tusur.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import ru.tusur.stop.domain.model.Location
-import ru.tusur.stop.domain.model.Model
-import ru.tusur.stop.domain.model.Year
+import ru.tusur.domain.model.Location
+import ru.tusur.domain.model.Model
+import ru.tusur.domain.model.Year
 
 interface ReferenceDataRepository {
     fun getYears(): Flow<List<Year>>

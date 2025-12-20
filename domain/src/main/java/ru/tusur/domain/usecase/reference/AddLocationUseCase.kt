@@ -1,7 +1,7 @@
 package ru.tusur.domain.usecase.reference
 
-import ru.tusur.stop.domain.model.Location
-import ru.tusur.stop.domain.repository.ReferenceDataRepository
+import ru.tusur.domain.model.Location
+import ru.tusur.domain.repository.ReferenceDataRepository
 
 class AddLocationUseCase(
     private val repository: ReferenceDataRepository

@@ -1,7 +1,7 @@
 package ru.tusur.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import ru.tusur.stop.domain.model.FaultEntry
+import ru.tusur.domain.model.FaultEntry
 
 interface FaultRepository {
     fun getAllEntries(): Flow<List<FaultEntry>>

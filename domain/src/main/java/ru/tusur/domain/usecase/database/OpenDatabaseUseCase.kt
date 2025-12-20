@@ -1,7 +1,7 @@
 package ru.tusur.domain.usecase.database
 
 import ru.tusur.stop.data.local.DatabaseValidator
-import ru.tusur.stop.core.util.FileHelper
+import ru.tusur.core.util.FileHelper
 import java.io.File
 
 class OpenDatabaseUseCase(
