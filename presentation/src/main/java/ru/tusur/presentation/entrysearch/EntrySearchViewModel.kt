@@ -2,8 +2,10 @@ package ru.tusur.presentation.entrysearch
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import ru.tusur.domain.model.Location
 import ru.tusur.domain.model.Model
 import ru.tusur.domain.model.Year
@@ -28,19 +30,18 @@ class EntrySearchViewModel(
     val uiState: StateFlow<UiState> = _uiState
 
     init {
-        viewModelScope.launch {
-            combine(
-                getYears(),
-                getModels(),
-                getLocations()
-            ) { years, models, locations ->
-                _uiState.value = UiState(
-                    years = years,
-                    models = models,
-                    locations = locations
-                )
-            }.collect()
-        }
+        // ✅ Исправлено: launchIn вместо launch + collect
+        combine(
+            getYears(),
+            getModels(),
+            getLocations()
+        ) { years, models, locations ->
+            _uiState.value = UiState(
+                years = years,
+                models = models,
+                locations = locations
+            )
+        }.launchIn(viewModelScope)
     }
 
     fun onYearSelected(year: Year?) {
@@ -55,7 +56,7 @@ class EntrySearchViewModel(
         _uiState.value = _uiState.value.copy(selectedLocation = location)
     }
 
-    fun buildFilter(): Filter {
+    fun buildFilter(): EntrySearchViewModel.Filter {
         return Filter(
             year = _uiState.value.selectedYear?.value,
             model = _uiState.value.selectedModel?.name,

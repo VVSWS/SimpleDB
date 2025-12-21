@@ -7,7 +7,7 @@ data class EntryWithImages(
     @Embedded val entry: EntryEntity,
     @Relation(
         parentColumn = "id",
-        entityColumn = "entry_id"
+        entityColumn = "entryId"
     )
     val images: List<EntryImageEntity>
 )

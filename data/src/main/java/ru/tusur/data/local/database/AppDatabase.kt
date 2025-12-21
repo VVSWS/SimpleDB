@@ -3,6 +3,12 @@ package ru.tusur.data.local.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import ru.tusur.data.local.database.dao.EntryDao
+import ru.tusur.data.local.database.dao.EntryImageDao
+import ru.tusur.data.local.database.dao.LocationDao
+import ru.tusur.data.local.database.dao.ModelDao
+import ru.tusur.data.local.database.dao.YearDao
+import ru.tusur.data.local.entity.Converters
 import ru.tusur.data.local.entity.EntryEntity
 import ru.tusur.data.local.entity.EntryImageEntity
 import ru.tusur.data.local.entity.LocationEntity

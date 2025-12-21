@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.compose.koinInject
@@ -22,6 +23,7 @@ import ru.tusur.core.ui.component.FaultCard
 import ru.tusur.presentation.R
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+
 
 @Composable
 fun EntryListScreen(
@@ -128,7 +130,7 @@ fun EntryListScreen(
                                     .fillMaxWidth()
                                     .padding(16.dp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = Alignment.CenterHorizontally
+                                textAlign = TextAlign.Center
                             )
                         }
                     }

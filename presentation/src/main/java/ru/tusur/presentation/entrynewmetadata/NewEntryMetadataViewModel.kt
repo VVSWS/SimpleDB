@@ -2,8 +2,10 @@ package ru.tusur.presentation.entrynewmetadata
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import ru.tusur.core.util.ValidationUtils
 import ru.tusur.domain.model.Location
@@ -38,19 +40,17 @@ class NewEntryMetadataViewModel(
     val uiState: StateFlow<UiState> = _uiState
 
     init {
-        viewModelScope.launch {
-            combine(
-                getYears(),
-                getModels(),
-                getLocations()
-            ) { years, models, locations ->
-                _uiState.value = _uiState.value.copy(
-                    years = years,
-                    models = models,
-                    locations = locations
-                )
-            }.collect()
-        }
+        combine(
+            getYears(),
+            getModels(),
+            getLocations()
+        ) { years, models, locations ->
+            _uiState.value = _uiState.value.copy(
+                years = years,
+                models = models,
+                locations = locations
+            )
+        }.launchIn(viewModelScope)
     }
 
     fun onYearSelected(year: Year) {
@@ -88,11 +88,15 @@ class NewEntryMetadataViewModel(
     fun addNewYear() {
         val input = _uiState.value.newYearInput
         ValidationUtils.validateYear(input).onSuccess { value ->
-            addYear(Year(value)).onSuccess {
-                _uiState.value = _uiState.value.copy(
-                    newYearInput = "",
-                    selectedYear = Year(value)
-                )
+            viewModelScope.launch {
+                addYear(Year(value)).onSuccess {
+                    _uiState.value = _uiState.value.copy(
+                        newYearInput = "",
+                        selectedYear = Year(value)
+                    )
+                }.onFailure { error ->
+                    // TODO: передать ошибку в UI (например, через _errorState)
+                }
             }
         }
     }
@@ -100,11 +104,15 @@ class NewEntryMetadataViewModel(
     fun addNewModel() {
         val input = ValidationUtils.maxLengthTrim(_uiState.value.newModelInput, 30)
         if (input.isNotEmpty()) {
-            addModel(Model(input)).onSuccess {
-                _uiState.value = _uiState.value.copy(
-                    newModelInput = "",
-                    selectedModel = Model(input)
-                )
+            viewModelScope.launch {
+                addModel(Model(input)).onSuccess {
+                    _uiState.value = _uiState.value.copy(
+                        newModelInput = "",
+                        selectedModel = Model(input)
+                    )
+                }.onFailure { error ->
+                    // TODO: обработать ошибку
+                }
             }
         }
     }
@@ -112,11 +120,15 @@ class NewEntryMetadataViewModel(
     fun addNewLocation() {
         val input = ValidationUtils.maxLengthTrim(_uiState.value.newLocationInput, 15)
         if (input.isNotEmpty()) {
-            addLocation(Location(input)).onSuccess {
-                _uiState.value = _uiState.value.copy(
-                    newLocationInput = "",
-                    selectedLocation = Location(input)
-                )
+            viewModelScope.launch {
+                addLocation(Location(input)).onSuccess {
+                    _uiState.value = _uiState.value.copy(
+                        newLocationInput = "",
+                        selectedLocation = Location(input)
+                    )
+                }.onFailure { error ->
+                    // TODO: обработать ошибку
+                }
             }
         }
     }

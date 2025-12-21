@@ -11,11 +11,11 @@ import androidx.room.PrimaryKey
         ForeignKey(
             entity = EntryEntity::class,
             parentColumns = ["id"],
-            childColumns = ["entry_id"],
+            childColumns = ["entryId"],
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("entry_id")]
+    indices = [Index("entryId")]
 )
 data class EntryImageEntity(
     @PrimaryKey val uri: String,

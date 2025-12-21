@@ -8,10 +8,10 @@ import ru.tusur.data.local.entity.EntryImageEntity
 
 @Dao
 interface EntryImageDao {
-    @Query("SELECT * FROM entry_images WHERE entry_id = :entryId")
+    @Query("SELECT * FROM entry_images WHERE entryId = :entryId")
     suspend fun getImagesForEntry(entryId: Long): List<EntryImageEntity>
 
-    @Query("DELETE FROM entry_images WHERE entry_id = :entryId")
+    @Query("DELETE FROM entry_images WHERE entryId = :entryId")
     suspend fun deleteImagesForEntry(entryId: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

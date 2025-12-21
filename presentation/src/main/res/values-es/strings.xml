@@ -1,4 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App -->
     <string name="app_name">CarFault</string>
 
     <!-- MainScreen -->
@@ -26,8 +28,10 @@
 
     <!-- About -->
     <string name="about_title">Acerca de</string>
-    <string name="about_version">v1.0.0 (Build 20251219)</string>
-    <string name="about_copyright">© 2025, Estudiante de TUSSUR</string>
-    <string name="about_license">Licencia MIT — Para uso no comercial</string>
 
+    <!-- Entry Metadata -->
+    <string name="entry_year">Año</string>
+    <string name="entry_model">Modelo</string>
+    <string name="entry_location">Ubicación</string>
+    <string name="entry_title">Título breve</string>
 </resources>
