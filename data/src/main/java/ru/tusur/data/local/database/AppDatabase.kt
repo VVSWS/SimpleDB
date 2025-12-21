@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 import ru.tusur.data.local.entity.EntryEntity
 import ru.tusur.data.local.entity.EntryImageEntity
 import ru.tusur.data.local.entity.LocationEntity
-import ru.tusur.stop.data.local.entity.ModelEntity
+import ru.tusur.data.local.entity.ModelEntity
 import ru.tusur.data.local.entity.YearEntity
 
 @Database(

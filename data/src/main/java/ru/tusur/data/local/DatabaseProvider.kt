@@ -2,8 +2,7 @@ package ru.tusur.data.local
 
 import android.content.Context
 import androidx.room.Room
-import ru.tusur.stop.data.local.database.AppDatabase
-import ru.tusur.stop.data.local.database.migration.AppDatabaseMigrations
+import ru.tusur.data.local.database.AppDatabase
 import java.io.File
 
 class DatabaseProvider(private val context: Context) {

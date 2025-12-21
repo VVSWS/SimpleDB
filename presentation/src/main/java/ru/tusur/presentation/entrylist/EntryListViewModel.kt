@@ -2,11 +2,12 @@ package ru.tusur.presentation.entrylist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import ru.tusur.stop.core.model.Failure
-import ru.tusur.stop.domain.model.FaultEntry
-import ru.tusur.stop.domain.usecase.entry.GetRecentEntriesUseCase
-import ru.tusur.stop.domain.usecase.entry.SearchEntriesUseCase
+import ru.tusur.core.model.Failure
+import ru.tusur.domain.model.FaultEntry
+import ru.tusur.domain.usecase.entry.GetRecentEntriesUseCase
+import ru.tusur.domain.usecase.entry.SearchEntriesUseCase
 
 class EntryListViewModel(
     private val getRecentEntries: GetRecentEntriesUseCase,

@@ -1,9 +1,11 @@
 package ru.tusur.data.local
 
 import android.database.sqlite.SQLiteDatabase
-import ru.tusur.stop.core.util.FileHelper
+import ru.tusur.domain.repository.DatabaseValidator as DomainDatabaseValidator
+import ru.tusur.core.util.FileHelper
+import java.io.File
 
-class DatabaseValidator {
+class RoomDatabaseValidator : DomainDatabaseValidator {
 
     companion object {
         private const val REQUIRED_TABLES = listOf(
@@ -11,13 +13,13 @@ class DatabaseValidator {
         )
     }
 
-    fun validateDatabase(dbFile: java.io.File): ValidationResult {
+    override suspend fun validateDatabase(dbFile: File): DomainDatabaseValidator.ValidationResult {
         if (!dbFile.exists()) {
-            return ValidationResult.Error("File does not exist")
+            return DomainDatabaseValidator.ValidationResult.Error("File does not exist")
         }
 
         if (!FileHelper.isSQLiteFile(dbFile)) {
-            return ValidationResult.Error("Not a valid SQLite database")
+            return DomainDatabaseValidator.ValidationResult.Error("Not a valid SQLite database")
         }
 
         return try {
@@ -28,7 +30,7 @@ class DatabaseValidator {
             ).use { db ->
                 val userVersion = db.version
                 if (userVersion != 1) {
-                    return ValidationResult.Error("Incompatible schema version: $userVersion")
+                    return DomainDatabaseValidator.ValidationResult.Error("Incompatible schema version: $userVersion")
                 }
 
                 val cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null)
@@ -40,18 +42,13 @@ class DatabaseValidator {
 
                 val missing = REQUIRED_TABLES - tables
                 if (missing.isNotEmpty()) {
-                    ValidationResult.Error("Missing tables: ${missing.joinToString()}")
+                    DomainDatabaseValidator.ValidationResult.Error("Missing tables: ${missing.joinToString()}")
                 } else {
-                    ValidationResult.Success
+                    DomainDatabaseValidator.ValidationResult.Success
                 }
             }
         } catch (e: Exception) {
-            ValidationResult.Error("Database validation failed: ${e.message}")
+            DomainDatabaseValidator.ValidationResult.Error("Database validation failed: ${e.message}")
         }
-    }
-
-    sealed class ValidationResult {
-        object Success : ValidationResult()
-        data class Error(val message: String) : ValidationResult()
     }
 }

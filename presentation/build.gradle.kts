@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -31,6 +32,11 @@ android {
     kotlin {
         jvmToolchain(17)
     }
+
+    buildFeatures {
+        compose = true
+    }
+
 }
 
 dependencies {
@@ -53,6 +59,10 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
+
+    implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.androidx.compose.material.icons.extended)
+
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

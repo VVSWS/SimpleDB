@@ -5,8 +5,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ru.tusur.stop.core.util.FileHelper
 import ru.tusur.stop.data.local.DatabaseProvider
-import ru.tusur.stop.data.local.DatabaseValidator
-import ru.tusur.stop.data.local.database.AppDatabase
+import ru.tusur.data.local.database.AppDatabase
 import ru.tusur.stop.data.local.database.dao.*
 import ru.tusur.stop.data.mapper.EntryMapper
 import ru.tusur.stop.data.mapper.ReferenceDataMapper
@@ -27,12 +26,13 @@ import ru.tusur.stop.presentation.settings.SettingsViewModel
 import java.io.File
 
 val appModule = module {
-
     /* ======================
      *  CORE UTILS & HELPERS
      * ====================== */
     single { FileHelper }
-    single { DatabaseValidator() }
+    single<ru.tusur.domain.repository.DatabaseValidator> {
+        ru.tusur.stop.data.local.RoomDatabaseValidator()
+    }
 
     /* ======================
      *  DATABASE LAYER

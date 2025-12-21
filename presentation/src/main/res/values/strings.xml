@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_title">About</string>
+    <string name="app_name">CarFault</string>
+    <string name="main_recent_entries">Recent Entries</string>
+    <string name="main_add_entry">Add Entry</string>
+    <string name="main_search_entries">Search Entries</string>
+    <string name="main_settings">Settings</string>
+    <string name="main_about">About</string>
+    <string name="settings_title">Settings</string>
+</resources>

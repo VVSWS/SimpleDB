@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import ru.tusur.stop.core.model.Failure
-import ru.tusur.stop.domain.model.FaultEntry
-import ru.tusur.stop.domain.usecase.entry.*
+import ru.tusur.core.model.Failure
+import ru.tusur.domain.model.FaultEntry
+import ru.tusur.domain.usecase.entry.*
 
 class EditEntryViewModel(
     private val getEntryById: GetEntryByIdUseCase,

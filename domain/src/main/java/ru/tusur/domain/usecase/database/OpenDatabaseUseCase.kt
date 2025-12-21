@@ -1,6 +1,6 @@
 package ru.tusur.domain.usecase.database
 
-import ru.tusur.stop.data.local.DatabaseValidator
+import ru.tusur.domain.repository.DatabaseValidator
 import ru.tusur.core.util.FileHelper
 import java.io.File
 
@@ -14,7 +14,7 @@ class OpenDatabaseUseCase(
             throw IllegalStateException("Failed to copy database file")
         }
 
-        // 2. Валидация
+        // 2. Валидация через интерфейс
         return when (val result = validator.validateDatabase(destFile)) {
             is DatabaseValidator.ValidationResult.Success -> Result.success(destFile)
             is DatabaseValidator.ValidationResult.Error -> Result.failure(

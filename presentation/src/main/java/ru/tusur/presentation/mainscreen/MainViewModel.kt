@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import ru.tusur.stop.domain.usecase.database.GetCurrentDatabaseInfoUseCase
+import ru.tusur.domain.usecase.database.GetCurrentDatabaseInfoUseCase
 
 class MainViewModel(
     getCurrentDbInfo: GetCurrentDatabaseInfoUseCase

@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import ru.tusur.stop.core.util.ValidationUtils
-import ru.tusur.stop.domain.model.Location
-import ru.tusur.stop.domain.model.Model
-import ru.tusur.stop.domain.model.Year
-import ru.tusur.stop.domain.usecase.reference.*
+import ru.tusur.core.util.ValidationUtils
+import ru.tusur.domain.model.Location
+import ru.tusur.domain.model.Model
+import ru.tusur.domain.model.Year
+import ru.tusur.domain.usecase.reference.*
 
 class NewEntryMetadataViewModel(
     getYears: GetYearsUseCase,

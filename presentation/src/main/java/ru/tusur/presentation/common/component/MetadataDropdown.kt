@@ -68,7 +68,7 @@ fun <T> MetadataDropdown(
             )
         }
         if (onAddNewItem != null) {
-            OutlinedTextField(
+            androidx.compose.material3.OutlinedTextField(
                 value = newItemText,
                 onValueChange = { newItemText = it },
                 placeholder = { Text("New...") },
