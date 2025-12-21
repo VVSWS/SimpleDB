@@ -35,25 +35,19 @@ android {
 }
 
 dependencies {
-
-
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
-
     implementation(project(":core"))
     implementation(project(":domain"))
 
-    // Room (KSP вместо kapt!)
+    // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-
-
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
@@ -61,6 +55,5 @@ dependencies {
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
-    //testImplementation(libs.androidx.room.testing)
 
 }

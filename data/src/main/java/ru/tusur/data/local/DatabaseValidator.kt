@@ -8,7 +8,7 @@ import java.io.File
 class RoomDatabaseValidator : DomainDatabaseValidator {
 
     companion object {
-        private const val REQUIRED_TABLES = listOf(
+        private val REQUIRED_TABLES = listOf(
             "entries", "years", "models", "locations", "entry_images"
         )
     }

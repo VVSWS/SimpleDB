@@ -1,4 +1,4 @@
-package ru.tusur.stop.ui.theme
+package ru.tusur.carfault.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

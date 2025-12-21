@@ -1,11 +1,11 @@
 package ru.tusur.data.mapper
 
 import ru.tusur.data.local.entity.LocationEntity
-import ru.tusur.stop.data.local.entity.ModelEntity
-import ru.tusur.stop.data.local.entity.YearEntity
-import ru.tusur.stop.domain.model.Location
-import ru.tusur.stop.domain.model.Model
-import ru.tusur.stop.domain.model.Year
+import ru.tusur.data.local.entity.ModelEntity
+import ru.tusur.data.local.entity.YearEntity
+import ru.tusur.domain.model.Location
+import ru.tusur.domain.model.Model
+import ru.tusur.domain.model.Year
 
 class ReferenceDataMapper {
 

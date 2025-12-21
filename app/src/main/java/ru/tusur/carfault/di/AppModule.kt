@@ -1,37 +1,45 @@
-package ru.tusur.stop.di
+package ru.tusur.carfault.di
 
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import ru.tusur.stop.core.util.FileHelper
-import ru.tusur.stop.data.local.DatabaseProvider
+import ru.tusur.core.util.FileHelper
+import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.data.local.database.AppDatabase
-import ru.tusur.stop.data.local.database.dao.*
-import ru.tusur.stop.data.mapper.EntryMapper
-import ru.tusur.stop.data.mapper.ReferenceDataMapper
-import ru.tusur.stop.data.repository.DefaultFaultRepository
-import ru.tusur.stop.data.repository.DefaultReferenceDataRepository
-import ru.tusur.stop.domain.repository.FaultRepository
-import ru.tusur.stop.domain.repository.ReferenceDataRepository
-import ru.tusur.stop.domain.usecase.database.*
-import ru.tusur.stop.domain.usecase.entry.*
-import ru.tusur.stop.domain.usecase.reference.*
-import ru.tusur.stop.presentation.about.AboutViewModel
-import ru.tusur.stop.presentation.entryedit.EditEntryViewModel
-import ru.tusur.stop.presentation.entrylist.EntryListViewModel
-import ru.tusur.stop.presentation.entrynewmetadata.NewEntryMetadataViewModel
-import ru.tusur.stop.presentation.entrysearch.EntrySearchViewModel
-import ru.tusur.stop.presentation.mainscreen.MainViewModel
-import ru.tusur.stop.presentation.settings.SettingsViewModel
+import ru.tusur.data.local.database.dao.EntryDao
+import ru.tusur.data.local.database.dao.EntryImageDao
+import ru.tusur.data.local.database.dao.LocationDao
+import ru.tusur.data.local.database.dao.ModelDao
+import ru.tusur.data.local.database.dao.YearDao
+import ru.tusur.data.local.RoomDatabaseValidator
+import ru.tusur.data.mapper.EntryMapper
+import ru.tusur.data.mapper.ReferenceDataMapper
+import ru.tusur.data.repository.DefaultFaultRepository
+import ru.tusur.data.repository.DefaultReferenceDataRepository
+import ru.tusur.domain.repository.DatabaseValidator
+import ru.tusur.domain.repository.FaultRepository
+import ru.tusur.domain.repository.ReferenceDataRepository
+import ru.tusur.domain.usecase.database.*
+import ru.tusur.domain.usecase.entry.*
+import ru.tusur.domain.usecase.reference.*
+import ru.tusur.presentation.about.AboutViewModel
+import ru.tusur.presentation.entryedit.EditEntryViewModel
+import ru.tusur.presentation.entrylist.EntryListViewModel
+import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataViewModel
+import ru.tusur.presentation.entrysearch.EntrySearchViewModel
+import ru.tusur.presentation.mainscreen.MainViewModel
+import ru.tusur.presentation.settings.SettingsViewModel
 import java.io.File
+import org.koin.androidx.viewmodel.dsl.viewModel
 
 val appModule = module {
+
     /* ======================
      *  CORE UTILS & HELPERS
      * ====================== */
     single { FileHelper }
-    single<ru.tusur.domain.repository.DatabaseValidator> {
-        ru.tusur.stop.data.local.RoomDatabaseValidator()
+    single<DatabaseValidator> {
+        RoomDatabaseValidator()
     }
 
     /* ======================
@@ -39,23 +47,23 @@ val appModule = module {
      * ====================== */
     single { DatabaseProvider(androidContext()) }
 
-    // Фабрика для получения AppDatabase по пути — ленивая инициализация
     factory { (dbFile: File) ->
         get<DatabaseProvider>().getDatabase(dbFile)
     }
 
-    // Конкретный экземпляр БД: current.db в private storage
-    single(named("activeDbFile")) {
+    single<File>(named("activeDbFile")) {
         FileHelper.getDatabasePath(androidContext(), isExternal = false).apply {
             parentFile?.mkdirs()
         }
     }
 
+
     single<AppDatabase> {
-        get<File>(named("activeDbFile")).let { dbFile ->
-            get { dbFile } // вызов фабрики выше
-        }
+        val dbFile: File = get(named("activeDbFile"))
+        get<DatabaseProvider>().getDatabase(dbFile)
     }
+
+
 
     // DAOs
     single<EntryDao> { get<AppDatabase>().entryDao() }
@@ -71,7 +79,7 @@ val appModule = module {
     single { ReferenceDataMapper() }
 
     /* ======================
-     *  REPOSITORIES (implement domain interfaces)
+     *  REPOSITORIES
      * ====================== */
     single<FaultRepository> {
         DefaultFaultRepository(
@@ -92,8 +100,7 @@ val appModule = module {
     /* ======================
      *  USE CASES
      * ====================== */
-
-    // Entry Use Cases
+    // Entry
     factory { GetEntriesUseCase(get()) }
     factory { GetEntryByIdUseCase(get()) }
     factory { CreateEntryUseCase(get()) }
@@ -102,7 +109,7 @@ val appModule = module {
     factory { GetRecentEntriesUseCase(get()) }
     factory { SearchEntriesUseCase(get()) }
 
-    // Reference Data Use Cases
+    // Reference Data
     factory { GetYearsUseCase(get()) }
     factory { AddYearUseCase(get()) }
     factory { GetModelsUseCase(get()) }
@@ -110,7 +117,7 @@ val appModule = module {
     factory { GetLocationsUseCase(get()) }
     factory { AddLocationUseCase(get()) }
 
-    // Database Use Cases
+    // Database
     factory {
         CreateDatabaseUseCase { isExternal ->
             FileHelper.getDatabasePath(androidContext(), isExternal)

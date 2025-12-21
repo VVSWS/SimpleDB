@@ -1,34 +1,35 @@
-package ru.tusur.stop
+package ru.tusur.carfault
 
 import android.app.Application
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import org.koin.android.ext.koin.androidContext
 import org.koin.compose.KoinApplication
-import org.koin.compose.koinInject
-import ru.tusur.stop.core.ui.theme.CarFaultTheme
-import ru.tusur.stop.presentation.about.AboutScreen
-import ru.tusur.stop.presentation.entryedit.EditEntryScreen
-import ru.tusur.stop.presentation.entrylist.EntryListScreen
-import ru.tusur.stop.presentation.entrynewmetadata.NewEntryMetadataScreen
-import ru.tusur.stop.presentation.entrysearch.EntrySearchScreen
-import ru.tusur.stop.presentation.mainscreen.MainScreen
-import ru.tusur.stop.presentation.settings.SettingsScreen
+import org.koin.core.context.startKoin
+import ru.tusur.carfault.di.appModule
+import ru.tusur.core.ui.theme.CarFaultTheme
+import ru.tusur.presentation.about.AboutScreen
+import ru.tusur.presentation.entryedit.EditEntryScreen
+import ru.tusur.presentation.entrylist.EntryListScreen
+import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataScreen
+import ru.tusur.presentation.entrysearch.EntrySearchScreen
+import ru.tusur.presentation.mainscreen.MainScreen
+import ru.tusur.presentation.settings.SettingsScreen
 
 @Composable
 fun CarFaultApp() {
+    val appContext = LocalContext.current.applicationContext as Application
+
     KoinApplication(application = {
-        val context = LocalContext.current.applicationContext as Application
         startKoin {
-            androidContext(context)
+            androidContext(appContext)
             modules(appModule)
         }
     }) {

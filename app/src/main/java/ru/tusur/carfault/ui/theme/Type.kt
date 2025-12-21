@@ -1,4 +1,4 @@
-package ru.tusur.stop.ui.theme
+package ru.tusur.carfault.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

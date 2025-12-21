@@ -2,7 +2,7 @@ package ru.tusur.data.mapper
 
 import ru.tusur.data.local.entity.EntryEntity
 import ru.tusur.data.local.entity.EntryWithImages
-import ru.tusur.stop.domain.model.FaultEntry
+import ru.tusur.domain.model.FaultEntry
 
 class EntryMapper {
 
@@ -21,9 +21,9 @@ class EntryMapper {
     fun toDomain(entity: EntryEntity): FaultEntry {
         return FaultEntry(
             id = entity.id,
-            year = ru.tusur.stop.domain.model.Year(entity.year),
-            model = ru.tusur.stop.domain.model.Model(entity.model),
-            location = ru.tusur.stop.domain.model.Location(entity.location),
+            year = ru.tusur.domain.model.Year(entity.year),
+            model = ru.tusur.domain.model.Model(entity.model),
+            location = ru.tusur.domain.model.Location(entity.location),
             title = entity.title,
             description = entity.description,
             timestamp = entity.timestamp

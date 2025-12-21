@@ -1,4 +1,4 @@
-package ru.tusur.stop
+package ru.tusur.carfault
 
 import org.junit.Test
 

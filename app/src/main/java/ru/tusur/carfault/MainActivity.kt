@@ -1,4 +1,4 @@
-package ru.tusur.stop
+package ru.tusur.carfault
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import ru.tusur.stop.ui.theme.CarFaultTheme
+import ru.tusur.carfault.ui.theme.CarFaultTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

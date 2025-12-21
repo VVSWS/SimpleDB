@@ -2,14 +2,14 @@ package ru.tusur.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import ru.tusur.stop.data.local.database.dao.LocationDao
-import ru.tusur.stop.data.local.database.dao.ModelDao
-import ru.tusur.stop.data.local.database.dao.YearDao
+import ru.tusur.data.local.database.dao.LocationDao
+import ru.tusur.data.local.database.dao.ModelDao
+import ru.tusur.data.local.database.dao.YearDao
 import ru.tusur.data.mapper.ReferenceDataMapper
-import ru.tusur.stop.domain.model.Location
-import ru.tusur.stop.domain.model.Model
-import ru.tusur.stop.domain.model.Year
-import ru.tusur.stop.domain.repository.ReferenceDataRepository
+import ru.tusur.domain.model.Location
+import ru.tusur.domain.model.Model
+import ru.tusur.domain.model.Year
+import ru.tusur.domain.repository.ReferenceDataRepository
 
 class DefaultReferenceDataRepository(
     private val yearDao: YearDao,

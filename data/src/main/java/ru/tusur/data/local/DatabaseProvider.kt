@@ -16,10 +16,12 @@ class DatabaseProvider(private val context: Context) {
             currentDatabase = Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
-                dbFile
+                dbFile.name
             )
-                .fallbackToDestructiveMigration() // Только для первой активации
+                .createFromFile(dbFile)
+                .fallbackToDestructiveMigration()
                 .build()
+
             currentDbFile = dbFile
         }
         return currentDatabase!!

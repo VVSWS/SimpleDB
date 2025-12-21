@@ -1,4 +1,4 @@
-package ru.tusur.stop.core.ui.component
+package ru.tusur.carfault.core.ui.component
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height

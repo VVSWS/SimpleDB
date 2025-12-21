@@ -2,10 +2,10 @@ package ru.tusur.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import ru.tusur.stop.data.local.database.dao.EntryDao
+import ru.tusur.data.local.database.dao.EntryDao
 import ru.tusur.data.mapper.EntryMapper
-import ru.tusur.stop.domain.model.FaultEntry
-import ru.tusur.stop.domain.repository.FaultRepository
+import ru.tusur.domain.model.FaultEntry
+import ru.tusur.domain.repository.FaultRepository
 
 class DefaultFaultRepository(
     private val entryDao: EntryDao,
