@@ -2,6 +2,7 @@ package ru.tusur.carfault
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,16 +24,22 @@ import ru.tusur.presentation.settings.SettingsScreen
 import ru.tusur.carfault.ui.theme.CarFaultTheme
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Edge-to-Edge (поддержка свайпа назад и сквозного UI)
         enableEdgeToEdge()
 
         setContent {
-            // ✅ Koin — уже инициализирован в CarFaultApplication
-            //    (не нужно startKoin здесь!)
             CarFaultTheme {
+
+                val navController = rememberNavController()
+
+                BackHandler {
+                    if (!navController.popBackStack()) {
+                        finish()
+                    }
+                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

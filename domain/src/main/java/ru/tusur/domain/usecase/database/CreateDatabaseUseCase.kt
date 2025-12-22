@@ -1,20 +1,25 @@
 package ru.tusur.domain.usecase.database
 
+import android.content.Context
+import ru.tusur.core.util.FileHelper
 import java.io.File
 
+/**
+ * Creates (or recreates) the active database file in internal storage.
+ * Does NOT populate schema; Room will do that on first open.
+ */
 class CreateDatabaseUseCase(
-    private val databasePathProvider: (isExternal: Boolean) -> File
+    private val context: Context
 ) {
-    suspend operator fun invoke(
-        filename: String = "faults_${System.currentTimeMillis()}.db",
-        isExternal: Boolean = false
-    ): Result<File> = runCatching {
-        val dbFile = File(
-            databasePathProvider(isExternal).parentFile,
-            filename
-        )
-        dbFile.parentFile?.mkdirs()
-        dbFile.createNewFile()
-        dbFile
+
+    operator fun invoke(): File {
+        val dbFile = FileHelper.getActiveDatabaseFile(context)
+
+        if (!dbFile.exists()) {
+            dbFile.parentFile?.mkdirs()
+            dbFile.createNewFile()
+        }
+
+        return dbFile
     }
 }

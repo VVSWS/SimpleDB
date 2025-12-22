@@ -6,9 +6,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -16,8 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.compose.koinInject
 import ru.tusur.presentation.R
-import ru.tusur.presentation.common.component.MetadataDropdown
-import androidx.compose.ui.Alignment
+import ru.tusur.presentation.common.component.EditableDropdown
 
 @Composable
 fun NewEntryMetadataScreen(navController: NavController) {
@@ -25,7 +23,8 @@ fun NewEntryMetadataScreen(navController: NavController) {
     val uiState by viewModel.uiState.collectAsState()
 
     Column(Modifier.fillMaxSize()) {
-        // --- Кастомный Top Bar ---
+
+        // Top bar
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 3.dp,
@@ -58,68 +57,84 @@ fun NewEntryMetadataScreen(navController: NavController) {
             }
         }
 
-        // --- Основной контент ---
+        // Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Year
-            MetadataDropdown(
+
+            // YEAR
+            EditableDropdown(
                 label = "Year",
                 items = uiState.years,
                 selectedItem = uiState.selectedYear,
-                onItemSelected = { viewModel.onYearSelected(it) },
                 itemToString = { it.value.toString() },
-                onAddNewItem = { input ->
-                    viewModel.onNewYearInputChanged(input)
+                onItemSelected = { viewModel.onYearSelected(it) },
+                onAddNewItem = {
+                    viewModel.onNewYearInputChanged(it)
                     viewModel.addNewYear()
-                }
+                },
+                errorMessage = if (uiState.selectedYear == null) "Select or add a year" else null
             )
 
-            // Model
-            MetadataDropdown(
+            Spacer(Modifier.height(16.dp))
+
+            // MODEL
+            EditableDropdown(
                 label = "Model",
                 items = uiState.models,
                 selectedItem = uiState.selectedModel,
-                onItemSelected = { viewModel.onModelSelected(it) },
                 itemToString = { it.name },
-                onAddNewItem = { input ->
-                    viewModel.onNewModelInputChanged(input)
+                onItemSelected = { viewModel.onModelSelected(it) },
+                onAddNewItem = {
+                    viewModel.onNewModelInputChanged(it)
                     viewModel.addNewModel()
-                }
+                },
+                errorMessage = if (uiState.selectedModel == null) "Select or add a model" else null
             )
 
-            // Location
-            MetadataDropdown(
+            Spacer(Modifier.height(16.dp))
+
+            // LOCATION
+            EditableDropdown(
                 label = "Location",
                 items = uiState.locations,
                 selectedItem = uiState.selectedLocation,
-                onItemSelected = { viewModel.onLocationSelected(it) },
                 itemToString = { it.name },
-                onAddNewItem = { input ->
-                    viewModel.onNewLocationInputChanged(input)
+                onItemSelected = { viewModel.onLocationSelected(it) },
+                onAddNewItem = {
+                    viewModel.onNewLocationInputChanged(it)
                     viewModel.addNewLocation()
-                }
+                },
+                errorMessage = if (uiState.selectedLocation == null) "Select or add a location" else null
             )
 
-            // Title
+            Spacer(Modifier.height(16.dp))
+
+            // TITLE
             OutlinedTextField(
                 value = uiState.title,
                 onValueChange = { viewModel.onTitleChanged(it) },
                 label = { Text("Brief title (≤50)") },
                 maxLines = 1,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = uiState.title.isBlank()
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            if (uiState.title.isBlank()) {
+                Text(
+                    text = "Title cannot be empty",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
 
             Button(
-                onClick = {
-                    // TODO: передать метаданные в EditEntryScreen
-                    navController.navigate("edit_entry")
-                },
+                onClick = { navController.navigate("edit_entry") },
                 enabled = uiState.isContinueEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) {

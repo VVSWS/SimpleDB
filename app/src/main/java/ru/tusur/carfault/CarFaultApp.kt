@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import org.koin.compose.koinInject // ✅ для доступа к ViewModel / DI в Compose
 import ru.tusur.core.ui.theme.CarFaultTheme
 import ru.tusur.presentation.about.AboutScreen
 import ru.tusur.presentation.entryedit.EditEntryScreen

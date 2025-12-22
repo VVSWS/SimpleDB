@@ -1,25 +1,20 @@
 package ru.tusur.domain.usecase.database
 
-import ru.tusur.domain.repository.DatabaseValidator
+import android.content.Context
 import ru.tusur.core.util.FileHelper
 import java.io.File
 
+/**
+ * Takes a source DB file (e.g., copied from SAF Uri to cache),
+ * normalizes its name, and copies it into the active DB location.
+ */
 class OpenDatabaseUseCase(
-    private val validator: DatabaseValidator
+    private val context: Context
 ) {
-    suspend operator fun invoke(sourceFile: File): Result<File> = runCatching {
-        // 1. Копируем в private storage
-        val destFile = File(sourceFile.parentFile, "current.db")
-        if (!FileHelper.copyFile(sourceFile, destFile)) {
-            throw IllegalStateException("Failed to copy database file")
-        }
 
-        // 2. Валидация через интерфейс
-        return when (val result = validator.validateDatabase(destFile)) {
-            is DatabaseValidator.ValidationResult.Success -> Result.success(destFile)
-            is DatabaseValidator.ValidationResult.Error -> Result.failure(
-                IllegalStateException(result.message)
-            )
-        }
+    operator fun invoke(tempSourceFile: File): File {
+        val activeDbFile = FileHelper.getActiveDatabaseFile(context)
+        FileHelper.copyFile(tempSourceFile, activeDbFile)
+        return activeDbFile
     }
 }

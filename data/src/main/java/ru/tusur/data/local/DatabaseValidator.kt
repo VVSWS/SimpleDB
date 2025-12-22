@@ -18,10 +18,6 @@ class RoomDatabaseValidator : DomainDatabaseValidator {
             return DomainDatabaseValidator.ValidationResult.Error("File does not exist")
         }
 
-        if (!FileHelper.isSQLiteFile(dbFile)) {
-            return DomainDatabaseValidator.ValidationResult.Error("Not a valid SQLite database")
-        }
-
         return try {
             SQLiteDatabase.openDatabase(
                 dbFile.absolutePath,

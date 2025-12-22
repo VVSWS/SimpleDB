@@ -1,30 +1,37 @@
 package ru.tusur.domain.usecase.database
 
+import android.content.Context
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
-import ru.tusur.domain.repository.FaultRepository
+import ru.tusur.core.util.FileHelper
+import java.io.File
+
+data class CurrentDbInfo(
+    val isActive: Boolean,
+    val filename: String?,
+    val entryCount: Int
+)
 
 class GetCurrentDatabaseInfoUseCase(
-    private val faultRepository: FaultRepository
+    private val context: Context
 ) {
-    data class DbInfo(
-        val isActive: Boolean,
-        val filename: String? = null,
-        val entryCount: Int = 0
-    )
 
-    operator fun invoke(): Flow<DbInfo> = flow {
-        try {
-            faultRepository.getAllEntries().collect { entries ->
-                emit(DbInfo(
-                    isActive = true,
-                    filename = "current.db",
-                    entryCount = entries.size
-                ))
-            }
-        } catch (e: Exception) {
-            emit(DbInfo(isActive = false))
+    operator fun invoke(): Flow<CurrentDbInfo> = flow {
+        val dbFile: File = FileHelper.getActiveDatabaseFile(context)
+
+        if (!dbFile.exists()) {
+            emit(CurrentDbInfo(false, null, 0))
+            return@flow
         }
+
+        // We don't open Room here — too heavy.
+        // Just report file info.
+        emit(
+            CurrentDbInfo(
+                isActive = true,
+                filename = dbFile.name,
+                entryCount = 0 // optional: you can add a DAO call later
+            )
+        )
     }
 }
