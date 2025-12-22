@@ -5,44 +5,72 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.KoinApplication
+import ru.tusur.presentation.about.AboutScreen
+import ru.tusur.presentation.entryedit.EditEntryScreen
+import ru.tusur.presentation.entrylist.EntryListScreen
+import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataScreen
+import ru.tusur.presentation.entrysearch.EntrySearchScreen
+import ru.tusur.presentation.mainscreen.MainScreen
+import ru.tusur.presentation.settings.SettingsScreen
 import ru.tusur.carfault.ui.theme.CarFaultTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // ✅ Edge-to-Edge (поддержка свайпа назад и сквозного UI)
         enableEdgeToEdge()
+
         setContent {
-            CarFaultApp()
+            // ✅ Koin — уже инициализирован в CarFaultApplication
+            //    (не нужно startKoin здесь!)
             CarFaultTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val navController = rememberNavController()
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = "main"
+                    ) {
+                        composable("main") {
+                            MainScreen(navController)
+                        }
+                        composable("recent_entries") {
+                            EntryListScreen(navController, filter = "recent")
+                        }
+                        composable("search_entries") {
+                            EntryListScreen(navController, filter = "search")
+                        }
+                        composable("new_metadata") {
+                            NewEntryMetadataScreen(navController)
+                        }
+                        composable("edit_entry/{entryId?}") { backStackEntry ->
+                            val entryId = backStackEntry.arguments?.getString("entryId")?.toLongOrNull()
+                            EditEntryScreen(navController, entryId)
+                        }
+                        composable("search") {
+                            EntrySearchScreen(navController)
+                        }
+                        composable("settings") {
+                            SettingsScreen(navController)
+                        }
+                        composable("about") {
+                            AboutScreen(navController)
+                        }
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CarFaultTheme {
-        Greeting("Android")
     }
 }
