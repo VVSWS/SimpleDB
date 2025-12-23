@@ -21,6 +21,7 @@ class EntrySearchViewModel(
         val years: List<Year> = emptyList(),
         val models: List<Model> = emptyList(),
         val locations: List<Location> = emptyList(),
+
         val selectedYear: Year? = null,
         val selectedModel: Model? = null,
         val selectedLocation: Location? = null
@@ -30,13 +31,12 @@ class EntrySearchViewModel(
     val uiState: StateFlow<UiState> = _uiState
 
     init {
-        // ✅ Исправлено: launchIn вместо launch + collect
         combine(
             getYears(),
             getModels(),
             getLocations()
         ) { years, models, locations ->
-            _uiState.value = UiState(
+            _uiState.value = _uiState.value.copy(
                 years = years,
                 models = models,
                 locations = locations
@@ -56,7 +56,7 @@ class EntrySearchViewModel(
         _uiState.value = _uiState.value.copy(selectedLocation = location)
     }
 
-    fun buildFilter(): EntrySearchViewModel.Filter {
+    fun buildFilter(): Filter {
         return Filter(
             year = _uiState.value.selectedYear?.value,
             model = _uiState.value.selectedModel?.name,

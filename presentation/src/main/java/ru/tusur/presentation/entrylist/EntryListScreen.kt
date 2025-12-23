@@ -28,55 +28,21 @@ import java.time.ZoneOffset
 @Composable
 fun EntryListScreen(
     navController: NavController,
-    filter: String // "recent" or "search"
+    filter: String
 ) {
     val viewModel: EntryListViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
 
-    // Загружаем при появлении экрана
     LaunchedEffect(filter) {
         val parsedFilter = when (filter) {
             "recent" -> EntryListViewModel.Filter.Recent
-            else -> EntryListViewModel.Filter.Custom() // TODO: передавать параметры
+            else -> EntryListViewModel.Filter.Custom()
         }
         viewModel.loadEntries(parsedFilter)
     }
 
     Column(Modifier.fillMaxSize()) {
-        // --- Кастомный Top Bar ---
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 3.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
 
-                Text(
-                    text = stringResource(R.string.main_recent_entries),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                )
-            }
-        }
-
-        // --- Основной контент ---
         when {
             uiState.isLoading -> {
                 Box(

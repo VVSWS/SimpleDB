@@ -62,10 +62,10 @@ class MainActivity : ComponentActivity() {
                         composable("new_metadata") {
                             NewEntryMetadataScreen(navController)
                         }
-                        composable("edit_entry/{entryId?}") { backStackEntry ->
-                            val entryId = backStackEntry.arguments?.getString("entryId")?.toLongOrNull()
-                            EditEntryScreen(navController, entryId)
+                        composable("edit_entry") {
+                            EditEntryScreen(navController, entryId = null)
                         }
+
                         composable("search") {
                             EntrySearchScreen(navController)
                         }
