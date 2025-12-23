@@ -1,30 +1,30 @@
 package ru.tusur.presentation.entrylist
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.compose.koinInject
-import ru.tusur.core.ui.component.FaultCard
-import ru.tusur.presentation.R
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import ru.tusur.domain.model.FaultEntry
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.HorizontalDivider
 
 
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryListScreen(
     navController: NavController,
@@ -34,31 +34,54 @@ fun EntryListScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(filter) {
-        val parsedFilter = when (filter) {
-            "recent" -> EntryListViewModel.Filter.Recent
-            else -> EntryListViewModel.Filter.Custom()
-        }
-        viewModel.loadEntries(parsedFilter)
+        viewModel.loadEntries(filter)
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = when (filter) {
+                            "recent" -> "Recent Entries"
+                            "search" -> "Search Results"
+                            else -> "Entries"
+                        },
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            )
+        }
+    ) { padding ->
 
         when {
             uiState.isLoading -> {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
             }
 
-            uiState.error != null -> {
+            uiState.entries.isEmpty() -> {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Error: ${uiState.error}")
+                    Text("No entries found")
                 }
             }
 
@@ -66,42 +89,83 @@ fun EntryListScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(8.dp)
+                        .padding(padding)
                 ) {
-                    items(uiState.entries) { entry ->
-                        FaultCard(
-                            model = entry.model.name,
-                            year = entry.year.value,
-                            location = entry.location.name,
-                            title = entry.title,
-                            timestamp = LocalDateTime.ofEpochSecond(
-                                entry.timestamp,
-                                0,
-                                ZoneOffset.UTC
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp)
-                                .clickable {
-                                    navController.navigate("edit_entry/${entry.id}")
-                                }
-                        )
-                    }
+                    items(
+                        items = uiState.entries,
+                        key = { it.id ?: it.hashCode().toLong() }
+                    ) { entry ->
+                        SwipeToDeleteEntryItem(
+                            entry = entry,
+                            onClick = {
+                                navController.navigate("edit_entry/${entry.id}")
 
-                    if (uiState.entries.isEmpty()) {
-                        item {
-                            Text(
-                                text = "No entries found",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                            },
+                            onDelete = { viewModel.deleteEntry(entry) }
+                        )
+                        HorizontalDivider()
+
                     }
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeToDeleteEntryItem(
+    entry: FaultEntry,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val state = rememberSwipeToDismissBoxState()
+
+    // When the user finishes swiping, check the final state
+    LaunchedEffect(state.currentValue) {
+        if (state.currentValue == SwipeToDismissBoxValue.EndToStart) {
+            onDelete()
+            // Reset state so the item doesn't stay dismissed
+            state.snapTo(SwipeToDismissBoxValue.Settled)
+        }
+    }
+
+    SwipeToDismissBox(
+        state = state,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    ) {
+        ListItem(
+            headlineContent = {
+                Text(
+                    text = entry.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
+            supportingContent = {
+                Text(
+                    text = entry.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+        )
     }
 }

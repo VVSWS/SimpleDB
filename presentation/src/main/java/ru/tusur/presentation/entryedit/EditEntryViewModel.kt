@@ -27,39 +27,67 @@ class EditEntryViewModel(
             get() = descriptionError == null && entry.description.isNotBlank()
     }
 
-
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
+    /**
+     * Load entry for editing.
+     * If entryId == null → new entry mode.
+     */
     fun loadEntry(entryId: Long?) {
-        if (entryId == null) return
+        if (entryId == null) {
+            // NEW ENTRY MODE
+            _uiState.value = UiState(
+                entry = FaultEntry(),
+                isEditMode = false,
+                isLoading = false
+            )
+            return
+        }
 
+        // EDIT MODE
         _uiState.value = _uiState.value.copy(isLoading = true)
 
         viewModelScope.launch {
-            getEntryById(entryId).onSuccess { entry ->
-                _uiState.value = UiState(
-                    entry = entry ?: FaultEntry(),
-                    isEditMode = entry != null
-                )
-            }.onFailure {
-                // No `error` field anymore → just reset state
-                _uiState.value = UiState()
-            }
+            getEntryById(entryId)
+                .onSuccess { entry ->
+                    _uiState.value = UiState(
+                        entry = entry ?: FaultEntry(),
+                        isEditMode = entry != null,
+                        isLoading = false
+                    )
+                }
+                .onFailure {
+                    // If loading fails → fallback to new entry mode
+                    _uiState.value = UiState(
+                        entry = FaultEntry(),
+                        isEditMode = false,
+                        isLoading = false
+                    )
+                }
         }
     }
 
-
+    /**
+     * Update description field.
+     */
     fun onDescriptionChanged(description: String) {
+        val error = if (description.isBlank()) {
+            "Description cannot be empty"
+        } else null
+
         _uiState.value = _uiState.value.copy(
-            entry = _uiState.value.entry.copy(description = description)
+            entry = _uiState.value.entry.copy(description = description),
+            descriptionError = error
         )
     }
 
+    /**
+     * Save entry (create or update).
+     */
     fun saveEntry() {
         val state = _uiState.value
 
-        // Basic validation guard
         if (!state.isValid) return
 
         _uiState.value = state.copy(isSaving = true)
@@ -67,13 +95,12 @@ class EditEntryViewModel(
         viewModelScope.launch {
             try {
                 if (state.isEditMode) {
-                    // Existing entry -> update
+                    // UPDATE EXISTING ENTRY
                     updateEntry(state.entry)
                 } else {
-                    // New entry -> create with timestamp if needed
+                    // CREATE NEW ENTRY
                     val newEntry = state.entry.copy(
-                        // adjust field name if different
-
+                        timestamp = System.currentTimeMillis()
                     )
                     createEntry(newEntry)
                 }
@@ -82,26 +109,31 @@ class EditEntryViewModel(
                     isSaving = false,
                     saveCompleted = true
                 )
+
             } catch (e: Exception) {
-                // For now just stop saving; we’ll improve error reporting later
                 _uiState.value = _uiState.value.copy(isSaving = false)
-                // Log.e("EditEntryViewModel", "Error saving entry", e)
             }
         }
     }
 
-
-
-
+    /**
+     * Delete entry (only in edit mode).
+     */
     fun deleteEntry() {
         if (!_uiState.value.isEditMode) return
 
         viewModelScope.launch {
-            deleteEntry(_uiState.value.entry).onSuccess {
-                // TODO: navigate back
-            }
+            deleteEntry(_uiState.value.entry)
+                .onSuccess {
+                    // Navigation handled in screen
+                    _uiState.value = _uiState.value.copy(saveCompleted = true)
+                }
         }
     }
+
+    /**
+     * Reset saveCompleted flag after navigation.
+     */
     fun consumeSaveCompleted() {
         _uiState.value = _uiState.value.copy(saveCompleted = false)
     }

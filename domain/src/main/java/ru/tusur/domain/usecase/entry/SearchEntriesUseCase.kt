@@ -7,10 +7,10 @@ class SearchEntriesUseCase(
     private val repository: FaultRepository
 ) {
     suspend operator fun invoke(
-        year: Int? = null,
-        model: String? = null,
-        location: String? = null
-    ): Result<List<FaultEntry>> = runCatching {
-        repository.searchEntries(year, model, location)
+        year: Int?,
+        model: String?,
+        location: String?
+    ): Result<List<FaultEntry>> {
+        return runCatching { repository.searchEntries(year, model, location) }
     }
 }

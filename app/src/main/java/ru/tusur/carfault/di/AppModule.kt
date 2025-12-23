@@ -164,9 +164,11 @@ val appModule = module {
     viewModel {
         EntryListViewModel(
             getRecentEntries = get(),
-            searchEntries = get()
+            searchEntries = get(),
+            deleteEntryUseCase = get()
         )
     }
+
 
     // New entry metadata selection + adding new year/model/location
     viewModel {

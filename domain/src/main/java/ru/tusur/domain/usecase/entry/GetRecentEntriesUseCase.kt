@@ -6,6 +6,7 @@ import ru.tusur.domain.repository.FaultRepository
 class GetRecentEntriesUseCase(
     private val repository: FaultRepository
 ) {
-    suspend operator fun invoke(limit: Int = 5): Result<List<FaultEntry>> =
-        runCatching { repository.getRecentEntries(limit) }
+    suspend operator fun invoke(): Result<List<FaultEntry>> {
+        return runCatching { repository.getRecentEntries() }
+    }
 }

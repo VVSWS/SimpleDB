@@ -44,8 +44,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
-
                     NavHost(
                         navController = navController,
                         startDestination = "main"
@@ -53,29 +51,49 @@ class MainActivity : ComponentActivity() {
                         composable("main") {
                             MainScreen(navController)
                         }
+
+                        // List of entries – recent
                         composable("recent_entries") {
                             EntryListScreen(navController, filter = "recent")
                         }
+
+                        // List of entries – search results
                         composable("search_entries") {
                             EntryListScreen(navController, filter = "search")
                         }
+
+                        // New entry metadata screen
                         composable("new_metadata") {
                             NewEntryMetadataScreen(navController)
                         }
+
+                        // Create NEW entry (no id passed)
                         composable("edit_entry") {
                             EditEntryScreen(navController, entryId = null)
+                        }
+
+                        // EDIT existing entry (id passed in route)
+                        composable("edit_entry/{entryId}") { backStackEntry ->
+                            val id = backStackEntry.arguments
+                                ?.getString("entryId")
+                                ?.toLongOrNull()
+
+                            EditEntryScreen(navController, entryId = id)
                         }
 
                         composable("search") {
                             EntrySearchScreen(navController)
                         }
+
                         composable("settings") {
                             SettingsScreen(navController)
                         }
+
                         composable("about") {
                             AboutScreen(navController)
                         }
                     }
+
                 }
             }
         }

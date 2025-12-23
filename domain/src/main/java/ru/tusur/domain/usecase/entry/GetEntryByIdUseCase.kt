@@ -6,6 +6,7 @@ import ru.tusur.domain.repository.FaultRepository
 class GetEntryByIdUseCase(
     private val repository: FaultRepository
 ) {
-    suspend operator fun invoke(id: Long): Result<FaultEntry?> =
-        runCatching { repository.getEntryById(id) }
+    suspend operator fun invoke(id: Long): Result<FaultEntry?> {
+        return runCatching { repository.getEntryById(id) }
+    }
 }
