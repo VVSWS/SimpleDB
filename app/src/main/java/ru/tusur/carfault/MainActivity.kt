@@ -12,10 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.KoinApplication
 import ru.tusur.presentation.about.AboutScreen
-import ru.tusur.presentation.entryedit.EditEntryScreen
 import ru.tusur.presentation.entrylist.EntryListScreen
 import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataScreen
 import ru.tusur.presentation.entrysearch.EntrySearchScreen
@@ -67,20 +64,6 @@ class MainActivity : ComponentActivity() {
                             NewEntryMetadataScreen(navController)
                         }
 
-                        // Create NEW entry (no id passed)
-                        composable("edit_entry") {
-                            EditEntryScreen(navController, entryId = null)
-                        }
-
-                        // EDIT existing entry (id passed in route)
-                        composable("edit_entry/{entryId}") { backStackEntry ->
-                            val id = backStackEntry.arguments
-                                ?.getString("entryId")
-                                ?.toLongOrNull()
-
-                            EditEntryScreen(navController, entryId = id)
-                        }
-
                         composable("search") {
                             EntrySearchScreen(navController)
                         }
@@ -92,6 +75,9 @@ class MainActivity : ComponentActivity() {
                         composable("about") {
                             AboutScreen(navController)
                         }
+
+
+
                     }
 
                 }

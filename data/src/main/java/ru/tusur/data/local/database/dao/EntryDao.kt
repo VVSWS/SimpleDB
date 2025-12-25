@@ -16,6 +16,18 @@ interface EntryDao {
     @Query("SELECT * FROM entries ORDER BY timestamp DESC LIMIT 5")
     suspend fun getRecentEntries(): List<EntryEntity>
 
+    @Query("SELECT * FROM entries")
+    fun getAllSync(): List<EntryEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entry: EntryEntity)
+
+    @Query("SELECT * FROM entries WHERE id = :id")
+    suspend fun getById(id: Long): EntryEntity?
+
+    @Delete
+    suspend fun delete(entry: EntryEntity)
+
     @Query("""
         SELECT * FROM entries
         WHERE (:year IS NULL OR year = :year)

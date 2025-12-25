@@ -98,8 +98,7 @@ fun EntryListScreen(
                         SwipeToDeleteEntryItem(
                             entry = entry,
                             onClick = {
-                                navController.navigate("edit_entry/${entry.id}")
-
+                                navController.navigate("edit_entry/${entry.id}/metadata")
                             },
                             onDelete = { viewModel.deleteEntry(entry) }
                         )
@@ -165,7 +164,11 @@ private fun SwipeToDeleteEntryItem(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
+                .clickable {
+                    android.util.Log.d("EntryList", "Entry clicked: id=${entry.id}, title=${entry.title}")
+                    onClick()
+                }
+
         )
     }
 }

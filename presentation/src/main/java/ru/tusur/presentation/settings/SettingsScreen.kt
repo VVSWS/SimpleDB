@@ -21,54 +21,68 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
+import ru.tusur.core.util.FileHelper
 import ru.tusur.presentation.R
+import java.io.File
 
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen(
+    navController: NavController,
+    viewModel: SettingsViewModel = koinViewModel()
+) {
     val context = LocalContext.current
-    val viewModel: SettingsViewModel = koinViewModel()
 
-    // Launchers
+
+    // File selected for merge/import
+    var selectedFile by remember { mutableStateOf<File?>(null) }
+
+    // Pick a DB file (for merge or import)
+    val pickFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val file = FileHelper.copyUriToTempFile(context, it)
+            selectedFile = file
+        }
+    }
+
+    // Open DB (SettingsViewModel handles the URI)
     val openDbLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let { viewModel.handleDbSelected(it) }
     }
 
+    // Folder picker (for export destination)
     val openFolderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
         uri?.let {
-            val takeFlags = (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                context.contentResolver.takePersistableUriPermission(it, takeFlags)
+                context.contentResolver.takePersistableUriPermission(it, flags)
             }
         }
     }
 
-    // Handle one-off events
+    // ViewModel state
+    val uiState by viewModel.state.collectAsState()
+
+    // One-off events
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                is SettingsEvent.LanguageChanged -> {
-                    // no-op for now, or hook into your localization system
-                }
-
-                is SettingsEvent.DatabaseError -> {
-                    // You can show a Snackbar, Toast, or dialog here
-                    // For now, just stay on screen.
-                }
-
+                is SettingsEvent.LanguageChanged -> Unit
+                is SettingsEvent.DatabaseError -> Unit
                 SettingsEvent.DatabaseCreated,
-                SettingsEvent.DatabaseOpened -> {
-                    navController.popBackStack()
-                }
+                SettingsEvent.DatabaseOpened -> navController.popBackStack()
             }
         }
     }
 
     Column(Modifier.fillMaxSize()) {
+
+        // Top bar
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 3.dp,
@@ -101,12 +115,15 @@ fun SettingsScreen(navController: NavController) {
             }
         }
 
+        // Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+
+            // LANGUAGE
             Text(
                 text = stringResource(R.string.settings_language),
                 style = MaterialTheme.typography.titleMedium,
@@ -115,18 +132,19 @@ fun SettingsScreen(navController: NavController) {
 
             LanguageRadioButton(
                 label = stringResource(R.string.settings_language_en),
-                selected = viewModel.uiState.language == SettingsViewModel.Language.EN,
+                selected = uiState.language == SettingsViewModel.Language.EN,
                 onClick = { viewModel.setLanguage(SettingsViewModel.Language.EN) }
             )
 
             LanguageRadioButton(
                 label = stringResource(R.string.settings_language_es),
-                selected = viewModel.uiState.language == SettingsViewModel.Language.ES,
+                selected = uiState.language == SettingsViewModel.Language.ES,
                 onClick = { viewModel.setLanguage(SettingsViewModel.Language.ES) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // THEME
             Text(
                 text = stringResource(R.string.settings_theme),
                 style = MaterialTheme.typography.titleMedium,
@@ -135,30 +153,51 @@ fun SettingsScreen(navController: NavController) {
 
             ThemeRadioButton(
                 label = stringResource(R.string.settings_theme_system),
-                selected = viewModel.uiState.theme == SettingsViewModel.Theme.SYSTEM,
+                selected = uiState.theme == SettingsViewModel.Theme.SYSTEM,
                 onClick = { viewModel.setTheme(SettingsViewModel.Theme.SYSTEM) }
             )
 
             ThemeRadioButton(
                 label = stringResource(R.string.settings_theme_light),
-                selected = viewModel.uiState.theme == SettingsViewModel.Theme.LIGHT,
+                selected = uiState.theme == SettingsViewModel.Theme.LIGHT,
                 onClick = { viewModel.setTheme(SettingsViewModel.Theme.LIGHT) }
             )
 
             ThemeRadioButton(
                 label = stringResource(R.string.settings_theme_dark),
-                selected = viewModel.uiState.theme == SettingsViewModel.Theme.DARK,
+                selected = uiState.theme == SettingsViewModel.Theme.DARK,
                 onClick = { viewModel.setTheme(SettingsViewModel.Theme.DARK) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // DATABASE SECTION
             Text(
                 text = stringResource(R.string.settings_db),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
+            // MERGE
+            Button(
+                onClick = { selectedFile?.let { viewModel.mergeDatabase(it) } },
+                enabled = selectedFile != null,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Merge Database")
+            }
+
+            // PICK FILE FOR MERGE
+            Button(
+                onClick = { pickFileLauncher.launch("*/*") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Choose Database File")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // CREATE NEW DB
             Button(
                 onClick = { viewModel.createNewDatabase() },
                 modifier = Modifier.fillMaxWidth()
@@ -168,8 +207,18 @@ fun SettingsScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // OPEN EXISTING DB
             Button(
-                onClick = { openDbLauncher.launch(arrayOf("application/x-sqlite3", "application/octet-stream")) },
+                onClick = {
+                    openDbLauncher.launch(
+                        arrayOf(
+                            "application/x-sqlite3",
+                            "application/octet-stream",
+                            "application/vnd.sqlite3",
+                            "*/*"
+                        )
+                    )
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.settings_open_db))
@@ -177,6 +226,7 @@ fun SettingsScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // SHOW FOLDER
             OutlinedButton(
                 onClick = { openFolderLauncher.launch(null) },
                 modifier = Modifier.fillMaxWidth()
@@ -197,14 +247,8 @@ private fun LanguageRadioButton(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick
-        )
-        Text(
-            text = label,
-            modifier = Modifier.padding(start = 8.dp)
-        )
+        RadioButton(selected = selected, onClick = onClick)
+        Text(text = label, modifier = Modifier.padding(start = 8.dp))
     }
 }
 
@@ -218,13 +262,7 @@ private fun ThemeRadioButton(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick
-        )
-        Text(
-            text = label,
-            modifier = Modifier.padding(start = 8.dp)
-        )
+        RadioButton(selected = selected, onClick = onClick)
+        Text(text = label, modifier = Modifier.padding(start = 8.dp))
     }
 }

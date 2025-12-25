@@ -4,17 +4,23 @@ import android.content.Context
 import ru.tusur.core.util.FileHelper
 import java.io.File
 
-/**
- * Takes a source DB file (e.g., copied from SAF Uri to cache),
- * normalizes its name, and copies it into the active DB location.
- */
 class OpenDatabaseUseCase(
     private val context: Context
 ) {
 
-    operator fun invoke(tempSourceFile: File): File {
-        val activeDbFile = FileHelper.getActiveDatabaseFile(context)
-        FileHelper.copyFile(tempSourceFile, activeDbFile)
-        return activeDbFile
+    operator fun invoke(file: File): File {
+        if (!file.exists()) {
+            throw IllegalArgumentException("Database file does not exist")
+        }
+
+        // Basic corruption check
+        if (file.length() < 100) {
+            throw IllegalStateException("Database file is corrupted or empty")
+        }
+
+        val activeFile = FileHelper.getActiveDatabaseFile(context)
+        FileHelper.copyFile(file, activeFile)
+
+        return activeFile
     }
 }

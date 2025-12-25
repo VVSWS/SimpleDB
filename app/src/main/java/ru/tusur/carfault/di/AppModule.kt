@@ -10,6 +10,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ru.tusur.core.util.FileHelper
 import ru.tusur.data.local.DatabaseProvider
+import ru.tusur.data.local.MergeDatabaseManager
 import ru.tusur.data.local.RoomDatabaseValidator
 import ru.tusur.data.local.database.AppDatabase
 import ru.tusur.data.local.database.dao.EntryDao
@@ -26,6 +27,7 @@ import ru.tusur.domain.repository.FaultRepository
 import ru.tusur.domain.repository.ReferenceDataRepository
 import ru.tusur.domain.usecase.database.CreateDatabaseUseCase
 import ru.tusur.domain.usecase.database.GetCurrentDatabaseInfoUseCase
+import ru.tusur.data.local.MergeDatabaseUseCase
 import ru.tusur.domain.usecase.database.OpenDatabaseUseCase
 import ru.tusur.domain.usecase.entry.CreateEntryUseCase
 import ru.tusur.domain.usecase.entry.DeleteEntryUseCase
@@ -77,6 +79,7 @@ val appModule = module {
     single {
         DatabaseProvider(androidContext())
     }
+    single { MergeDatabaseManager(androidContext(), get()) }
 
     // Active DB file (hybrid model: always internal, imported from anywhere)
     single<File>(named("activeDbFile")) {
@@ -148,6 +151,8 @@ val appModule = module {
     factory { CreateDatabaseUseCase(androidContext()) }
     factory { OpenDatabaseUseCase(androidContext()) }
     factory { GetCurrentDatabaseInfoUseCase(androidContext()) }
+    factory { MergeDatabaseUseCase(androidContext(), get(), get()) }
+
 
     /* ==============
      *  VIEW MODELS
@@ -207,7 +212,8 @@ val appModule = module {
             context = androidContext(),
             dataStore = get(),
             createDbUseCase = get(),
-            openDbUseCase = get()
+            openDbUseCase = get(),
+            mergeManager = get()
         )
     }
 

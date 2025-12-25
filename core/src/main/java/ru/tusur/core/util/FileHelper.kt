@@ -3,6 +3,7 @@ package ru.tusur.core.util
 import android.content.Context
 import java.io.File
 import java.io.IOException
+import android.net.Uri
 
 object FileHelper {
 
@@ -20,6 +21,26 @@ object FileHelper {
     }
 
     /**
+     * Copies a content:// URI (from SAF or file picker) into a temporary file
+     * inside the app's cache directory. Returns the resulting File.
+     */
+    @Throws(IOException::class)
+    fun copyUriToTempFile(context: Context, uri: Uri): File {
+        val contentResolver = context.contentResolver
+
+        // Create a temp file inside cache directory
+        val tempFile = File.createTempFile("import_", ".db", context.cacheDir)
+
+        contentResolver.openInputStream(uri)?.use { input ->
+            tempFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        } ?: throw IOException("Unable to open input stream for URI: $uri")
+
+        return tempFile
+    }
+
+    /**
      * Ensure a DB name starts with BD_ and has .db extension.
      */
     fun normalizeDbName(rawName: String): String {
@@ -29,6 +50,11 @@ object FileHelper {
 
         return "${DB_PREFIX}${base}.db"
     }
+    fun databaseExists(context: Context): Boolean {
+        val file = FileHelper.getActiveDatabaseFile(context)
+        return file.exists() && file.length() > 100
+    }
+
 
     /**
      * Copy a file, overwriting the destination.

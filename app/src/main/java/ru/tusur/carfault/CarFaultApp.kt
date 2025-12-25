@@ -10,7 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ru.tusur.core.ui.theme.CarFaultTheme
 import ru.tusur.presentation.about.AboutScreen
-import ru.tusur.presentation.entryedit.EditEntryScreen
+import ru.tusur.presentation.entryedit.EditEntryDescriptionScreen
+import ru.tusur.presentation.entryedit.EditEntryMetadataScreen
 import ru.tusur.presentation.entrylist.EntryListScreen
 import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataScreen
 import ru.tusur.presentation.entrysearch.EntrySearchScreen
@@ -32,11 +33,22 @@ fun CarFaultApp() {
                 composable("new_metadata") { NewEntryMetadataScreen(navController) }
                 composable("edit_entry/{entryId?}") { backStackEntry ->
                     val entryId = backStackEntry.arguments?.getString("entryId")?.toLongOrNull()
-                    EditEntryScreen(navController, entryId)
+                    navController.navigate("edit_entry/${entryId}/metadata")
                 }
+
                 composable("search") { EntrySearchScreen(navController) }
                 composable("settings") { SettingsScreen(navController) }
                 composable("about") { AboutScreen(navController) }
+                composable("edit_entry/{id}/metadata") { backStackEntry ->
+                    val id = backStackEntry.arguments?.getString("id")?.toLongOrNull()
+                    EditEntryMetadataScreen(navController, id)
+                }
+
+                composable("edit_entry/{id}/description") { backStackEntry ->
+                    val id = backStackEntry.arguments?.getString("id")?.toLongOrNull()
+                    EditEntryDescriptionScreen(navController, id)
+                }
+
             }
         }
     }

@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.tusur.domain.model.FaultEntry
 import ru.tusur.domain.usecase.entry.*
+import ru.tusur.domain.model.Year
+import ru.tusur.domain.model.Model
+import ru.tusur.domain.model.Location
+
 
 class EditEntryViewModel(
     private val getEntryById: GetEntryByIdUseCase,
@@ -137,4 +141,30 @@ class EditEntryViewModel(
     fun consumeSaveCompleted() {
         _uiState.value = _uiState.value.copy(saveCompleted = false)
     }
+
+    fun onTitleChanged(title: String) {
+        _uiState.value = _uiState.value.copy(
+            entry = _uiState.value.entry.copy(title = title)
+        )
+    }
+
+    fun onYearChanged(year: Year) {
+        _uiState.value = _uiState.value.copy(
+            entry = _uiState.value.entry.copy(year = year)
+        )
+    }
+
+    fun onModelChanged(model: Model) {
+        _uiState.value = _uiState.value.copy(
+            entry = _uiState.value.entry.copy(model = model)
+        )
+    }
+
+    fun onLocationChanged(location: Location) {
+        _uiState.value = _uiState.value.copy(
+            entry = _uiState.value.entry.copy(location = location)
+        )
+    }
+
+
 }
