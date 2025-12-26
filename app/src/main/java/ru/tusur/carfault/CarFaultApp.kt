@@ -17,6 +17,9 @@ import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataScreen
 import ru.tusur.presentation.entrysearch.EntrySearchScreen
 import ru.tusur.presentation.mainscreen.MainScreen
 import ru.tusur.presentation.settings.SettingsScreen
+import ru.tusur.presentation.entryview.RecordingViewScreen
+
+
 
 @Composable
 fun CarFaultApp() {
@@ -26,22 +29,33 @@ fun CarFaultApp() {
             color = MaterialTheme.colorScheme.background
         ) {
             val navController = rememberNavController()
+
             NavHost(navController = navController, startDestination = "main") {
+
                 composable("main") { MainScreen(navController) }
-                composable("recent_entries") { EntryListScreen(navController, filter = "recent") }
-                composable("search_entries") { EntryListScreen(navController, filter = "search") }
-                composable("new_metadata") { NewEntryMetadataScreen(navController) }
-                composable("edit_entry/{entryId?}") { backStackEntry ->
-                    val entryId = backStackEntry.arguments?.getString("entryId")?.toLongOrNull()
-                    navController.navigate("edit_entry/${entryId}/metadata")
+
+                composable("recent_entries") {
+                    EntryListScreen(navController, filter = "recent")
                 }
 
-                composable("search") { EntrySearchScreen(navController) }
-                composable("settings") { SettingsScreen(navController) }
-                composable("about") { AboutScreen(navController) }
-                composable("edit_entry/{id}/metadata") { backStackEntry ->
-                    val id = backStackEntry.arguments?.getString("id")?.toLongOrNull()
-                    EditEntryMetadataScreen(navController, id)
+                composable("search_entries") {
+                    EntryListScreen(navController, filter = "search")
+                }
+
+                composable("new_metadata") {
+                    NewEntryMetadataScreen(navController)
+                }
+
+                composable("search") {
+                    EntrySearchScreen(navController)
+                }
+
+                composable("settings") {
+                    SettingsScreen(navController)
+                }
+
+                composable("about") {
+                    AboutScreen(navController)
                 }
 
                 composable("edit_entry/{id}/description") { backStackEntry ->
@@ -49,6 +63,11 @@ fun CarFaultApp() {
                     EditEntryDescriptionScreen(navController, id)
                 }
 
+                // ✅ FIXED: this is now a separate composable
+                composable("view_entry/{id}") { backStackEntry ->
+                    val id = backStackEntry.arguments?.getString("id")!!.toLong()
+                    RecordingViewScreen(navController, id)
+                }
             }
         }
     }

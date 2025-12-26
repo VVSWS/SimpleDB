@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.tusur.core.util.FileHelper
+import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.data.local.MergeDatabaseManager
 import ru.tusur.domain.usecase.database.CreateDatabaseUseCase
 import ru.tusur.domain.usecase.database.OpenDatabaseUseCase
@@ -25,11 +26,12 @@ class SettingsViewModel(
     private val dataStore: DataStore<Preferences>,
     private val createDbUseCase: CreateDatabaseUseCase,
     private val openDbUseCase: OpenDatabaseUseCase,
-    private val mergeManager: MergeDatabaseManager
+    private val mergeManager: MergeDatabaseManager,
+    private val provider: DatabaseProvider
 ) : ViewModel() {
 
     // -------------------------
-    // SINGLE SOURCE OF TRUTH
+    // STATE
     // -------------------------
     private val _state = MutableStateFlow(SettingsState())
     val state: StateFlow<SettingsState> = _state
@@ -64,7 +66,7 @@ class SettingsViewModel(
     }
 
     // -------------------------
-    // LOAD SETTINGS
+    // LOAD SETTINGS FROM DATASTORE
     // -------------------------
     private fun loadSettings() {
         viewModelScope.launch {
@@ -75,7 +77,8 @@ class SettingsViewModel(
 
                     SettingsState(
                         language = Language.fromCode(langCode),
-                        theme = Theme.fromValue(themeValue)
+                        theme = Theme.fromValue(themeValue),
+                        message = null
                     )
                 }
                 .collect { newState ->
@@ -87,13 +90,14 @@ class SettingsViewModel(
     // -------------------------
     // LANGUAGE + THEME
     // -------------------------
+
     fun setLanguage(language: Language) {
         viewModelScope.launch {
             dataStore.edit { prefs ->
                 prefs[KEY_LANGUAGE] = language.code
             }
             _state.value = _state.value.copy(language = language)
-            _events.emit(SettingsEvent.LanguageChanged(language.code))
+            _events.tryEmit(SettingsEvent.LanguageChanged(language.code))
         }
     }
 
@@ -110,20 +114,38 @@ class SettingsViewModel(
     // DATABASE OPERATIONS
     // -------------------------
 
+    /**
+     * Create new active DB at the path returned by FileHelper.getActiveDatabaseFile(context).
+     * Uses your existing CreateDatabaseUseCase.
+     */
     fun createNewDatabase() {
         viewModelScope.launch {
             try {
+                println("DEBUG: createNewDatabase() called")
+
                 val file = createDbUseCase()
+
+                // Initialize Room schema here (data layer)
+                provider.getDatabase(file)
+
                 _state.value = _state.value.copy(
                     message = "New database created: ${file.name}"
                 )
-                _events.emit(SettingsEvent.DatabaseCreated)
+                _events.tryEmit(SettingsEvent.DatabaseCreated)
+
             } catch (e: Exception) {
-                _events.emit(SettingsEvent.DatabaseError("Failed: ${e.message}"))
+                val msg = "Failed to create database: ${e.message}"
+                _state.value = _state.value.copy(message = msg)
+                _events.tryEmit(SettingsEvent.DatabaseError(msg))
             }
         }
     }
 
+
+    /**
+     * Called when user selects DB via SAF (OpenDocument).
+     * Copy into internal storage and use OpenDatabaseUseCase.
+     */
     fun handleDbSelected(uri: Uri) {
         viewModelScope.launch {
             try {
@@ -137,10 +159,12 @@ class SettingsViewModel(
                 openDbUseCase(tempFile)
                 tempFile.delete()
 
-                _events.emit(SettingsEvent.DatabaseOpened)
+                _events.tryEmit(SettingsEvent.DatabaseOpened)
 
             } catch (e: Exception) {
-                _events.emit(SettingsEvent.DatabaseError("Failed: ${e.message}"))
+                val msg = "Failed to open database: ${e.message}"
+                _state.value = _state.value.copy(message = msg)
+                _events.tryEmit(SettingsEvent.DatabaseError(msg))
             }
         }
     }
@@ -166,7 +190,7 @@ class SettingsViewModel(
                 val active = FileHelper.getActiveDatabaseFile(context)
                 FileHelper.copyFile(active, dest)
                 _state.value = _state.value.copy(
-                    message = "Exported to ${dest.absolutePath}"
+                    message = "Database exported to ${dest.absolutePath}"
                 )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(

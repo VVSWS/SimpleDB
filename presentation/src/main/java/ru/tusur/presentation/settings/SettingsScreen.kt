@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,18 +25,19 @@ import ru.tusur.core.util.FileHelper
 import ru.tusur.presentation.R
 import java.io.File
 
+
 @Composable
 fun SettingsScreen(
     navController: NavController,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
+    println("DEBUG: SettingsScreen COMPOSED")
+
     val context = LocalContext.current
 
-
-    // File selected for merge/import
     var selectedFile by remember { mutableStateOf<File?>(null) }
 
-    // Pick a DB file (for merge or import)
+    // Pick a DB file (for merge)
     val pickFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -46,14 +47,14 @@ fun SettingsScreen(
         }
     }
 
-    // Open DB (SettingsViewModel handles the URI)
+    // Open an existing DB file
     val openDbLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let { viewModel.handleDbSelected(it) }
     }
 
-    // Folder picker (for export destination)
+    // Pick folder (e.g. for export – you can wire later)
     val openFolderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
@@ -65,17 +66,35 @@ fun SettingsScreen(
         }
     }
 
-    // ViewModel state
+    // State
     val uiState by viewModel.state.collectAsState()
 
-    // One-off events
+    uiState.message?.let { msg ->
+        Text(
+            text = msg,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(8.dp)
+        )
+    }
+
+
+    // Events (no navigation here anymore)
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                is SettingsEvent.LanguageChanged -> Unit
-                is SettingsEvent.DatabaseError -> Unit
-                SettingsEvent.DatabaseCreated,
-                SettingsEvent.DatabaseOpened -> navController.popBackStack()
+                is SettingsEvent.LanguageChanged -> {
+                    // Hook into your localization if needed
+                }
+                is SettingsEvent.DatabaseError -> {
+                    // Show snackbar/toast if you want
+                    println("DB error: ${event.message}")
+                }
+                is SettingsEvent.DatabaseCreated -> {
+                    println("Database created")
+                }
+                is SettingsEvent.DatabaseOpened -> {
+                    println("Database opened")
+                }
             }
         }
     }
@@ -99,7 +118,7 @@ fun SettingsScreen(
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
                     )
                 }
@@ -226,7 +245,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // SHOW FOLDER
+            // SHOW FOLDER (currently just grants access)
             OutlinedButton(
                 onClick = { openFolderLauncher.launch(null) },
                 modifier = Modifier.fillMaxWidth()

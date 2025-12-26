@@ -65,7 +65,7 @@ class EntrySearchViewModel(
     }
 
     data class Filter(
-        val year: Int? = null,
+        val year: String? = null,
         val model: String? = null,
         val location: String? = null
     )

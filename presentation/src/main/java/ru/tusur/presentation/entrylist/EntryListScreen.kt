@@ -98,7 +98,7 @@ fun EntryListScreen(
                         SwipeToDeleteEntryItem(
                             entry = entry,
                             onClick = {
-                                navController.navigate("edit_entry/${entry.id}/metadata")
+                                navController.navigate("view_entry/${entry.id}")
                             },
                             onDelete = { viewModel.deleteEntry(entry) }
                         )

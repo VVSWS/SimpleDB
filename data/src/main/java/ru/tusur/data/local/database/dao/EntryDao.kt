@@ -7,9 +7,11 @@ import ru.tusur.data.local.entity.EntryWithImages
 
 @Dao
 interface EntryDao {
+
     @Query("SELECT * FROM entries ORDER BY timestamp DESC")
     fun getAllEntries(): Flow<List<EntryEntity>>
 
+    @Transaction
     @Query("SELECT * FROM entries WHERE id = :id")
     suspend fun getEntryById(id: Long): EntryWithImages?
 
@@ -49,4 +51,9 @@ interface EntryDao {
 
     @Delete
     suspend fun deleteEntry(entry: EntryEntity)
+
+    // NEW — this replaces your broken "Any" version
+    @Transaction
+    @Query("SELECT * FROM entries WHERE id = :id")
+    suspend fun getEntryWithRecording(id: Long): EntryWithImages
 }

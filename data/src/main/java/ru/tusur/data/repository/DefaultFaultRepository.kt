@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.tusur.data.local.database.dao.EntryDao
 import ru.tusur.data.mapper.EntryMapper
+import ru.tusur.domain.model.EntryWithRecording
 import ru.tusur.domain.model.FaultEntry
 import ru.tusur.domain.repository.FaultRepository
 
@@ -42,6 +43,12 @@ class DefaultFaultRepository(
     override suspend fun updateEntry(entry: FaultEntry) {
         entryDao.updateEntry(mapper.toEntity(entry))
     }
+
+    override suspend fun getEntryWithRecording(id: Long): EntryWithRecording {
+        val entity = entryDao.getEntryWithRecording(id)
+        return mapper.toRecording(entity)
+    }
+
 
     override suspend fun deleteEntry(entry: FaultEntry) {
         entryDao.deleteEntry(mapper.toEntity(entry))

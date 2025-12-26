@@ -6,6 +6,7 @@ import ru.tusur.data.local.database.dao.LocationDao
 import ru.tusur.data.local.database.dao.ModelDao
 import ru.tusur.data.local.database.dao.YearDao
 import ru.tusur.data.mapper.ReferenceDataMapper
+import ru.tusur.domain.model.EntryWithRecording
 import ru.tusur.domain.model.Location
 import ru.tusur.domain.model.Model
 import ru.tusur.domain.model.Year

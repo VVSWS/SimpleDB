@@ -23,8 +23,8 @@ import ru.tusur.data.local.entity.YearEntity
         LocationEntity::class,
         EntryImageEntity::class
     ],
-    version = 1,
-    exportSchema = true
+    version = 2,
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

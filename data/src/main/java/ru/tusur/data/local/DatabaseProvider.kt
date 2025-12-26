@@ -17,7 +17,6 @@ class DatabaseProvider(private val context: Context) {
 
             currentDatabase?.close()
 
-            // If file is corrupted → delete and recreate
             if (dbFile.exists() && dbFile.length() < 100) {
                 dbFile.delete()
             }
@@ -25,10 +24,9 @@ class DatabaseProvider(private val context: Context) {
             currentDatabase = Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
-                "active.db"
+                dbFile.absolutePath
             )
-                .createFromFile(dbFile)
-                .fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration(true)   // ← FIXED
                 .openHelperFactory(FrameworkSQLiteOpenHelperFactory())
                 .build()
 
@@ -44,3 +42,5 @@ class DatabaseProvider(private val context: Context) {
         currentDbFile = null
     }
 }
+
+

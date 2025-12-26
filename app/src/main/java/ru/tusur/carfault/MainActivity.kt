@@ -2,23 +2,9 @@ package ru.tusur.carfault
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import ru.tusur.presentation.about.AboutScreen
-import ru.tusur.presentation.entrylist.EntryListScreen
-import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataScreen
-import ru.tusur.presentation.entrysearch.EntrySearchScreen
-import ru.tusur.presentation.mainscreen.MainScreen
-import ru.tusur.presentation.settings.SettingsScreen
-import ru.tusur.carfault.ui.theme.CarFaultTheme
+
 
 class MainActivity : ComponentActivity() {
 
@@ -28,60 +14,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            CarFaultTheme {
-
-                val navController = rememberNavController()
-
-                BackHandler {
-                    if (!navController.popBackStack()) {
-                        finish()
-                    }
-                }
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    NavHost(
-                        navController = navController,
-                        startDestination = "main"
-                    ) {
-                        composable("main") {
-                            MainScreen(navController)
-                        }
-
-                        // List of entries – recent
-                        composable("recent_entries") {
-                            EntryListScreen(navController, filter = "recent")
-                        }
-
-                        // List of entries – search results
-                        composable("search_entries") {
-                            EntryListScreen(navController, filter = "search")
-                        }
-
-                        // New entry metadata screen
-                        composable("new_metadata") {
-                            NewEntryMetadataScreen(navController)
-                        }
-
-                        composable("search") {
-                            EntrySearchScreen(navController)
-                        }
-
-                        composable("settings") {
-                            SettingsScreen(navController)
-                        }
-
-                        composable("about") {
-                            AboutScreen(navController)
-                        }
-
-
-
-                    }
-
-                }
-            }
+            CarFaultApp()
         }
+
     }
 }

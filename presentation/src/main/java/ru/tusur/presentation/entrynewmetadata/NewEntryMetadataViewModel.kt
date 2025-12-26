@@ -23,6 +23,8 @@ class NewEntryMetadataViewModel(
 ) : ViewModel() {
 
     data class UiState(
+        val entryId: Long? = null,
+        val isContinueEnabled: Boolean = false,
         val years: List<Year> = emptyList(),
         val models: List<Model> = emptyList(),
         val locations: List<Location> = emptyList(),
@@ -32,8 +34,7 @@ class NewEntryMetadataViewModel(
         val newYearInput: String = "",
         val newModelInput: String = "",
         val newLocationInput: String = "",
-        val title: String = "",
-        val isContinueEnabled: Boolean = false
+        val title: String = ""
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -89,13 +90,13 @@ class NewEntryMetadataViewModel(
         val input = _uiState.value.newYearInput
         ValidationUtils.validateYear(input).onSuccess { value ->
             viewModelScope.launch {
-                addYear(Year(value)).onSuccess {
+                addYear(Year(value.toString())).onSuccess {
                     _uiState.value = _uiState.value.copy(
                         newYearInput = "",
-                        selectedYear = Year(value)
+                        selectedYear = Year(value.toString())
                     )
                 }.onFailure { error ->
-                    // TODO: передать ошибку в UI (например, через _errorState)
+                    // TODO: errorState
                 }
             }
         }
@@ -111,7 +112,7 @@ class NewEntryMetadataViewModel(
                         selectedModel = Model(input)
                     )
                 }.onFailure { error ->
-                    // TODO: обработать ошибку
+                    // TODO:
                 }
             }
         }
@@ -127,7 +128,7 @@ class NewEntryMetadataViewModel(
                         selectedLocation = Location(input)
                     )
                 }.onFailure { error ->
-                    // TODO: обработать ошибку
+                    // TODO:
                 }
             }
         }

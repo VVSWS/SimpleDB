@@ -1,6 +1,7 @@
 package ru.tusur.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import ru.tusur.domain.model.EntryWithRecording
 import ru.tusur.domain.model.FaultEntry
 
 interface FaultRepository {
@@ -15,4 +16,5 @@ interface FaultRepository {
     suspend fun createEntry(entry: FaultEntry): Long
     suspend fun updateEntry(entry: FaultEntry)
     suspend fun deleteEntry(entry: FaultEntry)
+    suspend fun getEntryWithRecording(id: Long): EntryWithRecording
 }

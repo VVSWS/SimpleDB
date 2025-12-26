@@ -126,12 +126,15 @@ fun NewEntryMetadataScreen(navController: NavController) {
             Spacer(Modifier.height(24.dp))
 
             Button(
-                onClick = { navController.navigate("edit_entry") },
+                onClick = {
+                    navController.navigate("edit_entry/${uiState.entryId}/description")
+                },
                 enabled = uiState.isContinueEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Continue")
             }
+
         }
     }
 }
