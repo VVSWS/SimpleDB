@@ -13,7 +13,7 @@ fun YearDropdown(
     onSelected: (Year) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val years = (1990..2030).map { Year(it.toString()) }
+    val years = (1990..2030).map { Year(it) }.reversed()
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(

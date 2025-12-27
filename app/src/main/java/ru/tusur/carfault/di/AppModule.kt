@@ -44,6 +44,9 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 
 val appModule = module {
 
+    // Shared across screens (must be SINGLE)
+    single { SharedSearchViewModel() }
+
     /* ================
      *  CORE
      * ================ */
@@ -56,18 +59,13 @@ val appModule = module {
      *  DATABASE
      * ================ */
 
-    // One provider ONLY
     single { DatabaseProvider(androidContext()) }
-
-    // Merge manager
     single { MergeDatabaseManager(androidContext(), get()) }
 
-    // Active DB file
     single<File>(named("activeDbFile")) {
         FileHelper.getActiveDatabaseFile(androidContext())
     }
 
-    // AppDatabase bound to active file
     single<AppDatabase> {
         val dbFile: File = get(named("activeDbFile"))
         get<DatabaseProvider>().getDatabase(dbFile)
@@ -135,6 +133,14 @@ val appModule = module {
     }
 
     viewModel {
+        EntrySearchViewModel(
+            getYears = get(),
+            getModels = get(),
+            getLocations = get()
+        )
+    }
+
+    viewModel {
         NewEntryMetadataViewModel(
             getYears = get(),
             getModels = get(),
@@ -154,18 +160,7 @@ val appModule = module {
         )
     }
 
-    viewModel {
-        EntrySearchViewModel(
-            getYears = get(),
-            getModels = get(),
-            getLocations = get()
-        )
-    }
-
     viewModel { (id: Long) -> RecordingViewViewModel(get<FaultRepository>(), id) }
-
-    viewModel { SharedSearchViewModel() }
-
 
     viewModel {
         SettingsViewModel(
@@ -180,3 +175,4 @@ val appModule = module {
 
     viewModel { AboutViewModel() }
 }
+

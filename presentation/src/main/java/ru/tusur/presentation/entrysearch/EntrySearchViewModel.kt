@@ -1,5 +1,6 @@
 package ru.tusur.presentation.entrysearch
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,9 +60,10 @@ class EntrySearchViewModel(
 
     fun buildFilter(): SearchFilter {
         val state = _uiState.value
+        Log.d( "SEARCH", "Selected: year=${state.selectedYear}, model=${state.selectedModel}, location=${state.selectedLocation}" )
 
         return SearchFilter(
-            year = state.selectedYear?.value?.toString(),
+            year = state.selectedYear?.value,
             model = state.selectedModel?.name,
             location = state.selectedLocation?.name
         )

@@ -88,12 +88,13 @@ class NewEntryMetadataViewModel(
 
     fun addNewYear() {
         val input = _uiState.value.newYearInput
-        ValidationUtils.validateYear(input).onSuccess { value ->
+
+        ValidationUtils.validateYear(input).onSuccess { yearInt ->
             viewModelScope.launch {
-                addYear(Year(value.toString())).onSuccess {
+                addYear(Year(yearInt)).onSuccess {
                     _uiState.value = _uiState.value.copy(
                         newYearInput = "",
-                        selectedYear = Year(value.toString())
+                        selectedYear = Year(yearInt)
                     )
                 }.onFailure { error ->
                     // TODO: errorState
@@ -101,6 +102,7 @@ class NewEntryMetadataViewModel(
             }
         }
     }
+
 
     fun addNewModel() {
         val input = ValidationUtils.maxLengthTrim(_uiState.value.newModelInput, 30)

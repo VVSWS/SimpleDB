@@ -16,7 +16,7 @@ import ru.tusur.domain.model.Location
 fun EditEntryDescriptionScreen(
     navController: NavController,
     entryId: Long?,
-    year: String,
+    year: Int,
     model: String,
     location: String,
     title: String

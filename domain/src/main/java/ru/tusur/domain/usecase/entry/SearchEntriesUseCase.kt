@@ -7,7 +7,7 @@ class SearchEntriesUseCase(
     private val repository: FaultRepository
 ) {
     suspend operator fun invoke(
-        year: String?,
+        year: Int?,
         model: String?,
         location: String?
     ): Result<List<FaultEntry>> {
