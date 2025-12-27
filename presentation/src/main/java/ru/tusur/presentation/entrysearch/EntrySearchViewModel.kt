@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import ru.tusur.domain.model.Location
 import ru.tusur.domain.model.Model
+import ru.tusur.domain.model.SearchFilter
 import ru.tusur.domain.model.Year
 import ru.tusur.domain.usecase.reference.*
 
@@ -56,17 +57,15 @@ class EntrySearchViewModel(
         _uiState.value = _uiState.value.copy(selectedLocation = location)
     }
 
-    fun buildFilter(): Filter {
-        return Filter(
-            year = _uiState.value.selectedYear?.value,
-            model = _uiState.value.selectedModel?.name,
-            location = _uiState.value.selectedLocation?.name
+    fun buildFilter(): SearchFilter {
+        val state = _uiState.value
+
+        return SearchFilter(
+            year = state.selectedYear?.value?.toString(),
+            model = state.selectedModel?.name,
+            location = state.selectedLocation?.name
         )
     }
 
-    data class Filter(
-        val year: String? = null,
-        val model: String? = null,
-        val location: String? = null
-    )
+
 }

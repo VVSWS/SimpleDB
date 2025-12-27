@@ -9,7 +9,7 @@ interface FaultRepository {
     suspend fun getEntryById(id: Long): FaultEntry?
     suspend fun getRecentEntries(limit: Int = 5): List<FaultEntry>
     suspend fun searchEntries(
-        year: Int? = null,
+        year: String? = null,
         model: String? = null,
         location: String? = null
     ): List<FaultEntry>

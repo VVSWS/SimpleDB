@@ -3,172 +3,110 @@ package ru.tusur.presentation.entrylist
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import org.koin.compose.koinInject
+import org.koin.androidx.compose.koinViewModel
+import ru.tusur.presentation.search.SharedSearchViewModel
 import ru.tusur.domain.model.FaultEntry
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.foundation.clickable
-import androidx.compose.material3.HorizontalDivider
 
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryListScreen(
     navController: NavController,
-    filter: String
+    isSearchMode: Boolean = false,
+    viewModel: EntryListViewModel = koinViewModel(),
+    sharedSearchViewModel: SharedSearchViewModel = koinViewModel()
 ) {
-    val viewModel: EntryListViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
+    val filter by sharedSearchViewModel.filter.collectAsState()
+    println("DEBUG: isSearchMode=$isSearchMode, filter=$filter")
 
-    LaunchedEffect(filter) {
-        viewModel.loadEntries(filter)
+
+    // Load data depending on mode
+    LaunchedEffect(isSearchMode, filter) {
+        if (isSearchMode) {
+            viewModel.searchEntries(filter)
+        } else {
+            viewModel.loadRecentEntries()
+        }
     }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = when (filter) {
-                            "recent" -> "Recent Entries"
-                            "search" -> "Search Results"
-                            else -> "Entries"
-                        },
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
+    val title = if (isSearchMode) "Search Results" else "Recent Entries"
+
+    Column(modifier = Modifier.fillMaxSize()) {
+
+        // Top bar
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(16.dp)
+        )
+
+        // Loading indicator
+        if (uiState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                CircularProgressIndicator()
+            }
+            return
+        }
+
+        // Error message
+        uiState.error?.let { errorMsg ->
+            Text(
+                text = errorMsg,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(16.dp)
             )
         }
-    ) { padding ->
 
-        when {
-            uiState.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
+        // Entries list
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            println("DEBUG: entries size = ${uiState.entries.size}, isSearchMode=$isSearchMode")
 
-            uiState.entries.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No entries found")
-                }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                ) {
-                    items(
-                        items = uiState.entries,
-                        key = { it.id ?: it.hashCode().toLong() }
-                    ) { entry ->
-                        SwipeToDeleteEntryItem(
-                            entry = entry,
-                            onClick = {
-                                navController.navigate("view_entry/${entry.id}")
-                            },
-                            onDelete = { viewModel.deleteEntry(entry) }
-                        )
-                        HorizontalDivider()
-
+            items(uiState.entries) { entry ->
+                EntryListItem(
+                    entry = entry,
+                    onClick = {
+                        navController.navigate("view_entry/${entry.id}")
+                    },
+                    onDelete = {
+                        viewModel.deleteEntry(entry)
                     }
-                }
+                )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SwipeToDeleteEntryItem(
+fun EntryListItem(
     entry: FaultEntry,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val state = rememberSwipeToDismissBoxState()
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = entry.title ?: "(No title)", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = entry.timestamp.toString(), style = MaterialTheme.typography.bodySmall)
 
-    // When the user finishes swiping, check the final state
-    LaunchedEffect(state.currentValue) {
-        if (state.currentValue == SwipeToDismissBoxValue.EndToStart) {
-            onDelete()
-            // Reset state so the item doesn't stay dismissed
-            state.snapTo(SwipeToDismissBoxValue.Settled)
-        }
-    }
+            Spacer(modifier = Modifier.height(8.dp))
 
-    SwipeToDismissBox(
-        state = state,
-        enableDismissFromStartToEnd = false,
-        backgroundContent = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterEnd
+            Button(
+                onClick = onDelete,
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.error
-                )
+                Text("Delete")
             }
         }
-    ) {
-        ListItem(
-            headlineContent = {
-                Text(
-                    text = entry.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-            },
-            supportingContent = {
-                Text(
-                    text = entry.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    android.util.Log.d("EntryList", "Entry clicked: id=${entry.id}, title=${entry.title}")
-                    onClick()
-                }
-
-        )
     }
 }

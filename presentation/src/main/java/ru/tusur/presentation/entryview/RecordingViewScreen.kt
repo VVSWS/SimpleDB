@@ -24,8 +24,22 @@ fun RecordingViewScreen(
     val uiState by viewModel.state.collectAsState()
 
     when {
-        uiState.isLoading -> Text("Loading...")
-        uiState.error != null -> Text("Error: ${uiState.error}")
+        uiState.isLoading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        uiState.error != null -> {
+            Text(
+                text = "Error: ${uiState.error}",
+                modifier = Modifier.padding(16.dp),
+                color = MaterialTheme.colorScheme.error
+            )
+        }
 
         else -> uiState.entry?.let { entry ->
             RecordingViewContent(
@@ -34,10 +48,6 @@ fun RecordingViewScreen(
             )
         }
     }
-
-
-
-
 }
 
 @Composable
@@ -45,10 +55,14 @@ fun RecordingViewContent(
     entry: EntryWithRecording,
     onBack: () -> Unit
 ) {
-    val dateFormatted = remember(entry.date) {
+    // Format timestamp → readable date
+    val formattedDate = remember(entry.date) {
         SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
             .format(Date(entry.date))
     }
+
+    // Safe description handling
+    val descriptionText = entry.description?.ifBlank { null } ?: "No description provided"
 
     Column(
         modifier = Modifier
@@ -56,26 +70,35 @@ fun RecordingViewContent(
             .padding(16.dp)
     ) {
 
-        Text(entry.title, style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(8.dp))
+        // Title
+        Text(
+            text = entry.title.ifBlank { "Untitled Entry" },
+            style = MaterialTheme.typography.headlineMedium
+        )
 
-        Text("Date: $dateFormatted")
+        Spacer(Modifier.height(12.dp))
+
+        // Metadata
+        Text("Date: $formattedDate")
         Text("Year: ${entry.year.value}")
         Text("Model: ${entry.model.name}")
         Text("Location: ${entry.location.name}")
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(20.dp))
 
-        Text("Description:")
-        Text(entry.description ?: "No description")
+        // Description
+        Text("Description:", style = MaterialTheme.typography.titleMedium)
+        Text(descriptionText)
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(20.dp))
 
-        Text("Audio file:")
+        // Audio
+        Text("Audio file:", style = MaterialTheme.typography.titleMedium)
         Text(entry.audioPath ?: "No audio")
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
 
+        // Back button
         Button(onClick = onBack) {
             Text("Back")
         }

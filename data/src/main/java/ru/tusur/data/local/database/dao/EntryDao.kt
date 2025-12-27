@@ -38,7 +38,7 @@ interface EntryDao {
         ORDER BY timestamp DESC
     """)
     suspend fun searchEntries(
-        year: Int?,
+        year: String?,
         model: String?,
         location: String?
     ): List<EntryEntity>

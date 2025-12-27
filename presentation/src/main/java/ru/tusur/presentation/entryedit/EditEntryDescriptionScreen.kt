@@ -8,26 +8,43 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.compose.koinInject
 import androidx.compose.ui.Alignment
-
+import ru.tusur.domain.model.Year
+import ru.tusur.domain.model.Model
+import ru.tusur.domain.model.Location
 
 @Composable
 fun EditEntryDescriptionScreen(
     navController: NavController,
-    entryId: Long?
+    entryId: Long?,
+    year: String,
+    model: String,
+    location: String,
+    title: String
 ) {
     val viewModel: EditEntryViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
 
-    // Load entry when screen opens
+    // Apply metadata ONLY for new entries
+    LaunchedEffect(Unit) {
+        if (entryId == null || entryId == 0L) {
+            viewModel.onYearChanged(Year(year))
+            viewModel.onModelChanged(Model(model))
+            viewModel.onLocationChanged(Location(location))
+            viewModel.onTitleChanged(title)
+        }
+    }
+
     LaunchedEffect(entryId) {
-        viewModel.loadEntry(entryId)
+        if (entryId != null && entryId > 0L) {
+            viewModel.loadEntry(entryId)
+        }
     }
 
     // Handle save completion
     LaunchedEffect(uiState.saveCompleted) {
         if (uiState.saveCompleted) {
             viewModel.consumeSaveCompleted()
-            navController.popBackStack() // back to list
+            navController.popBackStack()
         }
     }
 
@@ -85,3 +102,4 @@ fun EditEntryDescriptionScreen(
         }
     }
 }
+

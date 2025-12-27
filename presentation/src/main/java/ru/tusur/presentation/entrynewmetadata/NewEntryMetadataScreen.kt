@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.compose.koinInject
 import ru.tusur.presentation.common.component.EditableDropdown
+import android.net.Uri
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,7 +129,20 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    navController.navigate("edit_entry/${uiState.entryId}/description")
+                    val safeId = uiState.entryId ?: 0L
+
+                    val encodedModel = Uri.encode(uiState.selectedModel!!.name)
+                    val encodedLocation = Uri.encode(uiState.selectedLocation!!.name)
+                    val encodedTitle = Uri.encode(uiState.title)
+
+                    navController.navigate(
+                        "edit_entry/" +
+                                "$safeId/" +
+                                "${uiState.selectedYear!!.value}/" +
+                                "$encodedModel/" +
+                                "$encodedLocation/" +
+                                "$encodedTitle/description"
+                    )
                 },
                 enabled = uiState.isContinueEnabled,
                 modifier = Modifier.fillMaxWidth()

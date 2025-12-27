@@ -6,13 +6,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.tusur.domain.model.FaultEntry
+import ru.tusur.domain.model.SearchFilter
 import ru.tusur.domain.usecase.entry.DeleteEntryUseCase
 import ru.tusur.domain.usecase.entry.GetRecentEntriesUseCase
 import ru.tusur.domain.usecase.entry.SearchEntriesUseCase
 
 class EntryListViewModel(
-    private val getRecentEntries: GetRecentEntriesUseCase,
-    private val searchEntries: SearchEntriesUseCase,
+    private val getRecentEntriesUseCase: GetRecentEntriesUseCase,
+    private val searchEntriesUseCase: SearchEntriesUseCase,
     private val deleteEntryUseCase: DeleteEntryUseCase
 ) : ViewModel() {
 
@@ -25,32 +26,58 @@ class EntryListViewModel(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
-    fun loadEntries(filter: String) {
+    // ---------------------------------------------------------
+    // Load recent entries (default mode)
+    // ---------------------------------------------------------
+    fun loadRecentEntries() {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
         viewModelScope.launch {
             try {
-                val entries: List<FaultEntry> = when (filter) {
-                    "recent" -> getRecentEntries().getOrThrow()
-                    "search" -> searchEntries(null, null, null).getOrThrow()
-                    else -> emptyList()
-                }
-
+                val entries = getRecentEntriesUseCase().getOrThrow()
                 _uiState.value = _uiState.value.copy(
                     entries = entries,
                     isLoading = false
                 )
-
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Failed to load entries"
+                    error = e.message ?: "Failed to load recent entries"
                 )
             }
         }
     }
 
+    // ---------------------------------------------------------
+    // Search entries using SearchFilter
+    // ---------------------------------------------------------
+    fun searchEntries(filter: SearchFilter) {
+        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
+        viewModelScope.launch {
+            try {
+                val entries = searchEntriesUseCase(
+                    year = filter.year,
+                    model = filter.model,
+                    location = filter.location
+                ).getOrThrow()
+
+                _uiState.value = _uiState.value.copy(
+                    entries = entries,
+                    isLoading = false
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to search entries"
+                )
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Delete entry
+    // ---------------------------------------------------------
     fun deleteEntry(entry: FaultEntry) {
         viewModelScope.launch {
             deleteEntryUseCase(entry)
@@ -60,4 +87,3 @@ class EntryListViewModel(
         }
     }
 }
-

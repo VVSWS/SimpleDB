@@ -28,12 +28,12 @@ class DefaultFaultRepository(
     }
 
     override suspend fun searchEntries(
-        year: Int?,
+        year: String?,
         model: String?,
         location: String?
     ): List<FaultEntry> {
-        return entryDao.searchEntries(year, model, location)
-            .map { mapper.toDomain(it) }
+        return entryDao.searchEntries(year.toString(), model, location)
+            .map(mapper::toDomain)
     }
 
     override suspend fun createEntry(entry: FaultEntry): Long {
@@ -48,7 +48,6 @@ class DefaultFaultRepository(
         val entity = entryDao.getEntryWithRecording(id)
         return mapper.toRecording(entity)
     }
-
 
     override suspend fun deleteEntry(entry: FaultEntry) {
         entryDao.deleteEntry(mapper.toEntity(entry))

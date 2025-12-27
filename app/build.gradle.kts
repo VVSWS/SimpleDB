@@ -22,6 +22,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            isDebuggable = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -30,6 +33,7 @@ android {
             )
         }
     }
+
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

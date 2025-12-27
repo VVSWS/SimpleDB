@@ -7,19 +7,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import ru.tusur.presentation.common.component.EditableDropdown
+import ru.tusur.presentation.search.SharedSearchViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntrySearchScreen(navController: NavController) {
     val viewModel: EntrySearchViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
+    val sharedSearchViewModel: SharedSearchViewModel = koinViewModel()
+
 
     Scaffold(
         topBar = {
@@ -92,7 +95,7 @@ fun EntrySearchScreen(navController: NavController) {
             Button(
                 onClick = {
                     val filter = viewModel.buildFilter()
-                    // TODO: pass filter to EntryListScreen
+                    sharedSearchViewModel.setFilter(filter)
                     navController.navigate("search_entries")
                 },
                 modifier = Modifier.fillMaxWidth()

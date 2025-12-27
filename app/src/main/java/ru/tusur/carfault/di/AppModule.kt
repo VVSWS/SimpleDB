@@ -35,6 +35,8 @@ import ru.tusur.presentation.mainscreen.MainViewModel
 import ru.tusur.presentation.settings.SettingsViewModel
 import java.io.File
 import ru.tusur.presentation.entryview.RecordingViewViewModel
+import ru.tusur.presentation.search.SharedSearchViewModel
+
 
 
 // DataStore delegate
@@ -126,8 +128,8 @@ val appModule = module {
 
     viewModel {
         EntryListViewModel(
-            getRecentEntries = get(),
-            searchEntries = get(),
+            getRecentEntriesUseCase = get(),
+            searchEntriesUseCase = get(),
             deleteEntryUseCase = get()
         )
     }
@@ -161,6 +163,8 @@ val appModule = module {
     }
 
     viewModel { (id: Long) -> RecordingViewViewModel(get<FaultRepository>(), id) }
+
+    viewModel { SharedSearchViewModel() }
 
 
     viewModel {
