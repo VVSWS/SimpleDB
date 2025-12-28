@@ -81,6 +81,7 @@ fun RecordingViewContent(
         // Metadata
         Text("Date: $formattedDate")
         Text("Year: ${entry.year.value}")
+        Text("Brand: ${entry.brand.name}")
         Text("Model: ${entry.model.name}")
         Text("Location: ${entry.location.name}")
 

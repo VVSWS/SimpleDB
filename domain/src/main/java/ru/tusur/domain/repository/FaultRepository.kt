@@ -10,6 +10,7 @@ interface FaultRepository {
     suspend fun getRecentEntries(limit: Int = 5): List<FaultEntry>
     suspend fun searchEntries(
         year: Int? = null,
+        brand: String? = null,
         model: String? = null,
         location: String? = null
     ): List<FaultEntry>

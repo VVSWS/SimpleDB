@@ -79,6 +79,21 @@ fun NewEntryMetadataScreen(navController: NavController) {
             Spacer(Modifier.height(16.dp))
 
             EditableDropdown(
+                label = "Brand",
+                items = uiState.brands,
+                selectedItem = uiState.selectedBrand,
+                itemToString = { it.name },
+                onItemSelected = { viewModel.onBrandSelected(it) },
+                onAddNewItem = {
+                    viewModel.onNewBrandInputChanged(it)
+                    viewModel.addNewBrand()
+                },
+                errorMessage = if (uiState.selectedBrand == null) "Select or add a brand" else null
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            EditableDropdown(
                 label = "Model",
                 items = uiState.models,
                 selectedItem = uiState.selectedModel,
@@ -130,7 +145,7 @@ fun NewEntryMetadataScreen(navController: NavController) {
             Button(
                 onClick = {
                     val safeId = uiState.entryId ?: 0L
-
+                    val encodedBrand = Uri.encode(uiState.selectedBrand!!.name)
                     val encodedModel = Uri.encode(uiState.selectedModel!!.name)
                     val encodedLocation = Uri.encode(uiState.selectedLocation!!.name)
                     val encodedTitle = Uri.encode(uiState.title)
@@ -139,6 +154,7 @@ fun NewEntryMetadataScreen(navController: NavController) {
                         "edit_entry/" +
                                 "$safeId/" +
                                 "${uiState.selectedYear!!.value}/" +
+                                "$encodedBrand/" +
                                 "$encodedModel/" +
                                 "$encodedLocation/" +
                                 "$encodedTitle/description"

@@ -29,10 +29,11 @@ class DefaultFaultRepository(
 
     override suspend fun searchEntries(
         year: Int?,
+        brand: String?,
         model: String?,
         location: String?
     ): List<FaultEntry> {
-        return entryDao.searchEntries(year, model, location)
+        return entryDao.searchEntries(year, brand, model, location)
             .map(mapper::toDomain)
     }
 

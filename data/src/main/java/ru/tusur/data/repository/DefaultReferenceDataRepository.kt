@@ -2,10 +2,12 @@ package ru.tusur.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import ru.tusur.data.local.database.dao.BrandDao
 import ru.tusur.data.local.database.dao.LocationDao
 import ru.tusur.data.local.database.dao.ModelDao
 import ru.tusur.data.local.database.dao.YearDao
 import ru.tusur.data.mapper.ReferenceDataMapper
+import ru.tusur.domain.model.Brand
 import ru.tusur.domain.model.EntryWithRecording
 import ru.tusur.domain.model.Location
 import ru.tusur.domain.model.Model
@@ -14,6 +16,7 @@ import ru.tusur.domain.repository.ReferenceDataRepository
 
 class DefaultReferenceDataRepository(
     private val yearDao: YearDao,
+    private val brandDao: BrandDao,
     private val modelDao: ModelDao,
     private val locationDao: LocationDao,
     private val mapper: ReferenceDataMapper
@@ -58,6 +61,27 @@ class DefaultReferenceDataRepository(
             Result.failure(e)
         }
     }
+
+    override fun getBrands(): Flow<List<Brand>> =
+        brandDao.getAllBrands().map { entities ->
+            entities.map(mapper::toDomain)
+        }
+
+
+    override suspend fun addBrand(brand: Brand): Result<Unit> {
+        return try {
+            val entity = mapper.toEntity(brand)
+            val id = brandDao.insertBrand(entity)
+            if (id == -1L) {
+                Result.failure(IllegalStateException("Brand '${brand.name}' already exists"))
+            } else {
+                Result.success(Unit)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
     override fun getLocations(): Flow<List<Location>> {
         return locationDao.getAllLocations().map { entities ->

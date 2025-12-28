@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import ru.tusur.core.util.ValidationUtils
+import ru.tusur.domain.model.Brand
 import ru.tusur.domain.model.Location
 import ru.tusur.domain.model.Model
 import ru.tusur.domain.model.Year
@@ -15,9 +16,11 @@ import ru.tusur.domain.usecase.reference.*
 
 class NewEntryMetadataViewModel(
     getYears: GetYearsUseCase,
+    getBrands: GetBrandsUseCase,
     getModels: GetModelsUseCase,
     getLocations: GetLocationsUseCase,
     private val addYear: AddYearUseCase,
+    private val addBrand: AddBrandUseCase,
     private val addModel: AddModelUseCase,
     private val addLocation: AddLocationUseCase
 ) : ViewModel() {
@@ -26,12 +29,15 @@ class NewEntryMetadataViewModel(
         val entryId: Long? = null,
         val isContinueEnabled: Boolean = false,
         val years: List<Year> = emptyList(),
+        val brands: List<Brand> = emptyList(),
         val models: List<Model> = emptyList(),
         val locations: List<Location> = emptyList(),
         val selectedYear: Year? = null,
+        val selectedBrand: Brand? = null,
         val selectedModel: Model? = null,
         val selectedLocation: Location? = null,
         val newYearInput: String = "",
+        val newBrandInput: String = "",
         val newModelInput: String = "",
         val newLocationInput: String = "",
         val title: String = ""
@@ -43,11 +49,13 @@ class NewEntryMetadataViewModel(
     init {
         combine(
             getYears(),
+            getBrands(),
             getModels(),
             getLocations()
-        ) { years, models, locations ->
+        ) { years, brands, models, locations ->
             _uiState.value = _uiState.value.copy(
                 years = years,
+                brands = brands,
                 models = models,
                 locations = locations
             )
@@ -56,6 +64,11 @@ class NewEntryMetadataViewModel(
 
     fun onYearSelected(year: Year) {
         _uiState.value = _uiState.value.copy(selectedYear = year)
+        updateContinueButton()
+    }
+
+    fun onBrandSelected(brand: Brand) {
+        _uiState.value = _uiState.value.copy(selectedBrand = brand)
         updateContinueButton()
     }
 
@@ -71,6 +84,10 @@ class NewEntryMetadataViewModel(
 
     fun onNewYearInputChanged(text: String) {
         _uiState.value = _uiState.value.copy(newYearInput = text)
+    }
+
+    fun onNewBrandInputChanged(text: String) {
+        _uiState.value = _uiState.value.copy(newBrandInput = text)
     }
 
     fun onNewModelInputChanged(text: String) {
@@ -103,6 +120,21 @@ class NewEntryMetadataViewModel(
         }
     }
 
+    fun addNewBrand() {
+        val input = ValidationUtils.maxLengthTrim(_uiState.value.newBrandInput, 30)
+        if (input.isNotEmpty()) {
+            viewModelScope.launch {
+                addBrand(Brand(input)).onSuccess {
+                    _uiState.value = _uiState.value.copy(
+                        newBrandInput = "",
+                        selectedBrand = Brand(input)
+                    )
+                }.onFailure { error ->
+                    // TODO:
+                }
+            }
+        }
+    }
 
     fun addNewModel() {
         val input = ValidationUtils.maxLengthTrim(_uiState.value.newModelInput, 30)
@@ -141,6 +173,7 @@ class NewEntryMetadataViewModel(
         _uiState.value = state.copy(
             isContinueEnabled = state.selectedYear != null &&
                     state.selectedModel != null &&
+                    state.selectedBrand != null &&
                     state.selectedLocation != null &&
                     ValidationUtils.nonEmpty(state.title)
         )

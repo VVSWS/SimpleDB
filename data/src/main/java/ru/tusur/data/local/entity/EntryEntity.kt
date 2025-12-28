@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class EntryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val year: Int,
+    val brand: String,
     val model: String,
     val location: String,
     val title: String,

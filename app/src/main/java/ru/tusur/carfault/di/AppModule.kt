@@ -77,6 +77,7 @@ val appModule = module {
 
     single<EntryDao> { get<AppDatabase>().entryDao() }
     single<YearDao> { get<AppDatabase>().yearDao() }
+    single<BrandDao> { get<AppDatabase>().brandDao() }
     single<ModelDao> { get<AppDatabase>().modelDao() }
     single<LocationDao> { get<AppDatabase>().locationDao() }
     single<EntryImageDao> { get<AppDatabase>().entryImageDao() }
@@ -93,7 +94,7 @@ val appModule = module {
      * ================ */
 
     single<FaultRepository> { DefaultFaultRepository(get(), get()) }
-    single<ReferenceDataRepository> { DefaultReferenceDataRepository(get(), get(), get(), get()) }
+    single<ReferenceDataRepository> { DefaultReferenceDataRepository(get(), get(), get(), get(), get()) }
 
     /* ================
      *  USE CASES
@@ -115,6 +116,8 @@ val appModule = module {
     factory { AddYearUseCase(get()) }
     factory { GetModelsUseCase(get()) }
     factory { AddModelUseCase(get()) }
+    factory { GetBrandsUseCase(get()) }
+    factory { AddBrandUseCase(get()) }
     factory { GetLocationsUseCase(get()) }
     factory { AddLocationUseCase(get()) }
 
@@ -135,6 +138,7 @@ val appModule = module {
     viewModel {
         EntrySearchViewModel(
             getYears = get(),
+            getBrands = get(),
             getModels = get(),
             getLocations = get()
         )
@@ -143,9 +147,11 @@ val appModule = module {
     viewModel {
         NewEntryMetadataViewModel(
             getYears = get(),
+            getBrands = get(),
             getModels = get(),
             getLocations = get(),
             addYear = get(),
+            addBrand = get(),
             addModel = get(),
             addLocation = get()
         )
@@ -156,9 +162,20 @@ val appModule = module {
             getEntryById = get(),
             createEntry = get(),
             updateEntry = get(),
-            deleteEntry = get()
+            deleteEntry = get(),
+
+            getYears = get(),
+            getBrands = get(),
+            getModels = get(),
+            getLocations = get(),
+
+            addYear = get(),
+            addBrand = get(),
+            addModel = get(),
+            addLocation = get()
         )
     }
+
 
     viewModel { (id: Long) -> RecordingViewViewModel(get<FaultRepository>(), id) }
 

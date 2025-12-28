@@ -66,6 +66,19 @@ fun EntrySearchScreen(navController: NavController) {
 
             Spacer(Modifier.height(16.dp))
 
+            // BRAND
+            EditableDropdown(
+                label = "Brand",
+                items = uiState.brands,
+                selectedItem = uiState.selectedBrand,
+                itemToString = { it.name },
+                onItemSelected = { viewModel.onBrandSelected(it) },
+                onAddNewItem = {},
+                errorMessage = null
+            )
+
+            Spacer(Modifier.height(16.dp))
+
             // MODEL
             EditableDropdown(
                 label = "Model",

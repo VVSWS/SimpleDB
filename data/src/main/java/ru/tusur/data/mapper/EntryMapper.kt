@@ -7,6 +7,7 @@ import ru.tusur.domain.model.FaultEntry
 import ru.tusur.domain.model.Year
 import ru.tusur.domain.model.Model
 import ru.tusur.domain.model.Location
+import ru.tusur.domain.model.Brand
 
 class EntryMapper {
 
@@ -14,20 +15,20 @@ class EntryMapper {
         return EntryEntity(
             id = domain.id,
             year = domain.year.value,
+            brand = domain.brand.name,
             model = domain.model.name,
             location = domain.location.name,
             title = domain.title,
             description = domain.description,
-            timestamp = domain.timestamp,
-            audioPath = null // or domain.audioPath if you add it later
+            timestamp = domain.timestamp
         )
     }
-
 
     fun toDomain(entity: EntryEntity): FaultEntry {
         return FaultEntry(
             id = entity.id,
             year = Year(entity.year),
+            brand = Brand(entity.brand),
             model = Model(entity.model),
             location = Location(entity.location),
             title = entity.title,
@@ -40,6 +41,7 @@ class EntryMapper {
         return FaultEntry(
             id = entity.entry.id,
             year = Year(entity.entry.year),
+            brand = Brand(entity.entry.brand),
             model = Model(entity.entry.model),
             location = Location(entity.entry.location),
             title = entity.entry.title,
@@ -53,12 +55,12 @@ class EntryMapper {
             id = entity.entry.id,
             title = entity.entry.title,
             year = Year(entity.entry.year),
+            brand = Brand(entity.entry.brand),
             model = Model(entity.entry.model),
             location = Location(entity.entry.location),
             date = entity.entry.timestamp,
-            audioPath = entity.entry.audioPath,   // ensure EntryEntity has this field
+            audioPath = entity.entry.audioPath,
             description = entity.entry.description
-
         )
     }
 }

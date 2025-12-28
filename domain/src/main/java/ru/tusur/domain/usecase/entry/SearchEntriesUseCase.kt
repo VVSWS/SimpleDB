@@ -8,6 +8,7 @@ class SearchEntriesUseCase(
 ) {
     suspend operator fun invoke(
         year: Int?,
+        brand: String?,
         model: String?,
         location: String?
     ): Result<List<FaultEntry>> {

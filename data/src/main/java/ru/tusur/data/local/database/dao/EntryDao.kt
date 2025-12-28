@@ -33,12 +33,14 @@ interface EntryDao {
     @Query("""
         SELECT * FROM entries
         WHERE (:year IS NULL OR year = :year)
+          AND (:brand IS NULL OR brand = :brand)
           AND (:model IS NULL OR model = :model)
           AND (:location IS NULL OR location = :location)
         ORDER BY timestamp DESC
     """)
     suspend fun searchEntries(
         year: Int?,
+        brand: String?,
         model: String?,
         location: String?
     ): List<EntryEntity>

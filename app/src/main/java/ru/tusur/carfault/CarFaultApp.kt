@@ -83,13 +83,14 @@ fun CarFaultApp() {
 
                 // Edit entry description
                 composable(
-                    route = "edit_entry/{entryId}/{year}/{model}/{location}/{title}/description",
+                    route = "edit_entry/{entryId}/{year}/{brand}/{model}/{location}/{title}/description",
                     arguments = listOf(
                         navArgument("entryId") { type = NavType.LongType },
                         navArgument("year") {
                             type = NavType.IntType
                             nullable = false
                         },
+                        navArgument("brand") { type = NavType.StringType },
                         navArgument("model") { type = NavType.StringType },
                         navArgument("location") { type = NavType.StringType },
                         navArgument("title") { type = NavType.StringType }
@@ -98,6 +99,7 @@ fun CarFaultApp() {
 
                     val entryId = backStackEntry.arguments!!.getLong("entryId")
                     val year = backStackEntry.arguments!!.getInt("year")
+                    val brand = Uri.decode(backStackEntry.arguments!!.getString("brand")!!)
                     val model = Uri.decode(backStackEntry.arguments!!.getString("model")!!)
                     val location = Uri.decode(backStackEntry.arguments!!.getString("location")!!)
                     val title = Uri.decode(backStackEntry.arguments!!.getString("title")!!)
@@ -106,6 +108,7 @@ fun CarFaultApp() {
                         navController = navController,
                         entryId = entryId,
                         year = year,
+                        brand = brand,
                         model = model,
                         location = location,
                         title = title

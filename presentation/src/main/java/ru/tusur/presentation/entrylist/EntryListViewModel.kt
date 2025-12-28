@@ -58,6 +58,7 @@ class EntryListViewModel(
             try {
                 val entries = searchEntriesUseCase(
                     year = filter.year,
+                    brand = filter.brand,
                     model = filter.model,
                     location = filter.location
                 ).getOrThrow()

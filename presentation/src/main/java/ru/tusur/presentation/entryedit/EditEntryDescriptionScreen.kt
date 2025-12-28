@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.compose.koinInject
 import androidx.compose.ui.Alignment
+import ru.tusur.domain.model.Brand
 import ru.tusur.domain.model.Year
 import ru.tusur.domain.model.Model
 import ru.tusur.domain.model.Location
@@ -17,6 +18,7 @@ fun EditEntryDescriptionScreen(
     navController: NavController,
     entryId: Long?,
     year: Int,
+    brand: String,
     model: String,
     location: String,
     title: String
@@ -28,6 +30,7 @@ fun EditEntryDescriptionScreen(
     LaunchedEffect(Unit) {
         if (entryId == null || entryId == 0L) {
             viewModel.onYearChanged(Year(year))
+            viewModel.onBrandChanged(Brand(brand))
             viewModel.onModelChanged(Model(model))
             viewModel.onLocationChanged(Location(location))
             viewModel.onTitleChanged(title)

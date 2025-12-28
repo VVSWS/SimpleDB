@@ -4,6 +4,7 @@ data class EntryWithRecording(
     val id: Long,
     val title: String,
     val year: Year,
+    val brand: Brand,
     val model: Model,
     val location: Location,
     val date: Long,

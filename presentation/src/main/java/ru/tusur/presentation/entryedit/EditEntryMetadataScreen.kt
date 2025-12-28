@@ -12,6 +12,7 @@ import org.koin.compose.koinInject
 import ru.tusur.domain.model.Year
 import ru.tusur.domain.model.Model
 import ru.tusur.domain.model.Location
+import ru.tusur.presentation.common.component.EditableDropdown
 import ru.tusur.presentation.entryedit.components.LocationDropdown
 import ru.tusur.presentation.entryedit.components.ModelDropdown
 import ru.tusur.presentation.entryedit.components.YearDropdown
@@ -51,22 +52,60 @@ fun EditEntryMetadataScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // YEAR DROPDOWN
-        YearDropdown(
-            selected = uiState.entry.year,
-            onSelected = viewModel::onYearChanged
+        // YEAR
+        EditableDropdown(
+            label = "Year",
+            items = uiState.years,
+            selectedItem = uiState.entry.year,
+            itemToString = { it.value.toString() },
+            onItemSelected = viewModel::onYearChanged,
+            onAddNewItem = {
+                viewModel.onNewYearInputChanged(it)
+                viewModel.addNewYear()
+            },
+            errorMessage = null
         )
 
-        // MODEL DROPDOWN
-        ModelDropdown(
-            selected = uiState.entry.model,
-            onSelected = viewModel::onModelChanged
+        // BRAND
+        EditableDropdown(
+            label = "Brand",
+            items = uiState.brands,
+            selectedItem = uiState.entry.brand,
+            itemToString = { it.name },
+            onItemSelected = viewModel::onBrandChanged,
+            onAddNewItem = {
+                viewModel.onNewBrandInputChanged(it)
+                viewModel.addNewBrand()
+            },
+            errorMessage = null
         )
 
-        // LOCATION DROPDOWN
-        LocationDropdown(
-            selected = uiState.entry.location,
-            onSelected = viewModel::onLocationChanged
+        // MODEL
+        EditableDropdown(
+            label = "Model",
+            items = uiState.models,
+            selectedItem = uiState.entry.model,
+            itemToString = { it.name },
+            onItemSelected = viewModel::onModelChanged,
+            onAddNewItem = {
+                viewModel.onNewModelInputChanged(it)
+                viewModel.addNewModel()
+            },
+            errorMessage = null
+        )
+
+        // LOCATION
+        EditableDropdown(
+            label = "Location",
+            items = uiState.locations,
+            selectedItem = uiState.entry.location,
+            itemToString = { it.name },
+            onItemSelected = viewModel::onLocationChanged,
+            onAddNewItem = {
+                viewModel.onNewLocationInputChanged(it)
+                viewModel.addNewLocation()
+            },
+            errorMessage = null
         )
 
         Spacer(Modifier.height(24.dp))
@@ -82,3 +121,4 @@ fun EditEntryMetadataScreen(
         }
     }
 }
+
