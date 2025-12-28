@@ -13,5 +13,5 @@ data class EntryEntity(
     val title: String,
     val description: String,
     val timestamp: Long,
-    val audioPath: String? = null
+    val imageUris: List<String> = emptyList()
 )

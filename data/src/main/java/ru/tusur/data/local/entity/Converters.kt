@@ -14,4 +14,12 @@ object Converters {
     fun toTimestamp(date: LocalDateTime?): Long? {
         return date?.toEpochSecond(ZoneOffset.UTC)
     }
+
+    @TypeConverter
+    fun fromList(list: List<String>): String =
+        list.joinToString(separator = "|")
+
+    @TypeConverter
+    fun toList(data: String): List<String> =
+        if (data.isEmpty()) emptyList() else data.split("|")
 }

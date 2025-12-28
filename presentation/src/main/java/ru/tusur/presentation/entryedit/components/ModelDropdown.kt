@@ -37,8 +37,11 @@ fun ModelDropdown(
             readOnly = true,
             label = { Text("Model") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .menuAnchor()
+            modifier = Modifier.menuAnchor(
+                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                enabled = true
+            )
+
                 .fillMaxWidth()
         )
 

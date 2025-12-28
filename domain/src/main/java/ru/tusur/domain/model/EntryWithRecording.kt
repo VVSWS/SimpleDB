@@ -7,7 +7,8 @@ data class EntryWithRecording(
     val brand: Brand,
     val model: Model,
     val location: Location,
-    val date: Long,
-    val audioPath: String?,
-    val description: String?
+    val timestamp: Long,
+    val description: String?,
+    val imageUris: List<String> = emptyList()
 )
+

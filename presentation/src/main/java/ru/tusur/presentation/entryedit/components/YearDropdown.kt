@@ -27,8 +27,11 @@ fun YearDropdown(
             readOnly = true,
             label = { Text("Year") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .menuAnchor()
+            modifier = Modifier.menuAnchor(
+                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                enabled = true
+            )
+
                 .fillMaxWidth()
         )
 

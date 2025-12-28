@@ -93,7 +93,7 @@ val appModule = module {
      *  REPOSITORIES
      * ================ */
 
-    single<FaultRepository> { DefaultFaultRepository(get(), get()) }
+    single<FaultRepository> { DefaultFaultRepository(get(), get(), get()) }
     single<ReferenceDataRepository> { DefaultReferenceDataRepository(get(), get(), get(), get(), get()) }
 
     /* ================

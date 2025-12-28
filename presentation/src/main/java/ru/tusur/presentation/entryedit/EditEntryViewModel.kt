@@ -1,5 +1,7 @@
 package ru.tusur.presentation.entryedit
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -7,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
+import ru.tusur.core.files.savePickedImage
 import ru.tusur.domain.model.Brand
 import ru.tusur.domain.model.FaultEntry
 import ru.tusur.domain.model.Location
@@ -59,7 +62,6 @@ class EditEntryViewModel(
     val uiState: StateFlow<UiState> = _uiState
 
     init {
-        // Load metadata lists
         combine(
             getYears(),
             getBrands(),
@@ -146,6 +148,20 @@ class EditEntryViewModel(
     fun onLocationChanged(location: Location) {
         _uiState.value = _uiState.value.copy(
             entry = _uiState.value.entry.copy(location = location)
+        )
+    }
+
+    // -------------------------
+    // IMAGE HANDLING (Option 3)
+    // -------------------------
+
+    fun onImagesSelected(context: Context, uris: List<Uri>) {
+        val newRelativePaths = uris.map { savePickedImage(context, it) }
+
+        _uiState.value = _uiState.value.copy(
+            entry = _uiState.value.entry.copy(
+                imageUris = _uiState.value.entry.imageUris + newRelativePaths
+            )
         )
     }
 

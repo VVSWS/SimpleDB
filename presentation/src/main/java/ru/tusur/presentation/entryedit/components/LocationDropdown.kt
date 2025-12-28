@@ -37,8 +37,11 @@ fun LocationDropdown(
             readOnly = true,
             label = { Text("Location") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .menuAnchor()
+            modifier = Modifier.menuAnchor(
+                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                enabled = true
+            )
+
                 .fillMaxWidth()
         )
 

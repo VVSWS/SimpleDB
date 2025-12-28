@@ -1,16 +1,24 @@
 package ru.tusur.presentation.entryview
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.tusur.domain.model.EntryWithRecording
+import ru.tusur.presentation.entryview.components.FullScreenImageViewer
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.platform.LocalContext
+
 
 @Composable
 fun RecordingViewScreen(
@@ -55,14 +63,16 @@ fun RecordingViewContent(
     entry: EntryWithRecording,
     onBack: () -> Unit
 ) {
-    // Format timestamp → readable date
-    val formattedDate = remember(entry.date) {
+    // ⭐ Add this state
+    var selectedImage by remember { mutableStateOf<String?>(null) }
+
+    val formattedDate = remember(entry.timestamp) {
         SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-            .format(Date(entry.date))
+            .format(Date(entry.timestamp))
     }
 
-    // Safe description handling
     val descriptionText = entry.description?.ifBlank { null } ?: "No description provided"
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -93,15 +103,49 @@ fun RecordingViewContent(
 
         Spacer(Modifier.height(20.dp))
 
-        // Audio
-        Text("Audio file:", style = MaterialTheme.typography.titleMedium)
-        Text(entry.audioPath ?: "No audio")
+        // Images
+        Text("Images:", style = MaterialTheme.typography.titleMedium)
+
+        if (entry.imageUris.isEmpty()) {
+            Text("No images")
+        } else {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(entry.imageUris) { uri ->
+                    Box(
+                        modifier = Modifier
+                            .size(140.dp)
+                            .padding(4.dp)
+                            .clickable {
+                                println("IMAGE CLICKED: $uri")
+                                selectedImage = uri   // ⭐ Set selected image
+                            }
+                    ) {
+                        AsyncImage(
+                            model = File(context.filesDir, uri),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+        }
 
         Spacer(Modifier.height(32.dp))
 
         // Back button
-        Button(onClick = onBack) {
+        Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
             Text("Back")
         }
+    }
+
+    // ⭐ Show full-screen viewer when an image is selected
+    if (selectedImage != null) {
+        FullScreenImageViewer(
+            relativePath = selectedImage!!,
+            onDismiss = { selectedImage = null }
+        )
     }
 }

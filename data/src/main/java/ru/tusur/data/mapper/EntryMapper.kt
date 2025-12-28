@@ -46,7 +46,8 @@ class EntryMapper {
             location = Location(entity.entry.location),
             title = entity.entry.title,
             description = entity.entry.description,
-            timestamp = entity.entry.timestamp
+            timestamp = entity.entry.timestamp,
+            imageUris = entity.images.map { it.uri }   
         )
     }
 
@@ -58,9 +59,9 @@ class EntryMapper {
             brand = Brand(entity.entry.brand),
             model = Model(entity.entry.model),
             location = Location(entity.entry.location),
-            date = entity.entry.timestamp,
-            audioPath = entity.entry.audioPath,
-            description = entity.entry.description
+            timestamp = entity.entry.timestamp,
+            description = entity.entry.description,
+            imageUris = entity.images.map { it.uri }
         )
     }
 }
