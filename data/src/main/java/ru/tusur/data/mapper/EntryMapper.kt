@@ -14,10 +14,12 @@ class EntryMapper {
     fun toEntity(domain: FaultEntry): EntryEntity {
         return EntryEntity(
             id = domain.id,
-            year = domain.year.value,
-            brand = domain.brand.name,
-            model = domain.model.name,
-            location = domain.location.name,
+            year = domain.year?.value ?: 0,
+            brand = domain.brand?.name ?: "",
+            modelName = domain.model?.name,
+            modelBrand = domain.model?.brand?.name,
+            modelYear = domain.model?.year?.value,
+            location = domain.location?.name,
             title = domain.title,
             description = domain.description,
             timestamp = domain.timestamp
@@ -25,12 +27,24 @@ class EntryMapper {
     }
 
     fun toDomain(entity: EntryEntity): FaultEntry {
+        val model = if (
+            entity.modelName != null &&
+            entity.modelBrand != null &&
+            entity.modelYear != null
+        ) {
+            Model(
+                name = entity.modelName,
+                brand = Brand(entity.modelBrand),
+                year = Year(entity.modelYear)
+            )
+        } else null
+
         return FaultEntry(
             id = entity.id,
-            year = Year(entity.year),
-            brand = Brand(entity.brand),
-            model = Model(entity.model),
-            location = Location(entity.location),
+            year = entity.year?.let { Year(it) },
+            brand = entity.brand?.let { Brand(it) },
+            model = model,
+            location = entity.location?.let { Location(it) },
             title = entity.title,
             description = entity.description,
             timestamp = entity.timestamp
@@ -38,29 +52,57 @@ class EntryMapper {
     }
 
     fun toDomain(entity: EntryWithImages): FaultEntry {
+        val e = entity.entry
+
+        val model = if (
+            e.modelName != null &&
+            e.modelBrand != null &&
+            e.modelYear != null
+        ) {
+            Model(
+                name = e.modelName,
+                brand = Brand(e.modelBrand),
+                year = Year(e.modelYear)
+            )
+        } else null
+
         return FaultEntry(
-            id = entity.entry.id,
-            year = Year(entity.entry.year),
-            brand = Brand(entity.entry.brand),
-            model = Model(entity.entry.model),
-            location = Location(entity.entry.location),
-            title = entity.entry.title,
-            description = entity.entry.description,
-            timestamp = entity.entry.timestamp,
-            imageUris = entity.images.map { it.uri }   
+            id = e.id,
+            year = e.year?.let { Year(it) },
+            brand = e.brand?.let { Brand(it) },
+            model = model,
+            location = e.location?.let { Location(it) },
+            title = e.title,
+            description = e.description,
+            timestamp = e.timestamp,
+            imageUris = entity.images.map { it.uri }
         )
     }
 
     fun toRecording(entity: EntryWithImages): EntryWithRecording {
+        val e = entity.entry
+
+        val model = if (
+            e.modelName != null &&
+            e.modelBrand != null &&
+            e.modelYear != null
+        ) {
+            Model(
+                name = e.modelName,
+                brand = Brand(e.modelBrand),
+                year = Year(e.modelYear)
+            )
+        } else null
+
         return EntryWithRecording(
-            id = entity.entry.id,
-            title = entity.entry.title,
-            year = Year(entity.entry.year),
-            brand = Brand(entity.entry.brand),
-            model = Model(entity.entry.model),
-            location = Location(entity.entry.location),
-            timestamp = entity.entry.timestamp,
-            description = entity.entry.description,
+            id = e.id,
+            title = e.title,
+            year = e.year?.let { Year(it) },
+            brand = e.brand?.let { Brand(it) },
+            model = model,
+            location = e.location?.let { Location(it) },
+            timestamp = e.timestamp,
+            description = e.description,
             imageUris = entity.images.map { it.uri }
         )
     }

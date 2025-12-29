@@ -9,12 +9,10 @@ import ru.tusur.data.local.entity.LocationEntity
 
 @Dao
 interface LocationDao {
-    @Query("SELECT * FROM locations ORDER BY name COLLATE NOCASE")
+
+    @Query("SELECT * FROM locations ORDER BY name ASC")
     fun getAllLocations(): Flow<List<LocationEntity>>
 
-    @Query("SELECT * FROM locations WHERE name = :name COLLATE NOCASE")
-    suspend fun getLocationByName(name: String): LocationEntity?
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertLocation(location: LocationEntity): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLocation(entity: LocationEntity): Long
 }

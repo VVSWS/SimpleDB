@@ -8,7 +8,6 @@ import ru.tusur.data.local.database.dao.ModelDao
 import ru.tusur.data.local.database.dao.YearDao
 import ru.tusur.data.mapper.ReferenceDataMapper
 import ru.tusur.domain.model.Brand
-import ru.tusur.domain.model.EntryWithRecording
 import ru.tusur.domain.model.Location
 import ru.tusur.domain.model.Model
 import ru.tusur.domain.model.Year
@@ -22,84 +21,101 @@ class DefaultReferenceDataRepository(
     private val mapper: ReferenceDataMapper
 ) : ReferenceDataRepository {
 
-    override fun getYears(): Flow<List<Year>> {
-        return yearDao.getAllYears().map { entities ->
-            entities.map { mapper.toDomain(it) }
+    // -------------------------
+    // YEARS
+    // -------------------------
+
+    override fun getYears(): Flow<List<Year>> =
+        yearDao.getAllYears().map { list ->
+            list.map(mapper::toDomain)
         }
+
+    override suspend fun addYear(year: Year): Result<Unit> = try {
+        val entity = mapper.toEntity(year)
+        val id = yearDao.insertYear(entity)
+
+        if (id == -1L)
+            Result.failure(IllegalStateException("Year ${year.value} already exists"))
+        else
+            Result.success(Unit)
+
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
-    override suspend fun addYear(year: Year): Result<Unit> {
-        return try {
-            val entity = mapper.toEntity(year)
-            val id = yearDao.insertYear(entity)
-            if (id == -1L) {
-                Result.failure(IllegalStateException("Year ${year.value} already exists"))
-            } else {
-                Result.success(Unit)
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override fun getModels(): Flow<List<Model>> {
-        return modelDao.getAllModels().map { entities ->
-            entities.map { mapper.toDomain(it) }
-        }
-    }
-
-    override suspend fun addModel(model: Model): Result<Unit> {
-        return try {
-            val entity = mapper.toEntity(model)
-            val id = modelDao.insertModel(entity)
-            if (id == -1L) {
-                Result.failure(IllegalStateException("Model '${model.name}' already exists"))
-            } else {
-                Result.success(Unit)
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+    // -------------------------
+    // BRANDS
+    // -------------------------
 
     override fun getBrands(): Flow<List<Brand>> =
-        brandDao.getAllBrands().map { entities ->
-            entities.map(mapper::toDomain)
+        brandDao.getAllBrands().map { list ->
+            list.map(mapper::toDomain)
         }
 
+    override suspend fun addBrand(brand: Brand): Result<Unit> = try {
+        val entity = mapper.toEntity(brand)
+        val id = brandDao.insertBrand(entity)
 
-    override suspend fun addBrand(brand: Brand): Result<Unit> {
-        return try {
-            val entity = mapper.toEntity(brand)
-            val id = brandDao.insertBrand(entity)
-            if (id == -1L) {
-                Result.failure(IllegalStateException("Brand '${brand.name}' already exists"))
-            } else {
-                Result.success(Unit)
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        if (id == -1L)
+            Result.failure(IllegalStateException("Brand '${brand.name}' already exists"))
+        else
+            Result.success(Unit)
+
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
+    // -------------------------
+    // MODELS
+    // -------------------------
 
-    override fun getLocations(): Flow<List<Location>> {
-        return locationDao.getAllLocations().map { entities ->
-            entities.map { mapper.toDomain(it) }
+    override fun getModels(): Flow<List<Model>> =
+        modelDao.getAllModels().map { list ->
+            list.map(mapper::toDomain)
         }
+
+    override fun getModelsForBrandAndYear(
+        brand: Brand,
+        year: Year
+    ): Flow<List<Model>> =
+        modelDao.getModelsForBrandAndYear(
+            brandName = brand.name,
+            yearValue = year.value
+        ).map { list ->
+            list.map(mapper::toDomain)
+        }
+
+    override suspend fun addModel(model: Model): Result<Unit> = try {
+        val entity = mapper.toEntity(model)
+
+        // Room @Insert(onConflict = REPLACE) returns Unit, not ID
+        modelDao.insertModel(entity)
+
+        Result.success(Unit)
+
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
-    override suspend fun addLocation(location: Location): Result<Unit> {
-        return try {
-            val entity = mapper.toEntity(location)
-            val id = locationDao.insertLocation(entity)
-            if (id == -1L) {
-                Result.failure(IllegalStateException("Location '${location.name}' already exists"))
-            } else {
-                Result.success(Unit)
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
+    // -------------------------
+    // LOCATIONS
+    // -------------------------
+
+    override fun getLocations(): Flow<List<Location>> =
+        locationDao.getAllLocations().map { list ->
+            list.map(mapper::toDomain)
         }
+
+    override suspend fun addLocation(location: Location): Result<Unit> = try {
+        val entity = mapper.toEntity(location)
+        val id = locationDao.insertLocation(entity)
+
+        if (id == -1L)
+            Result.failure(IllegalStateException("Location '${location.name}' already exists"))
+        else
+            Result.success(Unit)
+
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 }

@@ -34,14 +34,14 @@ interface EntryDao {
         SELECT * FROM entries
         WHERE (:year IS NULL OR year = :year)
           AND (:brand IS NULL OR brand = :brand)
-          AND (:model IS NULL OR model = :model)
+          AND (:modelName IS NULL OR modelName = :modelName)
           AND (:location IS NULL OR location = :location)
         ORDER BY timestamp DESC
     """)
     suspend fun searchEntries(
         year: Int?,
         brand: String?,
-        model: String?,
+        modelName: String?,   // updated
         location: String?
     ): List<EntryEntity>
 
@@ -54,7 +54,6 @@ interface EntryDao {
     @Delete
     suspend fun deleteEntry(entry: EntryEntity)
 
-    // NEW — this replaces your broken "Any" version
     @Transaction
     @Query("SELECT * FROM entries WHERE id = :id")
     suspend fun getEntryWithRecording(id: Long): EntryWithImages

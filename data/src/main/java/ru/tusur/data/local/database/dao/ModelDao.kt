@@ -9,12 +9,20 @@ import ru.tusur.data.local.entity.ModelEntity
 
 @Dao
 interface ModelDao {
-    @Query("SELECT * FROM models ORDER BY name COLLATE NOCASE")
+
+    @Query("SELECT * FROM models")
     fun getAllModels(): Flow<List<ModelEntity>>
 
-    @Query("SELECT * FROM models WHERE name = :name COLLATE NOCASE")
-    suspend fun getModelByName(name: String): ModelEntity?
+    @Query("""
+        SELECT * FROM models
+        WHERE brandName = :brandName
+        AND yearValue = :yearValue
+    """)
+    fun getModelsForBrandAndYear(
+        brandName: String,
+        yearValue: Int
+    ): Flow<List<ModelEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertModel(model: ModelEntity): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertModel(model: ModelEntity)
 }

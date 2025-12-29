@@ -33,32 +33,30 @@ import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataViewModel
 import ru.tusur.presentation.entrysearch.EntrySearchViewModel
 import ru.tusur.presentation.mainscreen.MainViewModel
 import ru.tusur.presentation.settings.SettingsViewModel
-import java.io.File
 import ru.tusur.presentation.entryview.RecordingViewViewModel
 import ru.tusur.presentation.search.SharedSearchViewModel
-
-
+import java.io.File
 
 // DataStore delegate
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 val appModule = module {
 
-    // Shared across screens (must be SINGLE)
+    /* ============================
+     *  SHARED VIEWMODELS
+     * ============================ */
     single { SharedSearchViewModel() }
 
-    /* ================
+    /* ============================
      *  CORE
-     * ================ */
-
+     * ============================ */
     single { FileHelper }
     single<DatabaseValidator> { RoomDatabaseValidator() }
     single<DataStore<Preferences>> { androidContext().dataStore }
 
-    /* ================
+    /* ============================
      *  DATABASE
-     * ================ */
-
+     * ============================ */
     single { DatabaseProvider(androidContext()) }
     single { MergeDatabaseManager(androidContext(), get()) }
 
@@ -71,10 +69,9 @@ val appModule = module {
         get<DatabaseProvider>().getDatabase(dbFile)
     }
 
-    /* ================
+    /* ============================
      *  DAOs
-     * ================ */
-
+     * ============================ */
     single<EntryDao> { get<AppDatabase>().entryDao() }
     single<YearDao> { get<AppDatabase>().yearDao() }
     single<BrandDao> { get<AppDatabase>().brandDao() }
@@ -82,28 +79,28 @@ val appModule = module {
     single<LocationDao> { get<AppDatabase>().locationDao() }
     single<EntryImageDao> { get<AppDatabase>().entryImageDao() }
 
-    /* ================
+    /* ============================
      *  MAPPERS
-     * ================ */
-
+     * ============================ */
     single { EntryMapper() }
     single { ReferenceDataMapper() }
 
-    /* ================
+    /* ============================
      *  REPOSITORIES
-     * ================ */
-
+     * ============================ */
     single<FaultRepository> { DefaultFaultRepository(get(), get(), get()) }
     single<ReferenceDataRepository> { DefaultReferenceDataRepository(get(), get(), get(), get(), get()) }
 
-    /* ================
+    /* ============================
      *  USE CASES
-     * ================ */
+     * ============================ */
 
+    // Database
     single { CreateDatabaseUseCase(androidContext()) }
     single { OpenDatabaseUseCase(androidContext()) }
     single { GetCurrentDatabaseInfoUseCase(androidContext()) }
 
+    // Entry
     factory { GetEntriesUseCase(get()) }
     factory { GetEntryByIdUseCase(get()) }
     factory { CreateEntryUseCase(get()) }
@@ -111,7 +108,9 @@ val appModule = module {
     factory { DeleteEntryUseCase(get()) }
     factory { GetRecentEntriesUseCase(get()) }
     factory { SearchEntriesUseCase(get()) }
+    factory { GetModelsForBrandAndYearUseCase(get()) }
 
+    // Reference data
     factory { GetYearsUseCase(get()) }
     factory { AddYearUseCase(get()) }
     factory { GetModelsUseCase(get()) }
@@ -121,9 +120,9 @@ val appModule = module {
     factory { GetLocationsUseCase(get()) }
     factory { AddLocationUseCase(get()) }
 
-    /* ================
+    /* ============================
      *  VIEWMODELS
-     * ================ */
+     * ============================ */
 
     viewModel { MainViewModel(get()) }
 
@@ -148,7 +147,7 @@ val appModule = module {
         NewEntryMetadataViewModel(
             getYears = get(),
             getBrands = get(),
-            getModels = get(),
+            getModelsForBrandAndYear  = get(),
             getLocations = get(),
             addYear = get(),
             addBrand = get(),
@@ -166,7 +165,7 @@ val appModule = module {
 
             getYears = get(),
             getBrands = get(),
-            getModels = get(),
+            getModelsForBrandAndYear = get(),
             getLocations = get(),
 
             addYear = get(),
@@ -175,7 +174,6 @@ val appModule = module {
             addLocation = get()
         )
     }
-
 
     viewModel { (id: Long) -> RecordingViewViewModel(get<FaultRepository>(), id) }
 
@@ -192,4 +190,3 @@ val appModule = module {
 
     viewModel { AboutViewModel() }
 }
-

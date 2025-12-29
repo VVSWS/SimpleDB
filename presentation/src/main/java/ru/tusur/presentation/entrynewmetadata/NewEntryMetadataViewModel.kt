@@ -2,10 +2,7 @@ package ru.tusur.presentation.entrynewmetadata
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.tusur.core.util.ValidationUtils
 import ru.tusur.domain.model.Brand
@@ -17,7 +14,7 @@ import ru.tusur.domain.usecase.reference.*
 class NewEntryMetadataViewModel(
     getYears: GetYearsUseCase,
     getBrands: GetBrandsUseCase,
-    getModels: GetModelsUseCase,
+    private val getModelsForBrandAndYear: GetModelsForBrandAndYearUseCase,
     getLocations: GetLocationsUseCase,
     private val addYear: AddYearUseCase,
     private val addBrand: AddBrandUseCase,
@@ -28,29 +25,46 @@ class NewEntryMetadataViewModel(
     data class UiState(
         val entryId: Long? = null,
         val isContinueEnabled: Boolean = false,
+
         val years: List<Year> = emptyList(),
         val brands: List<Brand> = emptyList(),
         val models: List<Model> = emptyList(),
         val locations: List<Location> = emptyList(),
+
         val selectedYear: Year? = null,
         val selectedBrand: Brand? = null,
         val selectedModel: Model? = null,
         val selectedLocation: Location? = null,
+
         val newYearInput: String = "",
         val newBrandInput: String = "",
         val newModelInput: String = "",
         val newLocationInput: String = "",
+
         val title: String = ""
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
+    // Reactive brand/year selections
+    private val selectedBrand = MutableStateFlow<Brand?>(null)
+    private val selectedYear = MutableStateFlow<Year?>(null)
+
+    // Reactive filtered models
+    private val filteredModelsFlow: Flow<List<Model>> =
+        combine(selectedBrand, selectedYear) { brand, year ->
+            if (brand == null || year == null) null else brand to year
+        }.flatMapLatest { pair ->
+            if (pair == null) flowOf(emptyList())
+            else getModelsForBrandAndYear(pair.first, pair.second)
+        }
+
     init {
         combine(
             getYears(),
             getBrands(),
-            getModels(),
+            filteredModelsFlow,
             getLocations()
         ) { years, brands, models, locations ->
             _uiState.value = _uiState.value.copy(
@@ -62,13 +76,25 @@ class NewEntryMetadataViewModel(
         }.launchIn(viewModelScope)
     }
 
+    // -------------------------
+    // SELECTION HANDLERS
+    // -------------------------
+
     fun onYearSelected(year: Year) {
-        _uiState.value = _uiState.value.copy(selectedYear = year)
+        selectedYear.value = year
+        _uiState.value = _uiState.value.copy(
+            selectedYear = year,
+            selectedModel = null // reset model when year changes
+        )
         updateContinueButton()
     }
 
     fun onBrandSelected(brand: Brand) {
-        _uiState.value = _uiState.value.copy(selectedBrand = brand)
+        selectedBrand.value = brand
+        _uiState.value = _uiState.value.copy(
+            selectedBrand = brand,
+            selectedModel = null // reset model when brand changes
+        )
         updateContinueButton()
     }
 
@@ -81,6 +107,10 @@ class NewEntryMetadataViewModel(
         _uiState.value = _uiState.value.copy(selectedLocation = location)
         updateContinueButton()
     }
+
+    // -------------------------
+    // INPUT HANDLERS
+    // -------------------------
 
     fun onNewYearInputChanged(text: String) {
         _uiState.value = _uiState.value.copy(newYearInput = text)
@@ -103,18 +133,23 @@ class NewEntryMetadataViewModel(
         updateContinueButton()
     }
 
+    // -------------------------
+    // ADD NEW METADATA
+    // -------------------------
+
     fun addNewYear() {
         val input = _uiState.value.newYearInput
 
         ValidationUtils.validateYear(input).onSuccess { yearInt ->
             viewModelScope.launch {
                 addYear(Year(yearInt)).onSuccess {
+                    val year = Year(yearInt)
+                    selectedYear.value = year
                     _uiState.value = _uiState.value.copy(
                         newYearInput = "",
-                        selectedYear = Year(yearInt)
+                        selectedYear = year,
+                        selectedModel = null
                     )
-                }.onFailure { error ->
-                    // TODO: errorState
                 }
             }
         }
@@ -122,60 +157,70 @@ class NewEntryMetadataViewModel(
 
     fun addNewBrand() {
         val input = ValidationUtils.maxLengthTrim(_uiState.value.newBrandInput, 30)
-        if (input.isNotEmpty()) {
-            viewModelScope.launch {
-                addBrand(Brand(input)).onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        newBrandInput = "",
-                        selectedBrand = Brand(input)
-                    )
-                }.onFailure { error ->
-                    // TODO:
-                }
+        if (input.isEmpty()) return
+
+        val brand = Brand(input)
+
+        viewModelScope.launch {
+            addBrand(brand).onSuccess {
+                selectedBrand.value = brand
+                _uiState.value = _uiState.value.copy(
+                    newBrandInput = "",
+                    selectedBrand = brand,
+                    selectedModel = null
+                )
             }
         }
     }
 
     fun addNewModel() {
-        val input = ValidationUtils.maxLengthTrim(_uiState.value.newModelInput, 30)
-        if (input.isNotEmpty()) {
-            viewModelScope.launch {
-                addModel(Model(input)).onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        newModelInput = "",
-                        selectedModel = Model(input)
-                    )
-                }.onFailure { error ->
-                    // TODO:
-                }
+        val input = _uiState.value.newModelInput.trim()
+        val brand = _uiState.value.selectedBrand ?: return
+        val year = _uiState.value.selectedYear ?: return
+        if (input.isEmpty()) return
+
+        val model = Model(input, brand, year)
+
+        viewModelScope.launch {
+            addModel(model).onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    newModelInput = "",
+                    models = _uiState.value.models + model,
+                    selectedModel = model
+                )
             }
         }
     }
 
     fun addNewLocation() {
         val input = ValidationUtils.maxLengthTrim(_uiState.value.newLocationInput, 15)
-        if (input.isNotEmpty()) {
-            viewModelScope.launch {
-                addLocation(Location(input)).onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        newLocationInput = "",
-                        selectedLocation = Location(input)
-                    )
-                }.onFailure { error ->
-                    // TODO:
-                }
+        if (input.isEmpty()) return
+
+        val location = Location(input)
+
+        viewModelScope.launch {
+            addLocation(location).onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    newLocationInput = "",
+                    selectedLocation = location
+                )
             }
         }
     }
 
+    // -------------------------
+    // CONTINUE BUTTON LOGIC
+    // -------------------------
+
     private fun updateContinueButton() {
         val state = _uiState.value
         _uiState.value = state.copy(
-            isContinueEnabled = state.selectedYear != null &&
-                    state.selectedModel != null &&
-                    state.selectedBrand != null &&
-                    state.selectedLocation != null &&
-                    ValidationUtils.nonEmpty(state.title)
+            isContinueEnabled =
+                state.selectedYear != null &&
+                        state.selectedBrand != null &&
+                        state.selectedModel != null &&
+                        state.selectedLocation != null &&
+                        ValidationUtils.nonEmpty(state.title)
         )
     }
 }

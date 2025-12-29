@@ -7,12 +7,21 @@ import ru.tusur.domain.model.Model
 import ru.tusur.domain.model.Year
 
 interface ReferenceDataRepository {
+
+    // YEARS
     fun getYears(): Flow<List<Year>>
     suspend fun addYear(year: Year): Result<Unit>
+
+    // BRANDS
     fun getBrands(): Flow<List<Brand>>
-    suspend fun addBrand(model: Brand): Result<Unit>
+    suspend fun addBrand(brand: Brand): Result<Unit>
+
+    // MODELS
     fun getModels(): Flow<List<Model>>
+    fun getModelsForBrandAndYear(brand: Brand, year: Year): Flow<List<Model>>
     suspend fun addModel(model: Model): Result<Unit>
+
+    // LOCATIONS
     fun getLocations(): Flow<List<Location>>
     suspend fun addLocation(location: Location): Result<Unit>
 }

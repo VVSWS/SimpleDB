@@ -9,12 +9,10 @@ import ru.tusur.data.local.entity.YearEntity
 
 @Dao
 interface YearDao {
+
     @Query("SELECT * FROM years ORDER BY value DESC")
     fun getAllYears(): Flow<List<YearEntity>>
 
-    @Query("SELECT * FROM years WHERE value = :value")
-    suspend fun getYearByValue(value: Int): YearEntity?
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertYear(year: YearEntity): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertYear(entity: YearEntity): Long
 }

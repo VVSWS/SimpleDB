@@ -4,17 +4,10 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.tusur.core.files.savePickedImage
-import ru.tusur.domain.model.Brand
-import ru.tusur.domain.model.FaultEntry
-import ru.tusur.domain.model.Location
-import ru.tusur.domain.model.Model
-import ru.tusur.domain.model.Year
+import ru.tusur.domain.model.*
 import ru.tusur.domain.usecase.entry.*
 import ru.tusur.domain.usecase.reference.*
 
@@ -26,7 +19,7 @@ class EditEntryViewModel(
 
     private val getYears: GetYearsUseCase,
     private val getBrands: GetBrandsUseCase,
-    private val getModels: GetModelsUseCase,
+    private val getModelsForBrandAndYear: GetModelsForBrandAndYearUseCase,
     private val getLocations: GetLocationsUseCase,
 
     private val addYear: AddYearUseCase,
@@ -61,11 +54,24 @@ class EditEntryViewModel(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
+    // Reactive brand/year selections
+    private val selectedBrand = MutableStateFlow<Brand?>(null)
+    private val selectedYear = MutableStateFlow<Year?>(null)
+
+    // Reactive model list based on Brand + Year
+    private val modelsFlow: Flow<List<Model>> =
+        combine(selectedBrand, selectedYear) { brand, year ->
+            if (brand == null || year == null) null else brand to year
+        }.flatMapLatest { pair ->
+            if (pair == null) flowOf(emptyList())
+            else getModelsForBrandAndYear(pair.first, pair.second)
+        }
+
     init {
         combine(
             getYears(),
             getBrands(),
-            getModels(),
+            modelsFlow,
             getLocations()
         ) { years, brands, models, locations ->
             _uiState.value = _uiState.value.copy(
@@ -92,8 +98,13 @@ class EditEntryViewModel(
         viewModelScope.launch {
             getEntryById(entryId)
                 .onSuccess { entry ->
+                    val e = entry ?: FaultEntry()
+
+                    selectedBrand.value = e.brand
+                    selectedYear.value = e.year
+
                     _uiState.value = _uiState.value.copy(
-                        entry = entry ?: FaultEntry(),
+                        entry = e,
                         isEditMode = entry != null,
                         isLoading = false
                     )
@@ -128,14 +139,33 @@ class EditEntryViewModel(
     }
 
     fun onYearChanged(year: Year) {
+        selectedYear.value = year
+
         _uiState.value = _uiState.value.copy(
-            entry = _uiState.value.entry.copy(year = year)
+            entry = _uiState.value.entry.copy(
+                year = year,
+                model = null
+            )
         )
     }
 
-    fun onBrandChanged(brand: Brand) {
+    fun onModelNameChanged(name: String) {
         _uiState.value = _uiState.value.copy(
-            entry = _uiState.value.entry.copy(brand = brand)
+            entry = _uiState.value.entry.copy(
+                model = _uiState.value.entry.model?.copy(name = name)
+            )
+        )
+    }
+
+
+    fun onBrandChanged(brand: Brand) {
+        selectedBrand.value = brand
+
+        _uiState.value = _uiState.value.copy(
+            entry = _uiState.value.entry.copy(
+                brand = brand,
+                model = null
+            )
         )
     }
 
@@ -152,7 +182,7 @@ class EditEntryViewModel(
     }
 
     // -------------------------
-    // IMAGE HANDLING (Option 3)
+    // IMAGE HANDLING
     // -------------------------
 
     fun onImagesSelected(context: Context, uris: List<Uri>) {
@@ -189,14 +219,16 @@ class EditEntryViewModel(
         val input = _uiState.value.newYearInput.trim()
         if (input.isEmpty()) return
 
+        val year = Year(input.toInt())
+
         viewModelScope.launch {
-            addYear(Year(input.toInt()))
-                .onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        newYearInput = "",
-                        entry = _uiState.value.entry.copy(year = Year(input.toInt()))
-                    )
-                }
+            addYear(year).onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    newYearInput = "",
+                    entry = _uiState.value.entry.copy(year = year)
+                )
+                selectedYear.value = year
+            }
         }
     }
 
@@ -204,29 +236,34 @@ class EditEntryViewModel(
         val input = _uiState.value.newBrandInput.trim()
         if (input.isEmpty()) return
 
+        val brand = Brand(input)
+
         viewModelScope.launch {
-            addBrand(Brand(input))
-                .onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        newBrandInput = "",
-                        entry = _uiState.value.entry.copy(brand = Brand(input))
-                    )
-                }
+            addBrand(brand).onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    newBrandInput = "",
+                    entry = _uiState.value.entry.copy(brand = brand)
+                )
+                selectedBrand.value = brand
+            }
         }
     }
 
     fun addNewModel() {
         val input = _uiState.value.newModelInput.trim()
+        val brand = _uiState.value.entry.brand ?: return
+        val year = _uiState.value.entry.year ?: return
         if (input.isEmpty()) return
 
+        val model = Model(input, brand, year)
+
         viewModelScope.launch {
-            addModel(Model(input))
-                .onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        newModelInput = "",
-                        entry = _uiState.value.entry.copy(model = Model(input))
-                    )
-                }
+            addModel(model).onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    newModelInput = "",
+                    entry = _uiState.value.entry.copy(model = model)
+                )
+            }
         }
     }
 
@@ -234,14 +271,15 @@ class EditEntryViewModel(
         val input = _uiState.value.newLocationInput.trim()
         if (input.isEmpty()) return
 
+        val location = Location(input)
+
         viewModelScope.launch {
-            addLocation(Location(input))
-                .onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        newLocationInput = "",
-                        entry = _uiState.value.entry.copy(location = Location(input))
-                    )
-                }
+            addLocation(location).onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    newLocationInput = "",
+                    entry = _uiState.value.entry.copy(location = location)
+                )
+            }
         }
     }
 

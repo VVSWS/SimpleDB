@@ -1,29 +1,22 @@
 package ru.tusur.presentation.entryedit.components
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.fillMaxWidth
 import ru.tusur.domain.model.Model
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModelDropdown(
-    selected: Model,
-    onSelected: (Model) -> Unit,
+    selectedModel: Model?,                     // nullable now
+    models: List<Model>,                       // dynamic list from ViewModel
+    newModelInput: String,                     // text for adding new model
+    onModelSelected: (Model) -> Unit,
+    onNewModelInputChanged: (String) -> Unit,
+    onAddNewModel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val models = listOf(
-        Model("Toyota"),
-        Model("Honda"),
-        Model("BMW"),
-        Model("Mercedes"),
-        Model("Audi"),
-        Model("Volkswagen"),
-        Model("Ford"),
-        Model("Nissan")
-    )
-
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
@@ -32,16 +25,16 @@ fun ModelDropdown(
         modifier = modifier
     ) {
         OutlinedTextField(
-            value = selected.name,
+            value = selectedModel?.name ?: "",
             onValueChange = {},
             readOnly = true,
             label = { Text("Model") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier.menuAnchor(
-                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                enabled = true
-            )
-
+            modifier = Modifier
+                .menuAnchor(
+                    type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                    enabled = true
+                )
                 .fillMaxWidth()
         )
 
@@ -49,15 +42,40 @@ fun ModelDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
+            // Existing models
             models.forEach { model ->
                 DropdownMenuItem(
                     text = { Text(model.name) },
                     onClick = {
-                        onSelected(model)
+                        onModelSelected(model)
                         expanded = false
                     }
                 )
             }
+
+            // Divider + Add new model
+            Divider()
+
+            // Input field for new model
+            DropdownMenuItem(
+                text = {
+                    OutlinedTextField(
+                        value = newModelInput,
+                        onValueChange = onNewModelInputChanged,
+                        label = { Text("Add new model") }
+                    )
+                },
+                onClick = { /* no-op */ }
+            )
+
+            // Confirm button
+            DropdownMenuItem(
+                text = { Text("Add") },
+                onClick = {
+                    onAddNewModel()
+                    expanded = false
+                }
+            )
         }
     }
 }

@@ -59,7 +59,7 @@ fun EditEntryDescriptionScreen(
         if (entryId == null || entryId == 0L) {
             viewModel.onYearChanged(Year(year))
             viewModel.onBrandChanged(Brand(brand))
-            viewModel.onModelChanged(Model(model))
+            viewModel.onModelNameChanged(model)
             viewModel.onLocationChanged(Location(location))
             viewModel.onTitleChanged(title)
         }
