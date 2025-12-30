@@ -1,191 +1,163 @@
 package ru.tusur.presentation.entryedit
 
 import android.net.Uri
-import coil.compose.AsyncImage
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import org.koin.compose.koinInject
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import ru.tusur.domain.model.Brand
-import ru.tusur.domain.model.Year
-import ru.tusur.domain.model.Model
-import ru.tusur.domain.model.Location
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.input.pointer.pointerInput
-import ru.tusur.presentation.entryview.components.FullScreenImageViewer
-import androidx.core.net.toUri
-import java.io.File
-import androidx.compose.ui.platform.LocalContext
+import ru.tusur.domain.model.*
 
-
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditEntryDescriptionScreen(
     navController: NavController,
-    entryId: Long?,
+    entryId: Long,
     year: Int,
     brand: String,
     model: String,
     location: String,
     title: String
 ) {
-    val viewModel: EditEntryViewModel = koinInject()
+    val viewModel: EditEntryDescriptionViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-    var selectedImage by remember { mutableStateOf<String?>(null) }
-
-
 
     // Image picker launcher
-    val imagePicker = rememberLauncherForActivityResult(
+    val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
-    ) { uris: List<Uri> ->
-        viewModel.onImagesSelected(context, uris)
-    }
-
-    // Apply metadata ONLY for new entries
-    LaunchedEffect(Unit) {
-        if (entryId == null || entryId == 0L) {
-            viewModel.onYearChanged(Year(year))
-            viewModel.onBrandChanged(Brand(brand))
-            viewModel.onModelNameChanged(model)
-            viewModel.onLocationChanged(Location(location))
-            viewModel.onTitleChanged(title)
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            viewModel.onImagesSelected(navController.context, uris)
         }
     }
 
-    // Load entry for editing
+    // Initialize entry
     LaunchedEffect(entryId) {
-        if (entryId != null && entryId > 0L) {
+        if (entryId == 0L) {
+            val initial = FaultEntry(
+                year = Year(year),
+                brand = Brand(brand),
+                model = Model(model, Brand(brand), Year(year)),
+                location = Location(location),
+                title = title
+            )
+
+            viewModel.initializeNewEntry(initial)
+        } else {
             viewModel.loadEntry(entryId)
         }
     }
 
-    // Handle save completion
-    LaunchedEffect(uiState.saveCompleted) {
-        if (uiState.saveCompleted) {
-            viewModel.consumeSaveCompleted()
-            navController.popBackStack()
-        }
-    }
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    println("ROOT TAP")
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Entry Description") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        imagePickerLauncher.launch("image/*")
+                    }) {
+                        Icon(Icons.Filled.AddAPhoto, contentDescription = "Add Image")
+                    }
                 }
-            }
-    ) {
+            )
+        }
+    ) { padding ->
+
         Column(
             modifier = Modifier
+                .padding(padding)
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState())
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            Text(
-                text = "Description",
-                style = MaterialTheme.typography.headlineSmall
-            )
 
             // DESCRIPTION FIELD
             OutlinedTextField(
                 value = uiState.entry.description,
                 onValueChange = viewModel::onDescriptionChanged,
-                label = { Text("Description (≤500)") },
-                maxLines = 6,
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = uiState.descriptionError != null
             )
+
+            uiState.descriptionError?.let {
+                Text(it, color = MaterialTheme.colorScheme.error)
+            }
 
             // IMAGE PREVIEW
             if (uiState.entry.imageUris.isNotEmpty()) {
-                Text(
-                    text = "Attached Images:",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(uiState.entry.imageUris) { path ->
+                        val file = navController.context.filesDir.resolve(path)
+                        val fileUri = Uri.fromFile(file)
 
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(uiState.entry.imageUris) { uri ->
-                        Box(
+                        Image(
+                            painter = rememberAsyncImagePainter(fileUri),
+                            contentDescription = null,
                             modifier = Modifier
-                                .padding(4.dp)
                                 .size(120.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { selectedImage = uri }
-                        ) {
-                            AsyncImage(
-                                model = File(context.filesDir, uri),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+                                .padding(4.dp),
+                            contentScale = ContentScale.Crop
+                        )
                     }
+
                 }
 
-            }
 
-            // ADD IMAGES BUTTON
-            Button(
-                onClick = { imagePicker.launch("image/*") },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Add Images")
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // BACK + SAVE BUTTONS
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            // SAVE BUTTON
+            Button(
+                onClick = { viewModel.saveEntry() },
+                enabled = uiState.isValid,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Back")
-                }
-
-                Spacer(Modifier.width(8.dp))
-
-                Button(
-                    onClick = viewModel::saveEntry,
-                    enabled = uiState.isValid && !uiState.isSaving,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Save")
-                }
+                Text("Save")
             }
 
             // DELETE BUTTON (only in edit mode)
             if (uiState.isEditMode) {
-                TextButton(
-                    onClick = viewModel::deleteEntry,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                Button(
+                    onClick = { viewModel.deleteEntry() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Delete Entry", color = MaterialTheme.colorScheme.error)
+                    Text("Delete")
+                }
+            }
+
+            // NAVIGATE BACK AFTER SAVE
+            if (uiState.saveCompleted) {
+                LaunchedEffect(Unit) {
+                    navController.popBackStack()
+                    viewModel.consumeSaveCompleted()
                 }
             }
         }
-        if (selectedImage != null) {
-            FullScreenImageViewer(
-                relativePath = selectedImage!!,
-                onDismiss = { selectedImage = null }
-            )
-        }
-
     }
 }

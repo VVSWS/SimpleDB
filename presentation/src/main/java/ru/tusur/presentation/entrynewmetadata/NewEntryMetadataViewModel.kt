@@ -2,6 +2,7 @@ package ru.tusur.presentation.entrynewmetadata
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.tusur.core.util.ValidationUtils
@@ -52,6 +53,7 @@ class NewEntryMetadataViewModel(
     private val selectedYear = MutableStateFlow<Year?>(null)
 
     // Reactive filtered models
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val filteredModelsFlow: Flow<List<Model>> =
         combine(selectedBrand, selectedYear) { brand, year ->
             if (brand == null || year == null) null else brand to year

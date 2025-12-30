@@ -2,23 +2,52 @@ package ru.tusur.data.mapper
 
 import ru.tusur.data.local.entity.EntryEntity
 import ru.tusur.data.local.entity.EntryWithImages
-import ru.tusur.domain.model.EntryWithRecording
-import ru.tusur.domain.model.FaultEntry
-import ru.tusur.domain.model.Year
-import ru.tusur.domain.model.Model
-import ru.tusur.domain.model.Location
-import ru.tusur.domain.model.Brand
+import ru.tusur.data.local.entity.EntryWithRelations
+import ru.tusur.data.local.entity.ModelEntity
+import ru.tusur.domain.model.*
 
 class EntryMapper {
+
+    // ---------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------
+
+    private fun modelFromEntity(model: ModelEntity?): Model? =
+        model?.let {
+            Model(
+                name = it.name,
+                brand = Brand(it.brandName),
+                year = Year(it.yearValue)
+            )
+        }
+
+    private fun modelFromComposite(
+        name: String?,
+        brand: String?,
+        year: Int?
+    ): Model? =
+        if (name != null && brand != null && year != null) {
+            Model(
+                name = name,
+                brand = Brand(brand),
+                year = Year(year)
+            )
+        } else null
+
+    // ---------------------------------------------------------
+    // DOMAIN → ENTITY
+    // ---------------------------------------------------------
 
     fun toEntity(domain: FaultEntry): EntryEntity {
         return EntryEntity(
             id = domain.id,
-            year = domain.year?.value ?: 0,
-            brand = domain.brand?.name ?: "",
+            year = domain.year?.value,
+            brand = domain.brand?.name,
+
             modelName = domain.model?.name,
             modelBrand = domain.model?.brand?.name,
             modelYear = domain.model?.year?.value,
+
             location = domain.location?.name,
             title = domain.title,
             description = domain.description,
@@ -26,24 +55,16 @@ class EntryMapper {
         )
     }
 
-    fun toDomain(entity: EntryEntity): FaultEntry {
-        val model = if (
-            entity.modelName != null &&
-            entity.modelBrand != null &&
-            entity.modelYear != null
-        ) {
-            Model(
-                name = entity.modelName,
-                brand = Brand(entity.modelBrand),
-                year = Year(entity.modelYear)
-            )
-        } else null
+    // ---------------------------------------------------------
+    // ENTITY → DOMAIN (simple)
+    // ---------------------------------------------------------
 
+    fun toDomain(entity: EntryEntity): FaultEntry {
         return FaultEntry(
             id = entity.id,
             year = entity.year?.let { Year(it) },
             brand = entity.brand?.let { Brand(it) },
-            model = model,
+            model = modelFromComposite(entity.modelName, entity.modelBrand, entity.modelYear),
             location = entity.location?.let { Location(it) },
             title = entity.title,
             description = entity.description,
@@ -51,55 +72,76 @@ class EntryMapper {
         )
     }
 
-    fun toDomain(entity: EntryWithImages): FaultEntry {
-        val e = entity.entry
+    // ---------------------------------------------------------
+    // ENTITY → DOMAIN (with images)
+    // ---------------------------------------------------------
 
-        val model = if (
-            e.modelName != null &&
-            e.modelBrand != null &&
-            e.modelYear != null
-        ) {
-            Model(
-                name = e.modelName,
-                brand = Brand(e.modelBrand),
-                year = Year(e.modelYear)
-            )
-        } else null
+    fun toDomain(entity: EntryEntity, imageUris: List<String>): FaultEntry {
+        return FaultEntry(
+            id = entity.id,
+            year = entity.year?.let { Year(it) },
+            brand = entity.brand?.let { Brand(it) },
+            model = modelFromComposite(entity.modelName, entity.modelBrand, entity.modelYear),
+            location = entity.location?.let { Location(it) },
+            title = entity.title,
+            description = entity.description,
+            timestamp = entity.timestamp,
+            imageUris = imageUris
+        )
+    }
+
+    // ---------------------------------------------------------
+    // ENTRY WITH RELATIONS → DOMAIN (model passed manually)
+    // ---------------------------------------------------------
+
+    fun fromRelations(rel: EntryWithRelations, model: ModelEntity?): FaultEntry {
+        val e = rel.entry
+
+        return FaultEntry(
+            id = e.id,
+            year = rel.year?.value?.let { Year(it) },
+            brand = rel.brand?.name?.let { Brand(it) },
+            model = modelFromEntity(model),
+            location = rel.location?.name?.let { Location(it) },
+            title = e.title,
+            description = e.description,
+            timestamp = e.timestamp
+        )
+    }
+
+    // ---------------------------------------------------------
+    // ENTRY WITH IMAGES → DOMAIN (model passed manually)
+    // ---------------------------------------------------------
+
+    fun fromImages(rel: EntryWithImages, model: ModelEntity?): FaultEntry {
+        val e = rel.entry
 
         return FaultEntry(
             id = e.id,
             year = e.year?.let { Year(it) },
             brand = e.brand?.let { Brand(it) },
-            model = model,
+            model = modelFromEntity(model),
             location = e.location?.let { Location(it) },
             title = e.title,
             description = e.description,
             timestamp = e.timestamp,
-            imageUris = entity.images.map { it.uri }
+            imageUris = rel.images.map { it.uri }
         )
     }
 
-    fun toRecording(entity: EntryWithImages): EntryWithRecording {
-        val e = entity.entry
+    // ---------------------------------------------------------
+    // ENTRY WITH IMAGES → ENTRY WITH RECORDING (UI model)
+    // ---------------------------------------------------------
 
-        val model = if (
-            e.modelName != null &&
-            e.modelBrand != null &&
-            e.modelYear != null
-        ) {
-            Model(
-                name = e.modelName,
-                brand = Brand(e.modelBrand),
-                year = Year(e.modelYear)
-            )
-        } else null
+    fun toRecording(entity: EntryWithImages, model: ModelEntity?): EntryWithRecording {
+        val e = entity.entry
 
         return EntryWithRecording(
             id = e.id,
             title = e.title,
             year = e.year?.let { Year(it) },
             brand = e.brand?.let { Brand(it) },
-            model = model,
+            model = modelFromEntity(model),
             location = e.location?.let { Location(it) },
             timestamp = e.timestamp,
             description = e.description,

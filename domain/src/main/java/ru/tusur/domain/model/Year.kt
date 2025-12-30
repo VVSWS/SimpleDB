@@ -1,4 +1,5 @@
 package ru.tusur.domain.model
 
-@JvmInline
-value class Year(val value: Int)
+data class Year(val value: Int) {
+    override fun toString() = value.toString()
+}

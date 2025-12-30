@@ -3,117 +3,129 @@ package ru.tusur.presentation.entrysearch
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
-import ru.tusur.presentation.common.component.EditableDropdown
+import ru.tusur.domain.model.SearchQuery
 import ru.tusur.presentation.search.SharedSearchViewModel
+import ru.tusur.domain.model.toFilter
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun EntrySearchScreen(navController: NavController) {
-    val viewModel: EntrySearchViewModel = koinInject()
+fun EntrySearchScreen(
+    navController: NavController,
+    viewModel: EntrySearchViewModel = koinViewModel(),
+    onSearch: (SearchQuery) -> Unit = {}
+) {
     val uiState by viewModel.uiState.collectAsState()
     val sharedSearchViewModel: SharedSearchViewModel = koinViewModel()
 
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "Search Entries",
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            )
-        }
-    ) { padding ->
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+
+        // YEAR
+        DropdownSelector(
+            label = "Year",
+            items = uiState.years,
+            selected = uiState.selectedYear,
+            onSelected = { viewModel.onYearSelected(it) }
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        // BRAND
+        DropdownSelector(
+            label = "Brand",
+            items = uiState.brands,
+            selected = uiState.selectedBrand,
+            onSelected = { viewModel.onBrandSelected(it) }
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        // MODEL (filtered)
+        DropdownSelector(
+            label = "Model",
+            items = uiState.models,
+            selected = uiState.selectedModel,
+            onSelected = { viewModel.onModelSelected(it) }
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        // LOCATION
+        DropdownSelector(
+            label = "Location",
+            items = uiState.locations,
+            selected = uiState.selectedLocation,
+            onSelected = { viewModel.onLocationSelected(it) }
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                val query = viewModel.buildSearchQuery()
+                sharedSearchViewModel.updateFilter(query.toFilter())
+                navController.navigate("search_entries") { launchSingleTop = true }
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
+            Text("Search")
+        }
+    }
+}
 
-            // YEAR
-            EditableDropdown(
-                label = "Year",
-                items = uiState.years,
-                selectedItem = uiState.selectedYear,
-                itemToString = { it.value.toString() },
-                onItemSelected = { viewModel.onYearSelected(it) },
-                onAddNewItem = {}, // Search screen does NOT add new items
-                errorMessage = null
-            )
+@Composable
+private fun <T> DropdownSelector(
+    label: String,
+    items: List<T>,
+    selected: T?,
+    onSelected: (T?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
 
-            Spacer(Modifier.height(16.dp))
+    Column {
+        Text(label, style = MaterialTheme.typography.labelLarge)
 
-            // BRAND
-            EditableDropdown(
-                label = "Brand",
-                items = uiState.brands,
-                selectedItem = uiState.selectedBrand,
-                itemToString = { it.name },
-                onItemSelected = { viewModel.onBrandSelected(it) },
-                onAddNewItem = {},
-                errorMessage = null
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // MODEL
-            EditableDropdown(
-                label = "Model",
-                items = uiState.models,
-                selectedItem = uiState.selectedModel,
-                itemToString = { it.name },
-                onItemSelected = { viewModel.onModelSelected(it) },
-                onAddNewItem = {},
-                errorMessage = null
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // LOCATION
-            EditableDropdown(
-                label = "Location",
-                items = uiState.locations,
-                selectedItem = uiState.selectedLocation,
-                itemToString = { it.name },
-                onItemSelected = { viewModel.onLocationSelected(it) },
-                onAddNewItem = {},
-                errorMessage = null
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            Button(
-                onClick = {
-                    val filter = viewModel.buildFilter()
-                    sharedSearchViewModel.setFilter(filter)
-                    navController.navigate("search_entries")
-                },
+        Box {
+            OutlinedButton(
+                onClick = { expanded = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Find Entries")
+                Text(selected?.toString() ?: "Select…")
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Any") },
+                    onClick = {
+                        onSelected(null)
+                        expanded = false
+                    }
+                )
+
+                items.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(item.toString()) },
+                        onClick = {
+                            onSelected(item)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }

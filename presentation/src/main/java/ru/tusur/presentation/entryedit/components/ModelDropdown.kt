@@ -54,7 +54,7 @@ fun ModelDropdown(
             }
 
             // Divider + Add new model
-            Divider()
+            HorizontalDivider()
 
             // Input field for new model
             DropdownMenuItem(

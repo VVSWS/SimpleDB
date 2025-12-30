@@ -15,26 +15,13 @@ import org.koin.compose.koinInject
 import ru.tusur.presentation.common.component.EditableDropdown
 import android.net.Uri
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewEntryMetadataScreen(navController: NavController) {
     val viewModel: NewEntryMetadataViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-    val entrySavedFlow = savedStateHandle?.getStateFlow("entry_saved", false)
-
-    LaunchedEffect(entrySavedFlow?.value) {
-        if (entrySavedFlow?.value == true) {
-            snackbarHostState.showSnackbar("Entry saved successfully")
-            savedStateHandle?.set("entry_saved", false)
-        }
-    }
-
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -63,12 +50,13 @@ fun NewEntryMetadataScreen(navController: NavController) {
                 .verticalScroll(rememberScrollState())
         ) {
 
+            // YEAR
             EditableDropdown(
                 label = "Year",
                 items = uiState.years,
                 selectedItem = uiState.selectedYear,
                 itemToString = { it.value.toString() },
-                onItemSelected = { viewModel.onYearSelected(it) },
+                onItemSelected = viewModel::onYearSelected,
                 onAddNewItem = {
                     viewModel.onNewYearInputChanged(it)
                     viewModel.addNewYear()
@@ -78,12 +66,13 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(16.dp))
 
+            // BRAND
             EditableDropdown(
                 label = "Brand",
                 items = uiState.brands,
                 selectedItem = uiState.selectedBrand,
                 itemToString = { it.name },
-                onItemSelected = { viewModel.onBrandSelected(it) },
+                onItemSelected = viewModel::onBrandSelected,
                 onAddNewItem = {
                     viewModel.onNewBrandInputChanged(it)
                     viewModel.addNewBrand()
@@ -93,12 +82,13 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(16.dp))
 
+            // MODEL
             EditableDropdown(
                 label = "Model",
                 items = uiState.models,
                 selectedItem = uiState.selectedModel,
                 itemToString = { it.name },
-                onItemSelected = { viewModel.onModelSelected(it) },
+                onItemSelected = viewModel::onModelSelected,
                 onAddNewItem = {
                     viewModel.onNewModelInputChanged(it)
                     viewModel.addNewModel()
@@ -108,12 +98,13 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(16.dp))
 
+            // LOCATION
             EditableDropdown(
                 label = "Location",
                 items = uiState.locations,
                 selectedItem = uiState.selectedLocation,
                 itemToString = { it.name },
-                onItemSelected = { viewModel.onLocationSelected(it) },
+                onItemSelected = viewModel::onLocationSelected,
                 onAddNewItem = {
                     viewModel.onNewLocationInputChanged(it)
                     viewModel.addNewLocation()
@@ -123,9 +114,10 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(16.dp))
 
+            // TITLE
             OutlinedTextField(
                 value = uiState.title,
-                onValueChange = { viewModel.onTitleChanged(it) },
+                onValueChange = viewModel::onTitleChanged,
                 label = { Text("Brief title (≤50)") },
                 maxLines = 1,
                 modifier = Modifier.fillMaxWidth(),
@@ -142,22 +134,18 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(24.dp))
 
+            // CONTINUE BUTTON
             Button(
                 onClick = {
-                    val safeId = uiState.entryId ?: 0L
-                    val encodedBrand = Uri.encode(uiState.selectedBrand!!.name)
-                    val encodedModel = Uri.encode(uiState.selectedModel!!.name)
-                    val encodedLocation = Uri.encode(uiState.selectedLocation!!.name)
-                    val encodedTitle = Uri.encode(uiState.title)
+                    val id = uiState.entryId ?: 0L
+                    val year = uiState.selectedYear!!.value
+                    val brand = Uri.encode(uiState.selectedBrand!!.name)
+                    val model = Uri.encode(uiState.selectedModel!!.name)
+                    val location = Uri.encode(uiState.selectedLocation!!.name)
+                    val title = Uri.encode(uiState.title)
 
                     navController.navigate(
-                        "edit_entry/" +
-                                "$safeId/" +
-                                "${uiState.selectedYear!!.value}/" +
-                                "$encodedBrand/" +
-                                "$encodedModel/" +
-                                "$encodedLocation/" +
-                                "$encodedTitle/description"
+                        "edit_entry/$id/$year/$brand/$model/$location/$title/description"
                     )
                 },
                 enabled = uiState.isContinueEnabled,
@@ -165,7 +153,6 @@ fun NewEntryMetadataScreen(navController: NavController) {
             ) {
                 Text("Continue")
             }
-
         }
     }
 }

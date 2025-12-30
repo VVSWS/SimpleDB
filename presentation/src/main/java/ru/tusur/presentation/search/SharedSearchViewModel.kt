@@ -10,7 +10,8 @@ class SharedSearchViewModel : ViewModel() {
     private val _filter = MutableStateFlow(SearchFilter())
     val filter: StateFlow<SearchFilter> = _filter
 
-    fun setFilter(filter: SearchFilter) {
-        _filter.value = filter
+    fun updateFilter(newFilter: SearchFilter) {
+        _filter.value = newFilter
     }
 }
+

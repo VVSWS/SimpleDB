@@ -1,24 +1,23 @@
 package ru.tusur.presentation.entrysearch
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.*
 import ru.tusur.domain.model.Brand
 import ru.tusur.domain.model.Location
 import ru.tusur.domain.model.Model
 import ru.tusur.domain.model.SearchFilter
+import ru.tusur.domain.model.SearchQuery
 import ru.tusur.domain.model.Year
+import ru.tusur.domain.model.toQuery
 import ru.tusur.domain.usecase.reference.*
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class EntrySearchViewModel(
-    getYears: GetYearsUseCase,
-    getBrands: GetBrandsUseCase,
-    getModels: GetModelsUseCase,
-    getLocations: GetLocationsUseCase
+    private val getYears: GetYearsUseCase,
+    private val getBrands: GetBrandsUseCase,
+    private val getModelsForBrandAndYear: GetModelsForBrandAndYearUseCase,
+    private val getLocations: GetLocationsUseCase
 ) : ViewModel() {
 
     data class UiState(
@@ -37,38 +36,65 @@ class EntrySearchViewModel(
     val uiState: StateFlow<UiState> = _uiState
 
     init {
+        // Load static reference data (years, brands, locations)
         combine(
             getYears(),
             getBrands(),
-            getModels(),
             getLocations()
-        ) { years, brands, models, locations ->
+        ) { years, brands, locations ->
             _uiState.value = _uiState.value.copy(
                 years = years,
                 brands = brands,
-                models = models,
                 locations = locations
             )
         }.launchIn(viewModelScope)
+
+        // Reactively load models when brand or year changes
+        combine(
+            _uiState.map { it.selectedBrand },
+            _uiState.map { it.selectedYear }
+        ) { brand, year ->
+            if (brand != null && year != null) {
+                getModelsForBrandAndYear(brand, year)
+            } else {
+                flowOf(emptyList())
+            }
+        }
+            .flatMapLatest { it }
+            .onEach { models ->
+                _uiState.value = _uiState.value.copy(
+                    models = models,
+                    selectedModel = null // reset model when filters change
+                )
+            }
+            .launchIn(viewModelScope)
     }
+
+    // -------------------------
+    // FILTER SELECTION
+    // -------------------------
 
     fun onYearSelected(year: Year?) {
         _uiState.value = _uiState.value.copy(selectedYear = year)
+    }
+
+    fun onBrandSelected(brand: Brand?) {
+        _uiState.value = _uiState.value.copy(selectedBrand = brand)
     }
 
     fun onModelSelected(model: Model?) {
         _uiState.value = _uiState.value.copy(selectedModel = model)
     }
 
-    fun onBrandSelected(brand: Brand) {
-        _uiState.value = _uiState.value.copy(selectedBrand = brand)
-    }
-
     fun onLocationSelected(location: Location?) {
         _uiState.value = _uiState.value.copy(selectedLocation = location)
     }
 
-    fun buildFilter(): SearchFilter {
+    // -------------------------
+    // SEARCH QUERY BUILDER
+    // -------------------------
+
+    fun buildSearchQuery(): SearchQuery {
         val state = _uiState.value
 
         return SearchFilter(
@@ -76,8 +102,6 @@ class EntrySearchViewModel(
             brand = state.selectedBrand?.name,
             model = state.selectedModel?.name,
             location = state.selectedLocation?.name
-        )
+        ).toQuery()
     }
-
-
 }

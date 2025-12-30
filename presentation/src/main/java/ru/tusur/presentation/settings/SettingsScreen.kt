@@ -1,8 +1,6 @@
 package ru.tusur.presentation.settings
 
-import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -25,83 +23,46 @@ import ru.tusur.core.util.FileHelper
 import ru.tusur.presentation.R
 import java.io.File
 
-
 @Composable
 fun SettingsScreen(
     navController: NavController,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
-    println("DEBUG: SettingsScreen COMPOSED")
-
     val context = LocalContext.current
+    val uiState by viewModel.state.collectAsState()
 
-    var selectedFile by remember { mutableStateOf<File?>(null) }
-
-    // Pick a DB file (for merge)
-    val pickFileLauncher = rememberLauncherForActivityResult(
+    // MERGE: pick external DB file
+    val pickDbForMerge = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
             val file = FileHelper.copyUriToTempFile(context, it)
-            selectedFile = file
+            viewModel.mergeDatabase(file)
         }
     }
 
-    // Open an existing DB file
-    val openDbLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
+    // EXPORT: choose destination file
+    val exportDbLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/octet-stream")
     ) { uri: Uri? ->
-        uri?.let { viewModel.handleDbSelected(it) }
+        uri?.let { viewModel.exportDatabase(it) }
     }
 
-    // Pick folder (e.g. for export – you can wire later)
-    val openFolderLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocumentTree()
-    ) { uri: Uri? ->
-        uri?.let {
-            val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                context.contentResolver.takePersistableUriPermission(it, flags)
-            }
-        }
-    }
-
-    // State
-    val uiState by viewModel.state.collectAsState()
-
-    uiState.message?.let { msg ->
-        Text(
-            text = msg,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(8.dp)
-        )
-    }
-
-
-    // Events (no navigation here anymore)
+    // EVENTS
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                is SettingsEvent.LanguageChanged -> {
-                    // Hook into your localization if needed
-                }
-                is SettingsEvent.DatabaseError -> {
-                    // Show snackbar/toast if you want
-                    println("DB error: ${event.message}")
-                }
-                is SettingsEvent.DatabaseCreated -> {
-                    println("Database created")
-                }
-                is SettingsEvent.DatabaseOpened -> {
-                    println("Database opened")
-                }
+                is SettingsEvent.LanguageChanged -> Unit
+                is SettingsEvent.DatabaseError -> println("DB error: ${event.message}")
+                is SettingsEvent.DatabaseCreated -> println("Database created")
+                is SettingsEvent.DatabaseOpened -> println("Database opened")
             }
         }
     }
 
     Column(Modifier.fillMaxSize()) {
 
-        // Top bar
+        // TOP BAR
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 3.dp,
@@ -134,7 +95,7 @@ fun SettingsScreen(
             }
         }
 
-        // Content
+        // CONTENT
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -197,60 +158,43 @@ fun SettingsScreen(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            // MERGE
-            Button(
-                onClick = { selectedFile?.let { viewModel.mergeDatabase(it) } },
-                enabled = selectedFile != null,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Merge Database")
-            }
-
-            // PICK FILE FOR MERGE
-            Button(
-                onClick = { pickFileLauncher.launch("*/*") },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Choose Database File")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             // CREATE NEW DB
             Button(
                 onClick = { viewModel.createNewDatabase() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(stringResource(R.string.settings_create_db))
+                Text("Create New Database")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // OPEN EXISTING DB
+            // MERGE DB
             Button(
-                onClick = {
-                    openDbLauncher.launch(
-                        arrayOf(
-                            "application/x-sqlite3",
-                            "application/octet-stream",
-                            "application/vnd.sqlite3",
-                            "*/*"
-                        )
-                    )
-                },
+                onClick = { pickDbForMerge.launch("*/*") },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(stringResource(R.string.settings_open_db))
+                Text("Merge Database")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // SHOW FOLDER (currently just grants access)
-            OutlinedButton(
-                onClick = { openFolderLauncher.launch(null) },
+            // EXPORT DB
+            Button(
+                onClick = { exportDbLauncher.launch("carfault_export.db") },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(stringResource(R.string.settings_show_folder))
+                Text("Export Database")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // MESSAGE
+            uiState.message?.let { msg ->
+                Text(
+                    text = msg,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(8.dp)
+                )
             }
         }
     }

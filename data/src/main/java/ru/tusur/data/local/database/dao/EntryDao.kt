@@ -1,15 +1,25 @@
 package ru.tusur.data.local.database.dao
 
-import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import ru.tusur.data.local.entity.EntryEntity
 import ru.tusur.data.local.entity.EntryWithImages
+import ru.tusur.data.local.entity.EntryWithRelations
+import ru.tusur.data.local.entity.ModelEntity
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
 
 @Dao
 interface EntryDao {
 
+    // OVERVIEW LIST
+    @Transaction
     @Query("SELECT * FROM entries ORDER BY timestamp DESC")
-    fun getAllEntries(): Flow<List<EntryEntity>>
+    fun getAllEntries(): Flow<List<EntryWithRelations>>
 
     @Transaction
     @Query("SELECT * FROM entries WHERE id = :id")
@@ -41,7 +51,7 @@ interface EntryDao {
     suspend fun searchEntries(
         year: Int?,
         brand: String?,
-        modelName: String?,   // updated
+        modelName: String?,
         location: String?
     ): List<EntryEntity>
 
@@ -57,4 +67,20 @@ interface EntryDao {
     @Transaction
     @Query("SELECT * FROM entries WHERE id = :id")
     suspend fun getEntryWithRecording(id: Long): EntryWithImages
+
+    // ---------------------------------------------------------
+    // ⭐ REQUIRED FOR ROOM 2.8.4 — manual composite model lookup
+    // ---------------------------------------------------------
+    @Query("""
+        SELECT * FROM models
+        WHERE name = :modelName
+          AND brandName = :modelBrand
+          AND yearValue = :modelYear
+        LIMIT 1
+    """)
+    suspend fun getModelForEntry(
+        modelName: String?,
+        modelBrand: String?,
+        modelYear: Int?
+    ): ModelEntity?
 }

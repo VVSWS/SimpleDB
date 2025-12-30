@@ -17,17 +17,39 @@ class DefaultFaultRepository(
 ) : FaultRepository {
 
     override fun getAllEntries(): Flow<List<FaultEntry>> {
-        return entryDao.getAllEntries().map { entities ->
-            entities.map { mapper.toDomain(it) }
+        return entryDao.getAllEntries().map { list ->
+            list.map { rel ->
+                val model = entryDao.getModelForEntry(
+                    rel.entry.modelName,
+                    rel.entry.modelBrand,
+                    rel.entry.modelYear
+                )
+                mapper.fromRelations(rel, model)
+            }
         }
     }
 
     override suspend fun getEntryById(id: Long): FaultEntry? {
-        return entryDao.getEntryById(id)?.let { mapper.toDomain(it) }
+        val rel = entryDao.getEntryById(id) ?: return null
+
+        val model = entryDao.getModelForEntry(
+            rel.entry.modelName,
+            rel.entry.modelBrand,
+            rel.entry.modelYear
+        )
+
+        return mapper.fromImages(rel, model)
     }
 
     override suspend fun getRecentEntries(limit: Int): List<FaultEntry> {
-        return entryDao.getRecentEntries().map { mapper.toDomain(it) }
+        return entryDao.getRecentEntries().map { entity ->
+            val model = entryDao.getModelForEntry(
+                entity.modelName,
+                entity.modelBrand,
+                entity.modelYear
+            )
+            mapper.toDomain(entity)   // ← FIXED
+        }
     }
 
     override suspend fun searchEntries(
@@ -36,8 +58,14 @@ class DefaultFaultRepository(
         model: String?,
         location: String?
     ): List<FaultEntry> {
-        return entryDao.searchEntries(year, brand, model, location)
-            .map(mapper::toDomain)
+        return entryDao.searchEntries(year, brand, model, location).map { entity ->
+            val modelEntity = entryDao.getModelForEntry(
+                entity.modelName,
+                entity.modelBrand,
+                entity.modelYear
+            )
+            mapper.toDomain(entity)   // ← FIXED
+        }
     }
 
     override suspend fun createEntry(entry: FaultEntry): Long {
@@ -59,8 +87,15 @@ class DefaultFaultRepository(
     }
 
     override suspend fun getEntryWithRecording(id: Long): EntryWithRecording {
-        val entity = entryDao.getEntryWithRecording(id)
-        return mapper.toRecording(entity)
+        val rel = entryDao.getEntryWithRecording(id)
+
+        val model = entryDao.getModelForEntry(
+            rel.entry.modelName,
+            rel.entry.modelBrand,
+            rel.entry.modelYear
+        )
+
+        return mapper.toRecording(rel, model)
     }
 
     override suspend fun deleteEntry(entry: FaultEntry) {

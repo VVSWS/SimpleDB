@@ -40,6 +40,15 @@ object FileHelper {
         return tempFile
     }
 
+    fun writeToUri(context: Context, uri: Uri, sourceFile: File) {
+        context.contentResolver.openOutputStream(uri)?.use { output ->
+            sourceFile.inputStream().use { input ->
+                input.copyTo(output)
+            }
+        }
+    }
+
+
     /**
      * Ensure a DB name starts with BD_ and has .db extension.
      */
