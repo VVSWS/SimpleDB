@@ -12,7 +12,7 @@ import org.koin.androidx.compose.koinViewModel
 import ru.tusur.domain.model.SearchQuery
 import ru.tusur.presentation.search.SharedSearchViewModel
 import ru.tusur.domain.model.toFilter
-
+import ru.tusur.presentation.common.component.EditableDropdownSelector
 
 @Composable
 fun EntrySearchScreen(
@@ -23,8 +23,6 @@ fun EntrySearchScreen(
     val uiState by viewModel.uiState.collectAsState()
     val sharedSearchViewModel: SharedSearchViewModel = koinViewModel()
 
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -33,41 +31,57 @@ fun EntrySearchScreen(
     ) {
 
         // YEAR
-        DropdownSelector(
+        EditableDropdownSelector(
             label = "Year",
             items = uiState.years,
-            selected = uiState.selectedYear,
-            onSelected = { viewModel.onYearSelected(it) }
+            selectedItem = uiState.selectedYear,
+            itemToString = { it.toString() },
+            onItemSelected = { viewModel.onYearSelected(it) },
+            onAddNewItem = {},          // Search screen does NOT add new items
+            onDeleteItem = null,        // Search screen does NOT delete items
+            errorMessage = null         // No validation in search screen
         )
 
         Spacer(Modifier.height(12.dp))
 
         // BRAND
-        DropdownSelector(
+        EditableDropdownSelector(
             label = "Brand",
             items = uiState.brands,
-            selected = uiState.selectedBrand,
-            onSelected = { viewModel.onBrandSelected(it) }
+            selectedItem = uiState.selectedBrand,
+            itemToString = { it.toString() },
+            onItemSelected = { viewModel.onBrandSelected(it) },
+            onAddNewItem = {},
+            onDeleteItem = null,
+            errorMessage = null
         )
 
         Spacer(Modifier.height(12.dp))
 
-        // MODEL (filtered)
-        DropdownSelector(
+        // MODEL
+        EditableDropdownSelector(
             label = "Model",
             items = uiState.models,
-            selected = uiState.selectedModel,
-            onSelected = { viewModel.onModelSelected(it) }
+            selectedItem = uiState.selectedModel,
+            itemToString = { it.toString() },
+            onItemSelected = { viewModel.onModelSelected(it) },
+            onAddNewItem = {},
+            onDeleteItem = null,
+            errorMessage = null
         )
 
         Spacer(Modifier.height(12.dp))
 
         // LOCATION
-        DropdownSelector(
+        EditableDropdownSelector(
             label = "Location",
             items = uiState.locations,
-            selected = uiState.selectedLocation,
-            onSelected = { viewModel.onLocationSelected(it) }
+            selectedItem = uiState.selectedLocation,
+            itemToString = { it.toString() },
+            onItemSelected = { viewModel.onLocationSelected(it) },
+            onAddNewItem = {},
+            onDeleteItem = null,
+            errorMessage = null
         )
 
         Spacer(Modifier.height(24.dp))
@@ -81,52 +95,6 @@ fun EntrySearchScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Search")
-        }
-    }
-}
-
-@Composable
-private fun <T> DropdownSelector(
-    label: String,
-    items: List<T>,
-    selected: T?,
-    onSelected: (T?) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Column {
-        Text(label, style = MaterialTheme.typography.labelLarge)
-
-        Box {
-            OutlinedButton(
-                onClick = { expanded = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(selected?.toString() ?: "Select…")
-            }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Any") },
-                    onClick = {
-                        onSelected(null)
-                        expanded = false
-                    }
-                )
-
-                items.forEach { item ->
-                    DropdownMenuItem(
-                        text = { Text(item.toString()) },
-                        onClick = {
-                            onSelected(item)
-                            expanded = false
-                        }
-                    )
-                }
-            }
         }
     }
 }

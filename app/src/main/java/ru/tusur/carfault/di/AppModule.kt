@@ -128,6 +128,13 @@ val appModule = module {
     factory { GetLocationsUseCase(get()) }
     factory { AddLocationUseCase(get()) }
 
+    //Delete
+    factory { DeleteBrandUseCase(get()) }
+    factory { DeleteModelUseCase(get()) }
+    factory { DeleteLocationUseCase(get()) }
+    factory { DeleteYearUseCase(get()) }
+
+
     /* ============================
      *  VIEWMODELS
      * ============================ */
@@ -160,7 +167,11 @@ val appModule = module {
             addYear = get(),
             addBrand = get(),
             addModel = get(),
-            addLocation = get()
+            addLocation = get(),
+            deleteYearUseCase = get(),
+            deleteBrandUseCase = get(),
+            deleteModelUseCase = get(),
+            deleteLocationUseCase = get()
         )
     }
 

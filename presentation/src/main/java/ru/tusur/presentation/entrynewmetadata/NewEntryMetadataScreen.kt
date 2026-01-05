@@ -12,7 +12,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.compose.koinInject
-import ru.tusur.presentation.common.component.EditableDropdown
+import ru.tusur.presentation.common.component.EditableDropdownSelector
+import ru.tusur.presentation.common.component.CompactTextField
 import android.net.Uri
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,8 +52,8 @@ fun NewEntryMetadataScreen(navController: NavController) {
         ) {
 
             // YEAR
-            EditableDropdown(
-                label = "Year",
+            EditableDropdownSelector(
+                label = "Select or add Year",
                 items = uiState.years,
                 selectedItem = uiState.selectedYear,
                 itemToString = { it.value.toString() },
@@ -61,14 +62,15 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.onNewYearInputChanged(it)
                     viewModel.addNewYear()
                 },
+                onDeleteItem = viewModel::deleteYear,
                 errorMessage = if (uiState.selectedYear == null) "Select or add a year" else null
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             // BRAND
-            EditableDropdown(
-                label = "Brand",
+            EditableDropdownSelector(
+                label = "Select or add Brand",
                 items = uiState.brands,
                 selectedItem = uiState.selectedBrand,
                 itemToString = { it.name },
@@ -77,14 +79,15 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.onNewBrandInputChanged(it)
                     viewModel.addNewBrand()
                 },
+                onDeleteItem = viewModel::deleteBrand,
                 errorMessage = if (uiState.selectedBrand == null) "Select or add a brand" else null
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             // MODEL
-            EditableDropdown(
-                label = "Model",
+            EditableDropdownSelector(
+                label = "Select or add Model",
                 items = uiState.models,
                 selectedItem = uiState.selectedModel,
                 itemToString = { it.name },
@@ -93,14 +96,15 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.onNewModelInputChanged(it)
                     viewModel.addNewModel()
                 },
+                onDeleteItem = viewModel::deleteModel,
                 errorMessage = if (uiState.selectedModel == null) "Select or add a model" else null
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             // LOCATION
-            EditableDropdown(
-                label = "Location",
+            EditableDropdownSelector(
+                label = "Select or add Location",
                 items = uiState.locations,
                 selectedItem = uiState.selectedLocation,
                 itemToString = { it.name },
@@ -109,28 +113,20 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.onNewLocationInputChanged(it)
                     viewModel.addNewLocation()
                 },
+                onDeleteItem = viewModel::deleteLocation,
                 errorMessage = if (uiState.selectedLocation == null) "Select or add a location" else null
             )
 
             Spacer(Modifier.height(16.dp))
 
             // TITLE
-            OutlinedTextField(
+            CompactTextField(
+                label = "Brief title (≤50)",
                 value = uiState.title,
                 onValueChange = viewModel::onTitleChanged,
-                label = { Text("Brief title (≤50)") },
-                maxLines = 1,
-                modifier = Modifier.fillMaxWidth(),
-                isError = uiState.title.isBlank()
+                isError = uiState.title.isBlank(),
+                errorMessage = if (uiState.title.isBlank()) "Title cannot be empty" else null
             )
-
-            if (uiState.title.isBlank()) {
-                Text(
-                    text = "Title cannot be empty",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
 
             Spacer(Modifier.height(24.dp))
 

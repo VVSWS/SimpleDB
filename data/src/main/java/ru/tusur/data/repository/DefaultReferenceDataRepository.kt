@@ -118,4 +118,21 @@ class DefaultReferenceDataRepository(
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    override suspend fun deleteYear(year: Year) {
+        yearDao.deleteYear(mapper.toEntity(year))
+    }
+
+    override suspend fun deleteBrand(brand: Brand) {
+        brandDao.deleteBrand(mapper.toEntity(brand))
+    }
+
+    override suspend fun deleteModel(model: Model) {
+        modelDao.deleteModel(mapper.toEntity(model))
+    }
+
+    override suspend fun deleteLocation(location: Location) {
+        locationDao.deleteLocation(mapper.toEntity(location))
+    }
+
 }

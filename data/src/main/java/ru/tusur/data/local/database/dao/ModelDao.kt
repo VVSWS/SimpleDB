@@ -1,6 +1,7 @@
 package ru.tusur.data.local.database.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -25,4 +26,7 @@ interface ModelDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertModel(model: ModelEntity)
+
+    @Delete
+    suspend fun deleteModel(entity: ModelEntity)
 }

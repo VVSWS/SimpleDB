@@ -3,6 +3,8 @@ package ru.tusur.presentation.entrylist
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,6 +13,7 @@ import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import ru.tusur.presentation.search.SharedSearchViewModel
 import ru.tusur.domain.model.FaultEntry
+import ru.tusur.presentation.common.ConfirmDeleteDialog
 
 @Composable
 fun EntryListScreen(
@@ -21,8 +24,6 @@ fun EntryListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val filter by sharedSearchViewModel.filter.collectAsState()
-    println("DEBUG: isSearchMode=$isSearchMode, filter=$filter")
-
 
     // Load data depending on mode
     LaunchedEffect(isSearchMode, filter) {
@@ -35,6 +36,20 @@ fun EntryListScreen(
 
     val title = if (isSearchMode) "Search Results" else "Recent Entries"
 
+    var entryToDelete by remember { mutableStateOf<FaultEntry?>(null) }
+
+    // Delete confirmation dialog
+    if (entryToDelete != null) {
+        ConfirmDeleteDialog(
+            itemName = entryToDelete!!.title ?: "this entry",
+            onConfirm = {
+                viewModel.deleteEntry(entryToDelete!!)
+                entryToDelete = null
+            },
+            onDismiss = { entryToDelete = null }
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
 
         // Top bar
@@ -46,7 +61,10 @@ fun EntryListScreen(
 
         // Loading indicator
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
                 CircularProgressIndicator()
             }
             return
@@ -67,17 +85,11 @@ fun EntryListScreen(
             contentPadding = PaddingValues(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            println("DEBUG: entries size = ${uiState.entries.size}, isSearchMode=$isSearchMode")
-
             items(uiState.entries) { entry ->
                 EntryListItem(
                     entry = entry,
-                    onClick = {
-                        navController.navigate("view_entry/${entry.id}")
-                    },
-                    onDelete = {
-                        viewModel.deleteEntry(entry)
-                    }
+                    onClick = { navController.navigate("view_entry/${entry.id}") },
+                    onDelete = { entryToDelete = entry }
                 )
             }
         }
@@ -94,18 +106,45 @@ fun EntryListItem(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = entry.title ?: "(No title)", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = entry.timestamp.toString(), style = MaterialTheme.typography.bodySmall)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // Left side: title + metadata
+            Column(modifier = Modifier.weight(1f)) {
 
-            Button(
-                onClick = onDelete,
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
-            ) {
-                Text("Delete")
+                // Build a compact metadata string
+                val meta = listOfNotNull(
+                    entry.year?.value?.toString(),
+                    entry.brand?.name,
+                    entry.model?.name,
+                    entry.location?.name
+                ).joinToString(" • ")
+
+                Text(
+                    text = entry.title ?: "(No title)",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                if (meta.isNotBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = meta,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Right side: delete icon
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete entry"
+                )
             }
         }
     }

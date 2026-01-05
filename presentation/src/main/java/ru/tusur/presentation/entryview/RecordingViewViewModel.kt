@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.tusur.domain.model.EntryWithRecording
+import ru.tusur.domain.model.FaultEntry
 import ru.tusur.domain.repository.FaultRepository
 
 class RecordingViewViewModel(
@@ -31,10 +32,36 @@ class RecordingViewViewModel(
             }
         }
     }
+
+    fun deleteEntry() {
+        val e = _state.value.entry ?: return
+
+        // Convert EntryWithRecording → FaultEntry
+        val faultEntry = FaultEntry(
+            id = e.id,
+            title = e.title,
+            year = e.year,
+            brand = e.brand,
+            model = e.model,
+            location = e.location,
+            timestamp = e.timestamp,
+            description = e.description ?: ""   // FIXED: FaultEntry expects non-null String
+        )
+
+        viewModelScope.launch {
+            try {
+                repository.deleteEntry(faultEntry)
+                _state.value = _state.value.copy(isDeleted = true)
+            } catch (ex: Exception) {
+                _state.value = _state.value.copy(error = ex.message ?: "Failed to delete entry")
+            }
+        }
+    }
 }
 
 data class RecordingViewUiState(
     val isLoading: Boolean = false,
     val entry: EntryWithRecording? = null,
-    val error: String? = null
+    val error: String? = null,
+    val isDeleted: Boolean = false
 )

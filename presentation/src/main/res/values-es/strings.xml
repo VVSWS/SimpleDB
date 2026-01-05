@@ -1,37 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App -->
-    <string name="app_name">CarFault</string>
-
-    <!-- MainScreen -->
-    <string name="main_recent_entries">Entradas Recientes</string>
-    <string name="main_add_entry">Agregar Entrada</string>
-    <string name="main_search_entries">Buscar Entradas</string>
-    <string name="main_settings">Ajustes</string>
-    <string name="main_about">Acerca de</string>
-    <string name="main_status_no_db">Base de datos: No seleccionada</string>
-    <string name="main_status_with_db">Base de datos: %1$s • Entradas: %2$d</string>
-
-    <!-- Settings -->
-    <string name="settings_title">Ajustes</string>
-    <string name="settings_language">Idioma</string>
-    <string name="settings_theme">Tema</string>
-    <string name="settings_db">Gestión de Base de Datos</string>
-    <string name="settings_create_db">Crear Nueva Base de Datos</string>
-    <string name="settings_open_db">Abrir Base de Datos Existente</string>
-    <string name="settings_show_folder">Mostrar Carpeta de Base de Datos</string>
-    <string name="settings_language_en">Inglés</string>
-    <string name="settings_language_es">Español</string>
-    <string name="settings_theme_system">Sistema</string>
-    <string name="settings_theme_light">Claro</string>
-    <string name="settings_theme_dark">Oscuro</string>
-
-    <!-- About -->
-    <string name="about_title">Acerca de</string>
 
     <!-- Entry Metadata -->
     <string name="entry_year">Año</string>
     <string name="entry_model">Modelo</string>
     <string name="entry_location">Ubicación</string>
     <string name="entry_title">Título breve</string>
+
+    <!-- New Entry Metadata -->
+    <string name="label_select_or_add_year">Selecciona o agrega un año</string>
+    <string name="label_select_or_add_brand">Selecciona o agrega una marca</string>
+    <string name="label_select_or_add_model">Selecciona o agrega un modelo</string>
+    <string name="label_select_or_add_location">Selecciona o agrega una ubicación</string>
+
+    <!-- Error messages -->
+    <string name="error_select_or_add_year">Selecciona o agrega un año</string>
+    <string name="error_select_or_add_brand">Selecciona o agrega una marca</string>
+    <string name="error_select_or_add_model">Selecciona o agrega un modelo</string>
+    <string name="error_select_or_add_location">Selecciona o agrega una ubicación</string>
+
+    <!-- Dropdown menu -->
+    <string name="dropdown_add_new">Agregar nuevo…</string>
+    <string name="dropdown_none">Ninguno</string>
+
+    <!-- Search screen -->
+    <string name="label_year">Año</string>
+    <string name="label_brand">Marca</string>
+    <string name="label_model">Modelo</string>
+    <string name="label_location">Ubicación</string>
+    <string name="dropdown_any">Cualquiera</string>
+
+    <!-- Buttons -->
+    <string name="button_continue">Continuar</string>
+    <string name="button_search">Buscar</string>
+
+    <!-- Dialog -->
+    <string name="dialog_add_new_title">Agregar nuevo</string>
+    <string name="dialog_add">Agregar</string>
+    <string name="dialog_cancel">Cancelar</string>
+
+    <!-- Delete confirmation dialog -->
+    <string name="dialog_delete_title">Eliminar elemento</string>
+    <string name="dialog_delete_message">¿Seguro que deseas eliminar "%1$s"?</string>
+    <string name="dialog_delete_confirm">Eliminar</string>
+    <string name="dialog_delete_cancel">Cancelar</string>
+
+
 </resources>

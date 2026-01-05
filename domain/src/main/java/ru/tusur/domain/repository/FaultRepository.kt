@@ -1,8 +1,12 @@
 package ru.tusur.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import ru.tusur.domain.model.Brand
 import ru.tusur.domain.model.EntryWithRecording
 import ru.tusur.domain.model.FaultEntry
+import ru.tusur.domain.model.Location
+import ru.tusur.domain.model.Model
+import ru.tusur.domain.model.Year
 
 interface FaultRepository {
     fun getAllEntries(): Flow<List<FaultEntry>>
@@ -23,4 +27,5 @@ interface FaultRepository {
     suspend fun saveImages(entryId: Long, uris: List<String>)
 
     suspend fun getEntryWithRecording(id: Long): EntryWithRecording
+
 }

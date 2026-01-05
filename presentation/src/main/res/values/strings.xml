@@ -35,4 +35,43 @@
     <string name="entry_location">Location</string>
     <string name="entry_title">Brief title</string>
 
+    <!-- New Entry Metadata -->
+    <string name="label_select_or_add_year">Select or add a year</string>
+    <string name="label_select_or_add_brand">Select or add a brand</string>
+    <string name="label_select_or_add_model">Select or add a model</string>
+    <string name="label_select_or_add_location">Select or add a location</string>
+
+    <!-- Error messages -->
+    <string name="error_select_or_add_year">Select or add a year</string>
+    <string name="error_select_or_add_brand">Select or add a brand</string>
+    <string name="error_select_or_add_model">Select or add a model</string>
+    <string name="error_select_or_add_location">Select or add a location</string>
+
+    <!-- Dropdown menu -->
+    <string name="dropdown_add_new">Add new…</string>
+    <string name="dropdown_none">None</string>
+
+    <!-- Search screen -->
+    <string name="label_year">Year</string>
+    <string name="label_brand">Brand</string>
+    <string name="label_model">Model</string>
+    <string name="label_location">Location</string>
+    <string name="dropdown_any">Any</string>
+
+    <!-- Buttons -->
+    <string name="button_continue">Continue</string>
+    <string name="button_search">Search</string>
+
+    <!-- Dialog -->
+    <string name="dialog_add_new_title">Add new</string>
+    <string name="dialog_add">Add</string>
+    <string name="dialog_cancel">Cancel</string>
+
+    <!-- Delete confirmation dialog -->
+    <string name="dialog_delete_title">Delete item</string>
+    <string name="dialog_delete_message">Are you sure you want to delete "%1$s"?</string>
+    <string name="dialog_delete_confirm">Delete</string>
+    <string name="dialog_delete_cancel">Cancel</string>
+
+
 </resources>

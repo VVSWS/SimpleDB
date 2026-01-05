@@ -1,4 +1,5 @@
 <resources>
+    <!-- App -->
     <string name="app_name">CarFault</string>
 
     <!-- MainScreen -->
@@ -27,7 +28,8 @@
     <!-- About -->
     <string name="about_title">Acerca de</string>
     <string name="about_version">v1.0.0 (Build 20251219)</string>
-    <string name="about_copyright">© 2025, Estudiante de TUSSUR</string>
     <string name="about_license">Licencia MIT — Para uso no comercial</string>
-
+    <string name="about_copyright">
+        © 2025, Estudiante de TUSSUR
+    </string>
 </resources>

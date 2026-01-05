@@ -20,7 +20,12 @@ class NewEntryMetadataViewModel(
     private val addYear: AddYearUseCase,
     private val addBrand: AddBrandUseCase,
     private val addModel: AddModelUseCase,
-    private val addLocation: AddLocationUseCase
+    private val addLocation: AddLocationUseCase,
+    private val deleteYearUseCase: DeleteYearUseCase,
+    private val deleteBrandUseCase: DeleteBrandUseCase,
+    private val deleteModelUseCase: DeleteModelUseCase,
+    private val deleteLocationUseCase: DeleteLocationUseCase
+
 ) : ViewModel() {
 
     data class UiState(
@@ -82,7 +87,7 @@ class NewEntryMetadataViewModel(
     // SELECTION HANDLERS
     // -------------------------
 
-    fun onYearSelected(year: Year) {
+    fun onYearSelected(year: Year?) {
         selectedYear.value = year
         _uiState.value = _uiState.value.copy(
             selectedYear = year,
@@ -91,7 +96,7 @@ class NewEntryMetadataViewModel(
         updateContinueButton()
     }
 
-    fun onBrandSelected(brand: Brand) {
+    fun onBrandSelected(brand: Brand?) {
         selectedBrand.value = brand
         _uiState.value = _uiState.value.copy(
             selectedBrand = brand,
@@ -100,12 +105,12 @@ class NewEntryMetadataViewModel(
         updateContinueButton()
     }
 
-    fun onModelSelected(model: Model) {
+    fun onModelSelected(model: Model?) {
         _uiState.value = _uiState.value.copy(selectedModel = model)
         updateContinueButton()
     }
 
-    fun onLocationSelected(location: Location) {
+    fun onLocationSelected(location: Location?) {
         _uiState.value = _uiState.value.copy(selectedLocation = location)
         updateContinueButton()
     }
@@ -209,6 +214,36 @@ class NewEntryMetadataViewModel(
             }
         }
     }
+
+    // -------------------------
+    // DELETE LOGIC
+    // -------------------------
+
+
+    fun deleteYear(year: Year) {
+        viewModelScope.launch {
+            deleteYearUseCase(year)
+        }
+    }
+
+    fun deleteBrand(brand: Brand) {
+        viewModelScope.launch {
+            deleteBrandUseCase(brand)
+        }
+    }
+
+    fun deleteModel(model: Model) {
+        viewModelScope.launch {
+            deleteModelUseCase(model)
+        }
+    }
+
+    fun deleteLocation(location: Location) {
+        viewModelScope.launch {
+            deleteLocationUseCase(location)
+        }
+    }
+
 
     // -------------------------
     // CONTINUE BUTTON LOGIC

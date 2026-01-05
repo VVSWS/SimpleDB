@@ -4,22 +4,26 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.tusur.domain.model.EntryWithRecording
+import ru.tusur.presentation.common.ConfirmDeleteDialog
 import ru.tusur.presentation.entryview.components.FullScreenImageViewer
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.compose.ui.platform.LocalContext
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordingViewScreen(
     navController: NavController,
@@ -30,29 +34,76 @@ fun RecordingViewScreen(
     )
 
     val uiState by viewModel.state.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
-    when {
-        uiState.isLoading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = androidx.compose.ui.Alignment.Center
-            ) {
-                CircularProgressIndicator()
+    // Navigate back after deletion
+    if (uiState.isDeleted) {
+        LaunchedEffect(Unit) {
+            navController.popBackStack()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Entry Details") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete entry"
+                        )
+                    }
+                }
+            )
+        }
+    ) { padding ->
+
+        when {
+            uiState.isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            uiState.error != null -> {
+                Text(
+                    text = "Error: ${uiState.error}",
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            else -> uiState.entry?.let { entry ->
+                RecordingViewContent(
+                    entry = entry,
+                    onBack = { navController.popBackStack() },
+                    modifier = Modifier.padding(padding)
+                )
             }
         }
 
-        uiState.error != null -> {
-            Text(
-                text = "Error: ${uiState.error}",
-                modifier = Modifier.padding(16.dp),
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-
-        else -> uiState.entry?.let { entry ->
-            RecordingViewContent(
-                entry = entry,
-                onBack = { navController.popBackStack() }
+        if (showDeleteDialog) {
+            ConfirmDeleteDialog(
+                itemName = uiState.entry?.title ?: "this entry",
+                onConfirm = {
+                    viewModel.deleteEntry()
+                    showDeleteDialog = false
+                },
+                onDismiss = { showDeleteDialog = false }
             )
         }
     }
@@ -61,9 +112,9 @@ fun RecordingViewScreen(
 @Composable
 fun RecordingViewContent(
     entry: EntryWithRecording,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    // ⭐ Add this state
     var selectedImage by remember { mutableStateOf<String?>(null) }
 
     val formattedDate = remember(entry.timestamp) {
@@ -75,7 +126,7 @@ fun RecordingViewContent(
     val context = LocalContext.current
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
@@ -118,10 +169,7 @@ fun RecordingViewContent(
                         modifier = Modifier
                             .size(140.dp)
                             .padding(4.dp)
-                            .clickable {
-                                println("IMAGE CLICKED: $uri")
-                                selectedImage = uri   // ⭐ Set selected image
-                            }
+                            .clickable { selectedImage = uri }
                     ) {
                         AsyncImage(
                             model = File(context.filesDir, uri),
@@ -141,7 +189,7 @@ fun RecordingViewContent(
         }
     }
 
-    // ⭐ Show full-screen viewer when an image is selected
+    // Full-screen image viewer
     if (selectedImage != null) {
         FullScreenImageViewer(
             relativePath = selectedImage!!,

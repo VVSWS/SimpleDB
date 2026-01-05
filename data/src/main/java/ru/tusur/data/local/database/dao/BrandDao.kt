@@ -1,6 +1,7 @@
 package ru.tusur.data.local.database.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -15,4 +16,8 @@ interface BrandDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBrand(entity: BrandEntity): Long
+
+    @Delete
+    suspend fun deleteBrand(entity: BrandEntity)
+
 }
