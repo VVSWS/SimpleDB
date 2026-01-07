@@ -44,12 +44,6 @@
     <string name="entry_location">Location</string>
     <string name="entry_title">Brief title</string>
 
-    <!-- New Entry Metadata -->
-    <string name="label_select_or_add_year">Select or add a year</string>
-    <string name="label_select_or_add_brand">Select or add a brand</string>
-    <string name="label_select_or_add_model">Select or add a model</string>
-    <string name="label_select_or_add_location">Select or add a location</string>
-
     <!-- Error messages -->
     <string name="error_select_or_add_year">Select or add a year</string>
     <string name="error_select_or_add_brand">Select or add a brand</string>
@@ -64,6 +58,16 @@
     <!-- Dropdown menu -->
     <string name="dropdown_add_new">Add new…</string>
     <string name="dropdown_none">None</string>
+    <string name="hint_select_or_add_year">Select or add a year…</string>
+    <string name="hint_select_or_add_brand">Select or add a brand…</string>
+    <string name="hint_select_or_add_model">Select or add a model…</string>
+    <string name="hint_select_or_add_location">Select or add a location…</string>
+    <string name="hint_select_year">Select a year…</string>
+    <string name="hint_select_brand">Select a brand…</string>
+    <string name="hint_select_model">Select a model…</string>
+    <string name="hint_select_location">Select a location…</string>
+
+
 
     <!-- Search screen -->
     <string name="label_year">Year</string>
@@ -128,12 +132,11 @@
 
     <!-- New Entry -->
     <string name="new_entry_metadata_title">New Entry Metadata</string>
+    <string name="new_search_title">Search</string>
+
+    new_search_title
     <string name="main_fallback_db_name">current.db</string>
 
-    <string name="error_select_year">Select or add a year</string>
-    <string name="error_select_brand">Select or add a brand</string>
-    <string name="error_select_model">Select or add a model</string>
-    <string name="error_select_location">Select or add a location</string>
 
     <string name="label_title_brief">Brief title (≤50)</string>
     <string name="error_title_empty">Title cannot be empty</string>

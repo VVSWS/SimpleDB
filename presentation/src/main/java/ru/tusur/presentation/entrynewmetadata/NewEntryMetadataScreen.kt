@@ -64,9 +64,8 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.addNewYear()
                 },
                 onDeleteItem = viewModel::deleteYear,
-                errorMessage = if (uiState.selectedYear == null)
-                    stringResource(R.string.error_select_year)
-                else null
+                showAddNewOption = true,
+                placeholder = stringResource(R.string.hint_select_or_add_year)
             )
 
             Spacer(Modifier.height(12.dp))
@@ -82,9 +81,8 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.addNewBrand()
                 },
                 onDeleteItem = viewModel::deleteBrand,
-                errorMessage = if (uiState.selectedBrand == null)
-                    stringResource(R.string.error_select_brand)
-                else null
+                showAddNewOption = true,
+                placeholder = stringResource(R.string.hint_select_or_add_brand)
             )
 
             Spacer(Modifier.height(12.dp))
@@ -100,9 +98,8 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.addNewModel()
                 },
                 onDeleteItem = viewModel::deleteModel,
-                errorMessage = if (uiState.selectedModel == null)
-                    stringResource(R.string.error_select_model)
-                else null
+                showAddNewOption = true,
+                placeholder = stringResource(R.string.hint_select_or_add_model)
             )
 
             Spacer(Modifier.height(12.dp))
@@ -118,9 +115,8 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.addNewLocation()
                 },
                 onDeleteItem = viewModel::deleteLocation,
-                errorMessage = if (uiState.selectedLocation == null)
-                    stringResource(R.string.error_select_location)
-                else null
+                showAddNewOption = true,
+                placeholder = stringResource(R.string.hint_select_or_add_location)
             )
 
             Spacer(Modifier.height(16.dp))

@@ -48,7 +48,6 @@ fun SettingsScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                is SettingsEvent.LanguageChanged -> Unit
                 is SettingsEvent.DatabaseError -> Unit
                 is SettingsEvent.DatabaseCreated -> Unit
                 is SettingsEvent.DatabaseOpened -> Unit
@@ -96,32 +95,6 @@ fun SettingsScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-
-            Text(
-                text = stringResource(R.string.settings_language),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-
-            LanguageRadioButton(
-                label = stringResource(R.string.settings_language_en),
-                selected = uiState.language == SettingsViewModel.Language.EN,
-                onClick = { viewModel.setLanguage(SettingsViewModel.Language.EN) }
-            )
-
-            LanguageRadioButton(
-                label = stringResource(R.string.settings_language_es),
-                selected = uiState.language == SettingsViewModel.Language.ES,
-                onClick = { viewModel.setLanguage(SettingsViewModel.Language.ES) }
-            )
-
-            LanguageRadioButton(
-                label = stringResource(R.string.settings_language_ru),
-                selected = uiState.language == SettingsViewModel.Language.RU,
-                onClick = { viewModel.setLanguage(SettingsViewModel.Language.RU) }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = stringResource(R.string.settings_theme),
@@ -190,30 +163,6 @@ fun SettingsScreen(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun LanguageRadioButton(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 4.dp)
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick
-        )
-        Text(
-            text = label,
-            modifier = Modifier.padding(start = 8.dp)
-        )
     }
 }
 

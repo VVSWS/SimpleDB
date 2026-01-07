@@ -51,8 +51,8 @@ class EntrySearchViewModel(
 
         // Reactively load models when brand or year changes
         combine(
-            _uiState.map { it.selectedBrand },
-            _uiState.map { it.selectedYear }
+            _uiState.map { it.selectedBrand }.distinctUntilChanged(),
+            _uiState.map { it.selectedYear }.distinctUntilChanged()
         ) { brand, year ->
             if (brand != null && year != null) {
                 getModelsForBrandAndYear(brand, year)
@@ -64,7 +64,7 @@ class EntrySearchViewModel(
             .onEach { models ->
                 _uiState.value = _uiState.value.copy(
                     models = models,
-                    selectedModel = null // reset model when filters change
+                    selectedModel = null // reset only when brand/year actually change
                 )
             }
             .launchIn(viewModelScope)

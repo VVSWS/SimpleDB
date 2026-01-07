@@ -31,16 +31,6 @@ class SettingsViewModel(
     private val _events = MutableSharedFlow<SettingsEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<SettingsEvent> = _events
 
-    enum class Language(val code: String) {
-        EN("en"),
-        ES("es"),
-        RU("ru");
-
-        companion object {
-            fun fromCode(code: String) = entries.find { it.code == code } ?: EN
-        }
-    }
-
     enum class Theme(val value: Int) {
         SYSTEM(0),
         LIGHT(1),
@@ -60,22 +50,11 @@ class SettingsViewModel(
             dataStore.data
                 .map { prefs ->
                     SettingsState(
-                        language = Language.fromCode(prefs[KEY_LANGUAGE] ?: "en"),
                         theme = Theme.fromValue((prefs[KEY_THEME] ?: "0").toIntOrNull() ?: 0),
                         message = null
                     )
                 }
                 .collect { _state.value = it }
-        }
-    }
-
-    fun setLanguage(language: Language) {
-        viewModelScope.launch {
-            dataStore.edit { prefs ->
-                prefs[KEY_LANGUAGE] = language.code
-            }
-            _state.value = _state.value.copy(language = language)
-            _events.tryEmit(SettingsEvent.LanguageChanged(language.code))
         }
     }
 
@@ -128,7 +107,6 @@ class SettingsViewModel(
     }
 
     companion object {
-        private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_THEME = stringPreferencesKey("theme")
     }
 }

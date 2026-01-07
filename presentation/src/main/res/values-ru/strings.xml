@@ -42,12 +42,6 @@
     <string name="entry_location">Место</string>
     <string name="entry_title">Краткое название</string>
 
-    <!-- New Entry Metadata -->
-    <string name="label_select_or_add_year">Выберите или добавьте год</string>
-    <string name="label_select_or_add_brand">Выберите или добавьте марку</string>
-    <string name="label_select_or_add_model">Выберите или добавьте модель</string>
-    <string name="label_select_or_add_location">Выберите или добавьте место</string>
-
     <!-- Error messages -->
     <string name="error_select_or_add_year">Выберите или добавьте год</string>
     <string name="error_select_or_add_brand">Выберите или добавьте марку</string>
@@ -62,6 +56,15 @@
     <!-- Dropdown menu -->
     <string name="dropdown_add_new">Добавить новое…</string>
     <string name="dropdown_none">Нет</string>
+    <string name="hint_select_or_add_year">Выберите/добавьте год…</string>
+    <string name="hint_select_or_add_brand">Выберите/добавьте производителя…</string>
+    <string name="hint_select_or_add_model">Выберите/добавьте модель…</string>
+    <string name="hint_select_or_add_location">Выберите/добавьте систему…</string>
+    <string name="hint_select_year">Выберите год…</string>
+    <string name="hint_select_brand">Выберите производителя…</string>
+    <string name="hint_select_model">Выберите модель…</string>
+    <string name="hint_select_location">Выберите систему…</string>
+
 
     <!-- Search screen -->
     <string name="label_year">Год</string>
@@ -125,12 +128,9 @@
 
     <!-- New Entry -->
     <string name="new_entry_metadata_title">Метаданные новой записи</string>
-    <string name="main_fallback_db_name">текущая.db</string>
+    <string name="new_search_title">Поиск</string>
 
-    <string name="error_select_year">Выберите или добавьте год</string>
-    <string name="error_select_brand">Выберите или добавьте бренд</string>
-    <string name="error_select_model">Выберите или добавьте модель</string>
-    <string name="error_select_location">Выберите или добавьте локацию</string>
+    <string name="main_fallback_db_name">текущая.db</string>
 
     <string name="label_title_brief">Краткий заголовок (≤50)</string>
     <string name="error_title_empty">Заголовок не может быть пустым</string>

@@ -21,7 +21,6 @@ import ru.tusur.domain.model.EntryWithRecording
 import ru.tusur.presentation.R
 import ru.tusur.presentation.common.ConfirmDeleteDialog
 import ru.tusur.presentation.entryview.components.FullScreenImageViewer
-import ru.tusur.presentation.localization.LocalAppLanguage
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -37,7 +36,6 @@ fun RecordingViewScreen(
     )
 
     val uiState by viewModel.state.collectAsState()
-    val appLanguage = LocalAppLanguage.current
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     // Navigate back after deletion
@@ -51,7 +49,7 @@ fun RecordingViewScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.title_entry_details)) },
-                        navigationIcon = {
+                navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -101,16 +99,14 @@ fun RecordingViewScreen(
         }
 
         if (showDeleteDialog) {
-            key(appLanguage.locale) {
-                ConfirmDeleteDialog(
-                    itemName = uiState.entry?.title ?: stringResource(R.string.fallback_this_entry),
-                    onConfirm = {
-                        viewModel.deleteEntry()
-                        showDeleteDialog = false
-                    },
-                    onDismiss = { showDeleteDialog = false }
-                )
-            }
+            ConfirmDeleteDialog(
+                itemName = uiState.entry?.title ?: stringResource(R.string.fallback_this_entry),
+                onConfirm = {
+                    viewModel.deleteEntry()
+                    showDeleteDialog = false
+                },
+                onDismiss = { showDeleteDialog = false }
+            )
         }
     }
 }
@@ -156,13 +152,19 @@ fun RecordingViewContent(
         Spacer(Modifier.height(20.dp))
 
         // Description
-        Text(text = stringResource(id = R.string.show_description_sign), style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(id = R.string.show_description_sign),
+            style = MaterialTheme.typography.titleMedium
+        )
         Text(descriptionText)
 
         Spacer(Modifier.height(20.dp))
 
         // Images
-        Text(text = stringResource(id = R.string.show_image_sign), style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(id = R.string.show_image_sign),
+            style = MaterialTheme.typography.titleMedium
+        )
 
         if (entry.imageUris.isEmpty()) {
             Text(stringResource(R.string.no_images))
