@@ -25,7 +25,6 @@ fun MainScreen(navController: NavController) {
     val uiState by viewModel.uiState.collectAsState()
 
     Column(Modifier.fillMaxSize()) {
-        // --- Кастомный Top Bar ---
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 3.dp,
@@ -68,7 +67,6 @@ fun MainScreen(navController: NavController) {
             }
         }
 
-        // --- Основной контент ---
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -122,7 +120,7 @@ fun MainScreen(navController: NavController) {
                     Text(
                         text = stringResource(
                             R.string.main_status_with_db,
-                            uiState.filename ?: "current.db",
+                            uiState.filename ?: stringResource(R.string.main_fallback_db_name),
                             uiState.entryCount
                         ),
                         style = MaterialTheme.typography.bodyMedium,

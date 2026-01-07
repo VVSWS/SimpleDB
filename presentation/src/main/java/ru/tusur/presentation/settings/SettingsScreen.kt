@@ -3,6 +3,7 @@ package ru.tusur.presentation.settings
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,20 +19,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
-import org.koin.androidx.compose.koinViewModel
 import ru.tusur.core.util.FileHelper
 import ru.tusur.presentation.R
-import java.io.File
 
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    viewModel: SettingsViewModel = koinViewModel()
+    viewModel: SettingsViewModel
 ) {
     val context = LocalContext.current
     val uiState by viewModel.state.collectAsState()
 
-    // MERGE: pick external DB file
     val pickDbForMerge = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -41,28 +39,25 @@ fun SettingsScreen(
         }
     }
 
-    // EXPORT: choose destination file
     val exportDbLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/octet-stream")
     ) { uri: Uri? ->
         uri?.let { viewModel.exportDatabase(it) }
     }
 
-    // EVENTS
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 is SettingsEvent.LanguageChanged -> Unit
-                is SettingsEvent.DatabaseError -> println("DB error: ${event.message}")
-                is SettingsEvent.DatabaseCreated -> println("Database created")
-                is SettingsEvent.DatabaseOpened -> println("Database opened")
+                is SettingsEvent.DatabaseError -> Unit
+                is SettingsEvent.DatabaseCreated -> Unit
+                is SettingsEvent.DatabaseOpened -> Unit
             }
         }
     }
 
     Column(Modifier.fillMaxSize()) {
 
-        // TOP BAR
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 3.dp,
@@ -80,7 +75,7 @@ fun SettingsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = stringResource(R.string.cd_back)
                     )
                 }
 
@@ -95,7 +90,6 @@ fun SettingsScreen(
             }
         }
 
-        // CONTENT
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -103,7 +97,6 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // LANGUAGE
             Text(
                 text = stringResource(R.string.settings_language),
                 style = MaterialTheme.typography.titleMedium,
@@ -122,9 +115,14 @@ fun SettingsScreen(
                 onClick = { viewModel.setLanguage(SettingsViewModel.Language.ES) }
             )
 
+            LanguageRadioButton(
+                label = stringResource(R.string.settings_language_ru),
+                selected = uiState.language == SettingsViewModel.Language.RU,
+                onClick = { viewModel.setLanguage(SettingsViewModel.Language.RU) }
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // THEME
             Text(
                 text = stringResource(R.string.settings_theme),
                 style = MaterialTheme.typography.titleMedium,
@@ -151,44 +149,39 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // DATABASE SECTION
             Text(
                 text = stringResource(R.string.settings_db),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            // CREATE NEW DB
             Button(
                 onClick = { viewModel.createNewDatabase() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Create New Database")
+                Text(stringResource(R.string.settings_db_create))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // MERGE DB
             Button(
                 onClick = { pickDbForMerge.launch("*/*") },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Merge Database")
+                Text(stringResource(R.string.settings_db_merge))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // EXPORT DB
             Button(
                 onClick = { exportDbLauncher.launch("carfault_export.db") },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Export Database")
+                Text(stringResource(R.string.settings_db_export))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // MESSAGE
             uiState.message?.let { msg ->
                 Text(
                     text = msg,
@@ -208,10 +201,19 @@ private fun LanguageRadioButton(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 4.dp)
     ) {
-        RadioButton(selected = selected, onClick = onClick)
-        Text(text = label, modifier = Modifier.padding(start = 8.dp))
+        RadioButton(
+            selected = selected,
+            onClick = onClick
+        )
+        Text(
+            text = label,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }
 
@@ -223,9 +225,18 @@ private fun ThemeRadioButton(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 4.dp)
     ) {
-        RadioButton(selected = selected, onClick = onClick)
-        Text(text = label, modifier = Modifier.padding(start = 8.dp))
+        RadioButton(
+            selected = selected,
+            onClick = onClick
+        )
+        Text(
+            text = label,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }

@@ -15,8 +15,6 @@ import androidx.navigation.NavController
 import org.koin.compose.koinInject
 import ru.tusur.presentation.R
 
-
-
 @Composable
 fun AboutScreen(navController: NavController) {
     val viewModel: AboutViewModel = koinInject()
@@ -55,8 +53,9 @@ fun AboutScreen(navController: NavController) {
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
+            // Localized "Version: %1$s" + raw version from ViewModel
             Text(
-                text = viewModel.version,
+                text = stringResource(R.string.about_version, viewModel.version),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -64,7 +63,7 @@ fun AboutScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = viewModel.copyright,
+                text = stringResource(R.string.about_copyright),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
@@ -72,7 +71,7 @@ fun AboutScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = viewModel.license,
+                text = stringResource(R.string.about_license),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 32.dp)

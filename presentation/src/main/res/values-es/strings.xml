@@ -1,6 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- App -->
+    <string name="app_name">CarFault</string>
+
+    <!-- MainScreen -->
+    <string name="main_recent_entries">Entradas Recientes</string>
+    <string name="main_add_entry">Agregar Entrada</string>
+    <string name="main_search_entries">Buscar Entradas</string>
+    <string name="main_settings">Ajustes</string>
+    <string name="main_about">Acerca de</string>
+    <string name="main_status_no_db">Base de datos: No seleccionada</string>
+    <string name="main_status_with_db">Base de datos: %1$s • Entradas: %2$d</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_en">Inglés</string>
+    <string name="settings_language_es">Español</string>
+    <string name="settings_language_ru">Ruso</string>
+
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+
+    <string name="settings_db">Gestión de Base de Datos</string>
+    <string name="settings_create_db">Crear Nueva Base de Datos</string>
+    <string name="settings_open_db">Abrir Base de Datos Existente</string>
+    <string name="settings_show_folder">Mostrar Carpeta de Base de Datos</string>
+
+    <!-- About screen -->
+    <string name="about_title">Acerca de</string>
+    <string name="about_version">Versión: %1$s</string>
+    <string name="about_copyright">
+    © 2025 Su nombre o empresa. Todos los derechos reservados.
+</string>
+    <string name="about_license">
+    Esta aplicación está licenciada bajo la licencia MIT.
+</string>
+
+
     <!-- Entry Metadata -->
     <string name="entry_year">Año</string>
     <string name="entry_model">Modelo</string>
@@ -18,6 +58,11 @@
     <string name="error_select_or_add_brand">Selecciona o agrega una marca</string>
     <string name="error_select_or_add_model">Selecciona o agrega un modelo</string>
     <string name="error_select_or_add_location">Selecciona o agrega una ubicación</string>
+    <string name="error_description_empty">La descripción no puede estar vacía</string>
+    <string name="error_entry_list_load">No se pudieron cargar las entradas recientes</string>
+    <string name="error_entry_list_search">No se pudieron buscar las entradas</string>
+
+
 
     <!-- Dropdown menu -->
     <string name="dropdown_add_new">Agregar nuevo…</string>
@@ -33,6 +78,15 @@
     <!-- Buttons -->
     <string name="button_continue">Continuar</string>
     <string name="button_search">Buscar</string>
+    <string name="button_back">Atrás</string>
+    <string name="edit_description_title">Descripción de la entrada</string>
+    <string name="cd_add_image">Añadir imagen</string>
+
+    <string name="label_description">Descripción</string>
+
+    <string name="button_save">Guardar</string>
+    <string name="button_delete">Eliminar</string>
+
 
     <!-- Dialog -->
     <string name="dialog_add_new_title">Agregar nuevo</string>
@@ -44,6 +98,54 @@
     <string name="dialog_delete_message">¿Seguro que deseas eliminar "%1$s"?</string>
     <string name="dialog_delete_confirm">Eliminar</string>
     <string name="dialog_delete_cancel">Cancelar</string>
+
+    <!-- Entry Details Screen -->
+    <string name="show_image_sign">Imágenes:</string>
+    <string name="show_description_sign">Descripción:</string>
+    <string name="show_date_sign">Fecha:</string>
+    <string name="show_year_sign">Año:</string>
+    <string name="show_brand_sign">Marca:</string>
+    <string name="show_model_sign">Modelo:</string>
+    <string name="show_location_sign">Ubicación:</string>
+
+    <!-- Messages -->
+    <string name="title_entry_details">Detalles de la entrada</string>
+    <string name="cd_back">Atrás</string>
+    <string name="cd_delete_entry">Eliminar entrada</string>
+    <string name="error_prefix">Error:</string>
+    <string name="fallback_this_entry">esta entrada</string>
+    <string name="no_description_provided">Sin descripción</string>
+    <string name="untitled_entry">Entrada sin título</string>
+    <string name="no_images">Sin imágenes</string>
+
+    <!-- Values -->
+    <string name="dropdown_add_item">Agregar "%1$s"</string>
+
+    <!-- Entry List -->
+    <string name="entry_list_recent">Entradas recientes</string>
+    <string name="entry_list_search_results">Resultados de búsqueda</string>
+    <string name="entry_list_no_title">(Sin título)</string>
+    <string name="entry_list_delete_cd">Eliminar entrada</string>
+    <string name="entry_list_fallback_entry">esta entrada</string>
+
+    <!-- New Entry -->
+    <string name="new_entry_metadata_title">Metadatos de nueva entrada</string>
+    <string name="main_fallback_db_name">actual.db</string>
+
+    <string name="error_select_year">Seleccione o agregue un año</string>
+    <string name="error_select_brand">Seleccione o agregue una marca</string>
+    <string name="error_select_model">Seleccione o agregue un modelo</string>
+    <string name="error_select_location">Seleccione o agregue una ubicación</string>
+
+    <string name="label_title_brief">Título breve (≤50)</string>
+    <string name="error_title_empty">El título no puede estar vacío</string>
+
+
+    <string name="settings_db_create">Crear nueva base de datos</string>
+    <string name="settings_db_merge">Fusionar base de datos</string>
+    <string name="settings_db_export">Exportar base de datos</string>
+
+
 
 
 </resources>

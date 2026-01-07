@@ -6,12 +6,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import ru.tusur.domain.model.SearchQuery
 import ru.tusur.presentation.search.SharedSearchViewModel
 import ru.tusur.domain.model.toFilter
+import ru.tusur.presentation.R
 import ru.tusur.presentation.common.component.EditableDropdownSelector
 
 @Composable
@@ -32,7 +34,6 @@ fun EntrySearchScreen(
 
         // YEAR
         EditableDropdownSelector(
-            label = "Year",
             items = uiState.years,
             selectedItem = uiState.selectedYear,
             itemToString = { it.toString() },
@@ -46,7 +47,6 @@ fun EntrySearchScreen(
 
         // BRAND
         EditableDropdownSelector(
-            label = "Brand",
             items = uiState.brands,
             selectedItem = uiState.selectedBrand,
             itemToString = { it.toString() },
@@ -60,7 +60,6 @@ fun EntrySearchScreen(
 
         // MODEL
         EditableDropdownSelector(
-            label = "Model",
             items = uiState.models,
             selectedItem = uiState.selectedModel,
             itemToString = { it.toString() },
@@ -74,7 +73,6 @@ fun EntrySearchScreen(
 
         // LOCATION
         EditableDropdownSelector(
-            label = "Location",
             items = uiState.locations,
             selectedItem = uiState.selectedLocation,
             itemToString = { it.toString() },
@@ -94,7 +92,7 @@ fun EntrySearchScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Search")
+            Text(stringResource(R.string.main_search_entries))
         }
     }
 }

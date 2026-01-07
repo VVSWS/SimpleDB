@@ -10,11 +10,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import ru.tusur.domain.usecase.database.CreateDatabaseUseCase
-import ru.tusur.domain.usecase.database.MergeDatabaseUseCase
-import ru.tusur.domain.usecase.database.ExportDatabaseUseCase
 import ru.tusur.data.local.DatabaseProvider
-import ru.tusur.core.util.FileHelper
+import ru.tusur.domain.usecase.database.CreateDatabaseUseCase
+import ru.tusur.domain.usecase.database.ExportDatabaseUseCase
+import ru.tusur.domain.usecase.database.MergeDatabaseUseCase
 import java.io.File
 
 class SettingsViewModel(
@@ -33,7 +32,9 @@ class SettingsViewModel(
     val events: SharedFlow<SettingsEvent> = _events
 
     enum class Language(val code: String) {
-        EN("en"), ES("es");
+        EN("en"),
+        ES("es"),
+        RU("ru");
 
         companion object {
             fun fromCode(code: String) = entries.find { it.code == code } ?: EN
@@ -41,7 +42,9 @@ class SettingsViewModel(
     }
 
     enum class Theme(val value: Int) {
-        SYSTEM(0), LIGHT(1), DARK(2);
+        SYSTEM(0),
+        LIGHT(1),
+        DARK(2);
 
         companion object {
             fun fromValue(value: Int) = entries.find { it.value == value } ?: SYSTEM
@@ -68,7 +71,9 @@ class SettingsViewModel(
 
     fun setLanguage(language: Language) {
         viewModelScope.launch {
-            dataStore.edit { it[KEY_LANGUAGE] = language.code }
+            dataStore.edit { prefs ->
+                prefs[KEY_LANGUAGE] = language.code
+            }
             _state.value = _state.value.copy(language = language)
             _events.tryEmit(SettingsEvent.LanguageChanged(language.code))
         }
@@ -76,24 +81,20 @@ class SettingsViewModel(
 
     fun setTheme(theme: Theme) {
         viewModelScope.launch {
-            dataStore.edit { it[KEY_THEME] = theme.value.toString() }
+            dataStore.edit { prefs ->
+                prefs[KEY_THEME] = theme.value.toString()
+            }
             _state.value = _state.value.copy(theme = theme)
         }
     }
-
-    // -------------------------
-    // DATABASE OPERATIONS
-    // -------------------------
 
     fun createNewDatabase() {
         viewModelScope.launch {
             try {
                 val file = createDbUseCase()
                 provider.getDatabase(file)
-
                 _state.value = _state.value.copy(message = "New database created")
                 _events.tryEmit(SettingsEvent.DatabaseCreated)
-
             } catch (e: Exception) {
                 val msg = "Failed to create database: ${e.message}"
                 _state.value = _state.value.copy(message = msg)
@@ -119,7 +120,9 @@ class SettingsViewModel(
             _state.value = if (result.isSuccess) {
                 _state.value.copy(message = "Database exported")
             } else {
-                _state.value.copy(message = "Export failed: ${result.exceptionOrNull()?.message}")
+                _state.value.copy(
+                    message = "Export failed: ${result.exceptionOrNull()?.message}"
+                )
             }
         }
     }

@@ -21,6 +21,7 @@
     <string name="settings_show_folder">Show Database Folder</string>
     <string name="settings_language_en">English</string>
     <string name="settings_language_es">Español</string>
+    <string name="settings_language_ru">Russian</string>
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>

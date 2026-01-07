@@ -8,6 +8,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -15,6 +16,7 @@ import org.koin.compose.koinInject
 import ru.tusur.presentation.common.component.EditableDropdownSelector
 import ru.tusur.presentation.common.component.CompactTextField
 import android.net.Uri
+import ru.tusur.presentation.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,7 +29,7 @@ fun NewEntryMetadataScreen(navController: NavController) {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "New Entry Metadata",
+                        stringResource(R.string.new_entry_metadata_title),
                         fontWeight = FontWeight.SemiBold
                     )
                 },
@@ -35,7 +37,7 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.cd_back)
                         )
                     }
                 }
@@ -53,7 +55,6 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             // YEAR
             EditableDropdownSelector(
-                label = "Select or add Year",
                 items = uiState.years,
                 selectedItem = uiState.selectedYear,
                 itemToString = { it.value.toString() },
@@ -63,14 +64,15 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.addNewYear()
                 },
                 onDeleteItem = viewModel::deleteYear,
-                errorMessage = if (uiState.selectedYear == null) "Select or add a year" else null
+                errorMessage = if (uiState.selectedYear == null)
+                    stringResource(R.string.error_select_year)
+                else null
             )
 
             Spacer(Modifier.height(12.dp))
 
             // BRAND
             EditableDropdownSelector(
-                label = "Select or add Brand",
                 items = uiState.brands,
                 selectedItem = uiState.selectedBrand,
                 itemToString = { it.name },
@@ -80,14 +82,15 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.addNewBrand()
                 },
                 onDeleteItem = viewModel::deleteBrand,
-                errorMessage = if (uiState.selectedBrand == null) "Select or add a brand" else null
+                errorMessage = if (uiState.selectedBrand == null)
+                    stringResource(R.string.error_select_brand)
+                else null
             )
 
             Spacer(Modifier.height(12.dp))
 
             // MODEL
             EditableDropdownSelector(
-                label = "Select or add Model",
                 items = uiState.models,
                 selectedItem = uiState.selectedModel,
                 itemToString = { it.name },
@@ -97,14 +100,15 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.addNewModel()
                 },
                 onDeleteItem = viewModel::deleteModel,
-                errorMessage = if (uiState.selectedModel == null) "Select or add a model" else null
+                errorMessage = if (uiState.selectedModel == null)
+                    stringResource(R.string.error_select_model)
+                else null
             )
 
             Spacer(Modifier.height(12.dp))
 
             // LOCATION
             EditableDropdownSelector(
-                label = "Select or add Location",
                 items = uiState.locations,
                 selectedItem = uiState.selectedLocation,
                 itemToString = { it.name },
@@ -114,18 +118,22 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.addNewLocation()
                 },
                 onDeleteItem = viewModel::deleteLocation,
-                errorMessage = if (uiState.selectedLocation == null) "Select or add a location" else null
+                errorMessage = if (uiState.selectedLocation == null)
+                    stringResource(R.string.error_select_location)
+                else null
             )
 
             Spacer(Modifier.height(16.dp))
 
             // TITLE
             CompactTextField(
-                label = "Brief title (≤50)",
+                label = stringResource(R.string.label_title_brief),
                 value = uiState.title,
                 onValueChange = viewModel::onTitleChanged,
                 isError = uiState.title.isBlank(),
-                errorMessage = if (uiState.title.isBlank()) "Title cannot be empty" else null
+                errorMessage = if (uiState.title.isBlank())
+                    stringResource(R.string.error_title_empty)
+                else null
             )
 
             Spacer(Modifier.height(24.dp))
@@ -147,7 +155,7 @@ fun NewEntryMetadataScreen(navController: NavController) {
                 enabled = uiState.isContinueEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Continue")
+                Text(stringResource(R.string.button_continue))
             }
         }
     }

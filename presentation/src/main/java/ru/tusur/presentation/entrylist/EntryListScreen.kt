@@ -8,12 +8,17 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import ru.tusur.presentation.search.SharedSearchViewModel
 import ru.tusur.domain.model.FaultEntry
+import ru.tusur.presentation.R
 import ru.tusur.presentation.common.ConfirmDeleteDialog
+import ru.tusur.presentation.common.EntryListError
+import ru.tusur.presentation.localization.LocalAppLanguage
 
 @Composable
 fun EntryListScreen(
@@ -24,6 +29,9 @@ fun EntryListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val filter by sharedSearchViewModel.filter.collectAsState()
+    val appLanguage = LocalAppLanguage.current
+    val context = LocalContext.current
+
 
     // Load data depending on mode
     LaunchedEffect(isSearchMode, filter) {
@@ -34,21 +42,29 @@ fun EntryListScreen(
         }
     }
 
-    val title = if (isSearchMode) "Search Results" else "Recent Entries"
+    val title = if (isSearchMode)
+        stringResource(R.string.entry_list_search_results)
+    else
+        stringResource(R.string.entry_list_recent)
 
     var entryToDelete by remember { mutableStateOf<FaultEntry?>(null) }
 
     // Delete confirmation dialog
     if (entryToDelete != null) {
-        ConfirmDeleteDialog(
-            itemName = entryToDelete!!.title ?: "this entry",
-            onConfirm = {
-                viewModel.deleteEntry(entryToDelete!!)
-                entryToDelete = null
-            },
-            onDismiss = { entryToDelete = null }
-        )
+        key(appLanguage.locale, context) {
+            ConfirmDeleteDialog(
+                itemName = entryToDelete!!.title.ifBlank {
+                    stringResource(R.string.entry_list_fallback_entry)
+                },
+                onConfirm = {
+                    viewModel.deleteEntry(entryToDelete!!)
+                    entryToDelete = null
+                },
+                onDismiss = { entryToDelete = null }
+            )
+        }
     }
+
 
     Column(modifier = Modifier.fillMaxSize()) {
 
@@ -71,13 +87,19 @@ fun EntryListScreen(
         }
 
         // Error message
-        uiState.error?.let { errorMsg ->
+        uiState.error?.let { error ->
+            val message = when (error) {
+                EntryListError.LoadFailed -> stringResource(R.string.error_entry_list_load)
+                EntryListError.SearchFailed -> stringResource(R.string.error_entry_list_search)
+            }
+
             Text(
-                text = errorMsg,
+                text = message,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(16.dp)
             )
         }
+
 
         // Entries list
         LazyColumn(
@@ -116,7 +138,6 @@ fun EntryListItem(
             // Left side: title + metadata
             Column(modifier = Modifier.weight(1f)) {
 
-                // Build a compact metadata string
                 val meta = listOfNotNull(
                     entry.year?.value?.toString(),
                     entry.brand?.name,
@@ -125,7 +146,7 @@ fun EntryListItem(
                 ).joinToString(" • ")
 
                 Text(
-                    text = entry.title ?: "(No title)",
+                    text = entry.title ?: stringResource(R.string.entry_list_no_title),
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -143,7 +164,7 @@ fun EntryListItem(
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Default.Delete,
-                    contentDescription = "Delete entry"
+                    contentDescription = stringResource(R.string.entry_list_delete_cd)
                 )
             }
         }

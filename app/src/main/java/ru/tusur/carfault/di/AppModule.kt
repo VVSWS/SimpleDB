@@ -10,9 +10,9 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ru.tusur.core.util.FileHelper
 import ru.tusur.data.local.DatabaseProvider
+import ru.tusur.data.local.DatabaseMergeRepositoryImpl
 import ru.tusur.data.local.MergeDatabaseManager
 import ru.tusur.data.local.RoomDatabaseValidator
-import ru.tusur.data.local.DatabaseMergeRepositoryImpl
 import ru.tusur.data.local.database.AppDatabase
 import ru.tusur.data.local.database.dao.*
 import ru.tusur.data.mapper.EntryMapper
@@ -24,9 +24,9 @@ import ru.tusur.domain.repository.DatabaseValidator
 import ru.tusur.domain.repository.FaultRepository
 import ru.tusur.domain.repository.ReferenceDataRepository
 import ru.tusur.domain.usecase.database.CreateDatabaseUseCase
+import ru.tusur.domain.usecase.database.ExportDatabaseUseCase
 import ru.tusur.domain.usecase.database.GetCurrentDatabaseInfoUseCase
 import ru.tusur.domain.usecase.database.MergeDatabaseUseCase
-import ru.tusur.domain.usecase.database.ExportDatabaseUseCase
 import ru.tusur.domain.usecase.entry.*
 import ru.tusur.domain.usecase.reference.*
 import ru.tusur.presentation.about.AboutViewModel
@@ -34,32 +34,25 @@ import ru.tusur.presentation.entryedit.EditEntryDescriptionViewModel
 import ru.tusur.presentation.entrylist.EntryListViewModel
 import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataViewModel
 import ru.tusur.presentation.entrysearch.EntrySearchViewModel
-import ru.tusur.presentation.mainscreen.MainViewModel
-import ru.tusur.presentation.settings.SettingsViewModel
 import ru.tusur.presentation.entryview.RecordingViewViewModel
+import ru.tusur.presentation.mainscreen.MainViewModel
 import ru.tusur.presentation.search.SharedSearchViewModel
+import ru.tusur.presentation.settings.SettingsViewModel
 import java.io.File
 
-// DataStore delegate
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 val appModule = module {
 
-    /* ============================
-     *  SHARED VIEWMODELS
-     * ============================ */
+    // Shared ViewModels
     single { SharedSearchViewModel() }
 
-    /* ============================
-     *  CORE
-     * ============================ */
+    // Core
     single { FileHelper }
     single<DatabaseValidator> { RoomDatabaseValidator() }
     single<DataStore<Preferences>> { androidContext().dataStore }
 
-    /* ============================
-     *  DATABASE
-     * ============================ */
+    // Database
     single { DatabaseProvider(androidContext()) }
     single { MergeDatabaseManager(androidContext(), get()) }
 
@@ -72,9 +65,7 @@ val appModule = module {
         get<DatabaseProvider>().getDatabase(dbFile)
     }
 
-    /* ============================
-     *  DAOs
-     * ============================ */
+    // DAOs
     single<EntryDao> { get<AppDatabase>().entryDao() }
     single<YearDao> { get<AppDatabase>().yearDao() }
     single<BrandDao> { get<AppDatabase>().brandDao() }
@@ -82,34 +73,27 @@ val appModule = module {
     single<LocationDao> { get<AppDatabase>().locationDao() }
     single<EntryImageDao> { get<AppDatabase>().entryImageDao() }
 
-    /* ============================
-     *  MAPPERS
-     * ============================ */
+    // Mappers
     single { EntryMapper() }
     single { ReferenceDataMapper() }
 
-    /* ============================
-     *  REPOSITORIES
-     * ============================ */
+    // Repositories
     single<FaultRepository> { DefaultFaultRepository(get(), get(), get()) }
-    single<ReferenceDataRepository> { DefaultReferenceDataRepository(get(), get(), get(), get(), get()) }
+    single<ReferenceDataRepository> {
+        DefaultReferenceDataRepository(get(), get(), get(), get(), get())
+    }
 
-    // Merge repository (domain interface → data implementation)
     single<DatabaseMergeRepository> {
         DatabaseMergeRepositoryImpl(androidContext(), get())
     }
 
-    /* ============================
-     *  USE CASES
-     * ============================ */
-
-    // Database
+    // Use cases - Database
     single { CreateDatabaseUseCase(androidContext()) }
     single { GetCurrentDatabaseInfoUseCase(androidContext()) }
     factory { MergeDatabaseUseCase(get()) }
     factory { ExportDatabaseUseCase(androidContext()) }
 
-    // Entry
+    // Use cases - Entry
     factory { GetEntriesUseCase(get()) }
     factory { GetEntryByIdUseCase(get()) }
     factory { CreateEntryUseCase(get()) }
@@ -119,7 +103,7 @@ val appModule = module {
     factory { SearchEntriesUseCase(get()) }
     factory { GetModelsForBrandAndYearUseCase(get()) }
 
-    // Reference data
+    // Use cases - Reference data
     factory { GetYearsUseCase(get()) }
     factory { AddYearUseCase(get()) }
     factory { AddModelUseCase(get()) }
@@ -128,17 +112,13 @@ val appModule = module {
     factory { GetLocationsUseCase(get()) }
     factory { AddLocationUseCase(get()) }
 
-    //Delete
+    // Use cases - Delete reference
     factory { DeleteBrandUseCase(get()) }
     factory { DeleteModelUseCase(get()) }
     factory { DeleteLocationUseCase(get()) }
     factory { DeleteYearUseCase(get()) }
 
-
-    /* ============================
-     *  VIEWMODELS
-     * ============================ */
-
+    // ViewModels
     viewModel { MainViewModel(get()) }
 
     viewModel {

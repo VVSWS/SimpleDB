@@ -21,6 +21,7 @@
     <string name="settings_show_folder">Mostrar Carpeta de Base de Datos</string>
     <string name="settings_language_en">Inglés</string>
     <string name="settings_language_es">Español</string>
+    <string name="settings_language_ru">Ruso</string>
     <string name="settings_theme_system">Sistema</string>
     <string name="settings_theme_light">Claro</string>
     <string name="settings_theme_dark">Oscuro</string>

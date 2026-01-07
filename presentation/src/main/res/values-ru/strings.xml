@@ -1,0 +1,143 @@
+<resources>
+
+    <!-- App -->
+    <string name="app_name">База Данных</string>
+
+    <!-- MainScreen -->
+    <string name="main_recent_entries">Последние записи</string>
+    <string name="main_add_entry">Добавить запись</string>
+    <string name="main_search_entries">Поиск записей</string>
+    <string name="main_settings">Настройки</string>
+    <string name="main_about">О приложении</string>
+    <string name="main_status_no_db">База данных: не выбрана</string>
+    <string name="main_status_with_db">База данных: %1$s • Записей: %2$d</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_en">Английский</string>
+    <string name="settings_language_es">Испанский</string>
+    <string name="settings_language_ru">Русский</string>
+
+    <string name="settings_theme">Тема</string>
+    <string name="settings_theme_system">Системная</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+
+    <string name="settings_db">Управление базой данных</string>
+    <string name="settings_create_db">Создать новую базу данных</string>
+    <string name="settings_open_db">Открыть существующую базу данных</string>
+    <string name="settings_show_folder">Показать папку базы данных</string>
+
+    <!-- About screen -->
+    <string name="about_title">О приложении</string>
+    <string name="about_version">Версия: %1$s</string>
+    <string name="about_copyright">© 2025 Ваше имя или компания. Все права защищены.</string>
+    <string name="about_license">Это приложение распространяется по лицензии MIT.</string>
+
+
+    <!-- Entry Metadata -->
+    <string name="entry_year">Год</string>
+    <string name="entry_model">Модель</string>
+    <string name="entry_location">Место</string>
+    <string name="entry_title">Краткое название</string>
+
+    <!-- New Entry Metadata -->
+    <string name="label_select_or_add_year">Выберите или добавьте год</string>
+    <string name="label_select_or_add_brand">Выберите или добавьте марку</string>
+    <string name="label_select_or_add_model">Выберите или добавьте модель</string>
+    <string name="label_select_or_add_location">Выберите или добавьте место</string>
+
+    <!-- Error messages -->
+    <string name="error_select_or_add_year">Выберите или добавьте год</string>
+    <string name="error_select_or_add_brand">Выберите или добавьте марку</string>
+    <string name="error_select_or_add_model">Выберите или добавьте модель</string>
+    <string name="error_select_or_add_location">Выберите или добавьте место</string>
+    <string name="error_description_empty">Описание не может быть пустым</string>
+    <string name="error_entry_list_load">Не удалось загрузить последние записи</string>
+    <string name="error_entry_list_search">Не удалось выполнить поиск записей</string>
+
+
+
+    <!-- Dropdown menu -->
+    <string name="dropdown_add_new">Добавить новое…</string>
+    <string name="dropdown_none">Нет</string>
+
+    <!-- Search screen -->
+    <string name="label_year">Год</string>
+    <string name="label_brand">Марка</string>
+    <string name="label_model">Модель</string>
+    <string name="label_location">Место</string>
+    <string name="dropdown_any">Любое</string>
+
+    <!-- Buttons -->
+    <string name="button_continue">Продолжить</string>
+    <string name="button_search">Поиск</string>
+    <string name="button_back">Назад</string>
+    <string name="edit_description_title">Описание записи</string>
+    <string name="cd_add_image">Добавить изображение</string>
+
+    <string name="label_description">Описание</string>
+
+    <string name="button_save">Сохранить</string>
+    <string name="button_delete">Удалить</string>
+
+
+    <!-- Dialog -->
+    <string name="dialog_add_new_title">Добавить новое</string>
+    <string name="dialog_add">Добавить</string>
+    <string name="dialog_cancel">Отмена</string>
+
+    <!-- Delete dialog -->
+    <string name="dialog_delete_title">Удалить элемент</string>
+    <string name="dialog_delete_message">Вы уверены, что хотите удалить "%1$s"?</string>
+    <string name="dialog_delete_confirm">Удалить</string>
+    <string name="dialog_delete_cancel">Отмена</string>
+
+    <!-- Entry Details Screen -->
+    <string name="show_image_sign">Изображения:</string>
+    <string name="show_description_sign">Описание:</string>
+    <string name="show_date_sign">Дата:</string>
+    <string name="show_year_sign">Год выпуска:</string>
+    <string name="show_brand_sign">Производитель:</string>
+    <string name="show_model_sign">Модель:</string>
+    <string name="show_location_sign">Система:</string>
+
+    <!-- Messages -->
+    <string name="title_entry_details">Детали записи</string>
+    <string name="cd_back">Назад</string>
+    <string name="cd_delete_entry">Удалить запись</string>
+    <string name="error_prefix">Ошибка:</string>
+    <string name="fallback_this_entry">эту запись</string>
+    <string name="no_description_provided">Описание отсутствует</string>
+    <string name="untitled_entry">Без названия</string>
+    <string name="no_images">Нет изображений</string>
+
+    <!-- Values -->
+    <string name="dropdown_add_item">Добавить "%1$s"</string>
+
+    <!-- Entry List -->
+    <string name="entry_list_recent">Последние записи</string>
+    <string name="entry_list_search_results">Результаты поиска</string>
+    <string name="entry_list_no_title">(Без названия)</string>
+    <string name="entry_list_delete_cd">Удалить запись</string>
+    <string name="entry_list_fallback_entry">эту запись</string>
+
+    <!-- New Entry -->
+    <string name="new_entry_metadata_title">Метаданные новой записи</string>
+    <string name="main_fallback_db_name">текущая.db</string>
+
+    <string name="error_select_year">Выберите или добавьте год</string>
+    <string name="error_select_brand">Выберите или добавьте бренд</string>
+    <string name="error_select_model">Выберите или добавьте модель</string>
+    <string name="error_select_location">Выберите или добавьте локацию</string>
+
+    <string name="label_title_brief">Краткий заголовок (≤50)</string>
+    <string name="error_title_empty">Заголовок не может быть пустым</string>
+
+    <string name="settings_db_create">Создать новую базу данных</string>
+    <string name="settings_db_merge">Объединить базу данных</string>
+    <string name="settings_db_export">Экспортировать базу данных</string>
+
+
+</resources>

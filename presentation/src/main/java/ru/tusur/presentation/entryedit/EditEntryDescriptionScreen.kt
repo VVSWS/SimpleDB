@@ -16,11 +16,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import org.koin.compose.koinInject
 import ru.tusur.domain.model.*
+import ru.tusur.presentation.R
+import ru.tusur.presentation.common.DescriptionError
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,20 +68,27 @@ fun EditEntryDescriptionScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Entry Description") },
+                title = { Text(stringResource(R.string.edit_description_title)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_back)
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = {
                         imagePickerLauncher.launch("image/*")
                     }) {
-                        Icon(Icons.Filled.AddAPhoto, contentDescription = "Add Image")
+                        Icon(
+                            Icons.Filled.AddAPhoto,
+                            contentDescription = stringResource(R.string.cd_add_image)
+                        )
                     }
                 }
             )
+
         }
     ) { padding ->
 
@@ -95,14 +105,23 @@ fun EditEntryDescriptionScreen(
             OutlinedTextField(
                 value = uiState.entry.description,
                 onValueChange = viewModel::onDescriptionChanged,
-                label = { Text("Description") },
+                label = { Text(stringResource(R.string.label_description)) },
                 modifier = Modifier.fillMaxWidth(),
                 isError = uiState.descriptionError != null
             )
 
-            uiState.descriptionError?.let {
-                Text(it, color = MaterialTheme.colorScheme.error)
+
+            uiState.descriptionError?.let { error ->
+                val message = when (error) {
+                    DescriptionError.Empty -> stringResource(R.string.error_description_empty)
+                }
+
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
+
 
             // IMAGE PREVIEW
             if (uiState.entry.imageUris.isNotEmpty()) {
@@ -137,8 +156,9 @@ fun EditEntryDescriptionScreen(
                 enabled = uiState.isValid,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Save")
+                Text(stringResource(R.string.button_save))
             }
+
 
             // DELETE BUTTON (only in edit mode)
             if (uiState.isEditMode) {
@@ -147,8 +167,9 @@ fun EditEntryDescriptionScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.button_delete))
                 }
+
             }
 
             // NAVIGATE BACK AFTER SAVE

@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import ru.tusur.core.files.savePickedImage
 import ru.tusur.domain.model.FaultEntry
 import ru.tusur.domain.usecase.entry.*
+import ru.tusur.presentation.common.DescriptionError
 
 class EditEntryDescriptionViewModel(
     private val getEntryById: GetEntryByIdUseCase,
@@ -23,7 +24,7 @@ class EditEntryDescriptionViewModel(
         val isLoading: Boolean = false,
         val isSaving: Boolean = false,
         val saveCompleted: Boolean = false,
-        val descriptionError: String? = null
+        val descriptionError: DescriptionError? = null
     ) {
         val isValid: Boolean
             get() = descriptionError == null && entry.description.isNotBlank()
@@ -31,6 +32,10 @@ class EditEntryDescriptionViewModel(
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
+
+    // ---------------------------------------------------------
+    // Load or initialize entry
+    // ---------------------------------------------------------
 
     fun loadEntry(entryId: Long?) {
         if (entryId == null || entryId == 0L) {
@@ -63,8 +68,15 @@ class EditEntryDescriptionViewModel(
         _uiState.value = _uiState.value.copy(entry = entry)
     }
 
+    // ---------------------------------------------------------
+    // Field updates
+    // ---------------------------------------------------------
+
     fun onDescriptionChanged(description: String) {
-        val error = if (description.isBlank()) "Description cannot be empty" else null
+        val error = when {
+            description.isBlank() -> DescriptionError.Empty
+            else -> null
+        }
 
         _uiState.value = _uiState.value.copy(
             entry = _uiState.value.entry.copy(description = description),
@@ -81,6 +93,10 @@ class EditEntryDescriptionViewModel(
             )
         )
     }
+
+    // ---------------------------------------------------------
+    // Save / Delete
+    // ---------------------------------------------------------
 
     fun saveEntry() {
         val state = _uiState.value

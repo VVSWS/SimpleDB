@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ru.tusur.presentation.R
+import ru.tusur.presentation.localization.LocalAppLanguage
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +29,8 @@ fun <T> EditableDropdown(
     var expanded by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
     var newItemText by remember { mutableStateOf("") }
+    val appLanguage = LocalAppLanguage.current
+
 
     // For delete confirmation
     var pendingDeleteItem by remember { mutableStateOf<T?>(null) }
@@ -121,64 +125,70 @@ fun <T> EditableDropdown(
 
         // Add new item dialog
         if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                title = { Text(stringResource(R.string.dialog_add_new_title)) },
-                text = {
-                    OutlinedTextField(
-                        value = newItemText,
-                        onValueChange = { newItemText = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            if (newItemText.isNotBlank()) {
-                                onAddNewItem(newItemText)
+            key(appLanguage.locale) {
+                AlertDialog(
+                    onDismissRequest = { showAddDialog = false },
+                    title = { Text(stringResource(R.string.dialog_add_new_title)) },
+                    text = {
+                        OutlinedTextField(
+                            value = newItemText,
+                            onValueChange = { newItemText = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                if (newItemText.isNotBlank()) {
+                                    onAddNewItem(newItemText)
+                                }
+                                newItemText = ""
+                                showAddDialog = false
                             }
-                            newItemText = ""
-                            showAddDialog = false
+                        ) {
+                            Text(stringResource(R.string.dialog_add))
                         }
-                    ) {
-                        Text(stringResource(R.string.dialog_add))
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showAddDialog = false }) {
+                            Text(stringResource(R.string.dialog_cancel))
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddDialog = false }) {
-                        Text(stringResource(R.string.dialog_cancel))
-                    }
-                }
-            )
+                )
+            }
         }
+
 
         // Delete confirmation dialog
         if (pendingDeleteItem != null) {
-            AlertDialog(
-                onDismissRequest = { pendingDeleteItem = null },
-                title = { Text(stringResource(R.string.dialog_delete_title)) },
-                text = {
-                    Text(
-                        stringResource(
-                            R.string.dialog_delete_message,
-                            itemToString(pendingDeleteItem!!)
+            key(appLanguage.locale) {
+                AlertDialog(
+                    onDismissRequest = { pendingDeleteItem = null },
+                    title = { Text(stringResource(R.string.dialog_delete_title)) },
+                    text = {
+                        Text(
+                            stringResource(
+                                R.string.dialog_delete_message,
+                                itemToString(pendingDeleteItem!!)
+                            )
                         )
-                    )
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        onDeleteItem?.invoke(pendingDeleteItem!!)
-                        pendingDeleteItem = null
-                    }) {
-                        Text(stringResource(R.string.dialog_delete_confirm))
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onDeleteItem?.invoke(pendingDeleteItem!!)
+                            pendingDeleteItem = null
+                        }) {
+                            Text(stringResource(R.string.dialog_delete_confirm))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { pendingDeleteItem = null }) {
+                            Text(stringResource(R.string.dialog_delete_cancel))
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { pendingDeleteItem = null }) {
-                        Text(stringResource(R.string.dialog_delete_cancel))
-                    }
-                }
-            )
+                )
+            }
         }
+
     }
 }

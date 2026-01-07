@@ -10,6 +10,7 @@ import ru.tusur.domain.model.SearchFilter
 import ru.tusur.domain.usecase.entry.DeleteEntryUseCase
 import ru.tusur.domain.usecase.entry.GetRecentEntriesUseCase
 import ru.tusur.domain.usecase.entry.SearchEntriesUseCase
+import ru.tusur.presentation.common.EntryListError
 
 class EntryListViewModel(
     private val getRecentEntriesUseCase: GetRecentEntriesUseCase,
@@ -20,14 +21,14 @@ class EntryListViewModel(
     data class UiState(
         val entries: List<FaultEntry> = emptyList(),
         val isLoading: Boolean = false,
-        val error: String? = null
+        val error: EntryListError? = null
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
     // ---------------------------------------------------------
-    // Load recent entries (default mode)
+    // Load recent entries
     // ---------------------------------------------------------
     fun loadRecentEntries() {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -42,14 +43,14 @@ class EntryListViewModel(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Failed to load recent entries"
+                    error = EntryListError.LoadFailed
                 )
             }
         }
     }
 
     // ---------------------------------------------------------
-    // Search entries using SearchFilter
+    // Search entries
     // ---------------------------------------------------------
     fun searchEntries(filter: SearchFilter) {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -70,7 +71,7 @@ class EntryListViewModel(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Failed to search entries"
+                    error = EntryListError.SearchFailed
                 )
             }
         }

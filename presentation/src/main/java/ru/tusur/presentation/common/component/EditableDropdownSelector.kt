@@ -3,11 +3,13 @@ package ru.tusur.presentation.common.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import ru.tusur.presentation.localization.LocalAppLanguage
 
 @Composable
 fun <T> EditableDropdownSelector(
-    label: String, // still passed in, but used only for errorMessage
     items: List<T>,
     selectedItem: T?,
     itemToString: (T) -> String,
@@ -16,18 +18,21 @@ fun <T> EditableDropdownSelector(
     onDeleteItem: ((T) -> Unit)? = null,
     errorMessage: String? = null
 ) {
-    Column {
-        // ❌ Removed the top label completely
+    val appLanguage = LocalAppLanguage.current
+    val context = LocalContext.current
 
-        EditableDropdown(
-            items = items,
-            selectedItem = selectedItem,
-            itemToString = itemToString,
-            onItemSelected = onItemSelected,
-            onAddNewItem = onAddNewItem,
-            onDeleteItem = onDeleteItem,
-            errorMessage = errorMessage, // bottom label stays
-            modifier = Modifier.fillMaxWidth()
-        )
+    key(appLanguage.locale, context) {
+        Column {
+            EditableDropdown(
+                items = items,
+                selectedItem = selectedItem,
+                itemToString = itemToString,
+                onItemSelected = onItemSelected,
+                onAddNewItem = onAddNewItem,
+                onDeleteItem = onDeleteItem,
+                errorMessage = errorMessage,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
