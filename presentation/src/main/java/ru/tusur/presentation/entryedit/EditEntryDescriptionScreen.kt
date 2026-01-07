@@ -21,23 +21,26 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import org.koin.compose.koinInject
-import ru.tusur.domain.model.*
 import ru.tusur.presentation.R
 import ru.tusur.presentation.common.DescriptionError
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.Close
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditEntryDescriptionScreen(
     navController: NavController,
-    entryId: Long,
-    year: Int,
-    brand: String,
-    model: String,
-    location: String,
-    title: String
+    entryId: Long
 ) {
     val viewModel: EditEntryDescriptionViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
+
+    // Load entry data
+    LaunchedEffect(entryId) {
+        viewModel.loadEntry(entryId)
+    }
 
     // Image picker launcher
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -45,23 +48,6 @@ fun EditEntryDescriptionScreen(
     ) { uris ->
         if (uris.isNotEmpty()) {
             viewModel.onImagesSelected(navController.context, uris)
-        }
-    }
-
-    // Initialize entry
-    LaunchedEffect(entryId) {
-        if (entryId == 0L) {
-            val initial = FaultEntry(
-                year = Year(year),
-                brand = Brand(brand),
-                model = Model(model, Brand(brand), Year(year)),
-                location = Location(location),
-                title = title
-            )
-
-            viewModel.initializeNewEntry(initial)
-        } else {
-            viewModel.loadEntry(entryId)
         }
     }
 
@@ -88,7 +74,6 @@ fun EditEntryDescriptionScreen(
                     }
                 }
             )
-
         }
     ) { padding ->
 
@@ -103,13 +88,12 @@ fun EditEntryDescriptionScreen(
 
             // DESCRIPTION FIELD
             OutlinedTextField(
-                value = uiState.entry.description,
+                value = uiState.entry.description ?: "",
                 onValueChange = viewModel::onDescriptionChanged,
                 label = { Text(stringResource(R.string.label_description)) },
                 modifier = Modifier.fillMaxWidth(),
                 isError = uiState.descriptionError != null
             )
-
 
             uiState.descriptionError?.let { error ->
                 val message = when (error) {
@@ -122,7 +106,6 @@ fun EditEntryDescriptionScreen(
                 )
             }
 
-
             // IMAGE PREVIEW
             if (uiState.entry.imageUris.isNotEmpty()) {
                 LazyRow(
@@ -130,21 +113,34 @@ fun EditEntryDescriptionScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     items(uiState.entry.imageUris) { path ->
-                        val file = navController.context.filesDir.resolve(path)
-                        val fileUri = Uri.fromFile(file)
+                        Box {
+                            val file = navController.context.filesDir.resolve(path)
+                            val fileUri = Uri.fromFile(file)
 
-                        Image(
-                            painter = rememberAsyncImagePainter(fileUri),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(120.dp)
-                                .padding(4.dp),
-                            contentScale = ContentScale.Crop
-                        )
+                            Image(
+                                painter = rememberAsyncImagePainter(fileUri),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .padding(4.dp),
+                                contentScale = ContentScale.Crop
+                            )
+
+                            IconButton(
+                                onClick = { viewModel.removeImage(path) },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .size(24.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.cd_delete_image),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
                     }
-
                 }
-
 
             }
 
@@ -159,17 +155,15 @@ fun EditEntryDescriptionScreen(
                 Text(stringResource(R.string.button_save))
             }
 
-
-            // DELETE BUTTON (only in edit mode)
+            // CANCEL BUTTON (only in edit mode)
             if (uiState.isEditMode) {
                 Button(
-                    onClick = { viewModel.deleteEntry() },
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.secondary)
                 ) {
-                    Text(stringResource(R.string.button_delete))
+                    Text(stringResource(R.string.button_cancel))
                 }
-
             }
 
             // NAVIGATE BACK AFTER SAVE

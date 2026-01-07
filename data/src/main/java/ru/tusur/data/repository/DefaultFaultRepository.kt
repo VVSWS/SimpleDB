@@ -1,7 +1,9 @@
 package ru.tusur.data.repository
 
+import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import ru.tusur.core.files.ImageStorage
 import ru.tusur.data.local.database.dao.EntryDao
 import ru.tusur.data.local.database.dao.EntryImageDao
 import ru.tusur.data.local.entity.EntryImageEntity
@@ -11,6 +13,7 @@ import ru.tusur.domain.model.FaultEntry
 import ru.tusur.domain.repository.FaultRepository
 
 class DefaultFaultRepository(
+    private val appContext: Context,
     private val entryDao: EntryDao,
     private val imageDao: EntryImageDao,
     private val mapper: EntryMapper
@@ -43,12 +46,7 @@ class DefaultFaultRepository(
 
     override suspend fun getRecentEntries(limit: Int): List<FaultEntry> {
         return entryDao.getRecentEntries().map { entity ->
-            val model = entryDao.getModelForEntry(
-                entity.modelName,
-                entity.modelBrand,
-                entity.modelYear
-            )
-            mapper.toDomain(entity)   // ← FIXED
+            mapper.toDomain(entity)
         }
     }
 
@@ -59,12 +57,7 @@ class DefaultFaultRepository(
         location: String?
     ): List<FaultEntry> {
         return entryDao.searchEntries(year, brand, model, location).map { entity ->
-            val modelEntity = entryDao.getModelForEntry(
-                entity.modelName,
-                entity.modelBrand,
-                entity.modelYear
-            )
-            mapper.toDomain(entity)   // ← FIXED
+            mapper.toDomain(entity)
         }
     }
 
@@ -79,11 +72,9 @@ class DefaultFaultRepository(
         saveImages(entry.id, entry.imageUris)
     }
 
-    override suspend fun saveImages(entryId: Long, uris: List<String>) {
-        imageDao.deleteImagesForEntry(entryId)
-        uris.forEach { uri ->
-            imageDao.insertImage(EntryImageEntity(entryId = entryId, uri = uri))
-        }
+    override suspend fun deleteEntry(entry: FaultEntry) {
+        imageDao.deleteImagesForEntry(entry.id)
+        entryDao.deleteEntry(mapper.toEntity(entry))
     }
 
     override suspend fun getEntryWithRecording(id: Long): EntryWithRecording {
@@ -98,8 +89,14 @@ class DefaultFaultRepository(
         return mapper.toRecording(rel, model)
     }
 
-    override suspend fun deleteEntry(entry: FaultEntry) {
-        imageDao.deleteImagesForEntry(entry.id)
-        entryDao.deleteEntry(mapper.toEntity(entry))
+    override suspend fun saveImages(entryId: Long, uris: List<String>) {
+        imageDao.deleteImagesForEntry(entryId)
+        uris.forEach { uri ->
+            imageDao.insertImage(EntryImageEntity(entryId = entryId, uri = uri))
+        }
+    }
+
+    override suspend fun deleteImage(path: String) {
+        ImageStorage.deleteImageFile(appContext.filesDir, path)
     }
 }

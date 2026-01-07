@@ -17,6 +17,8 @@ import ru.tusur.presentation.common.component.EditableDropdownSelector
 import ru.tusur.presentation.common.component.CompactTextField
 import android.net.Uri
 import ru.tusur.presentation.R
+import ru.tusur.domain.model.FaultEntry
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,22 +139,26 @@ fun NewEntryMetadataScreen(navController: NavController) {
             // CONTINUE BUTTON
             Button(
                 onClick = {
-                    val id = uiState.entryId ?: 0L
-                    val year = uiState.selectedYear!!.value
-                    val brand = Uri.encode(uiState.selectedBrand!!.name)
-                    val model = Uri.encode(uiState.selectedModel!!.name)
-                    val location = Uri.encode(uiState.selectedLocation!!.name)
-                    val title = Uri.encode(uiState.title)
-
-                    navController.navigate(
-                        "edit_entry/$id/$year/$brand/$model/$location/$title/description"
+                    // Build the entry from UI state
+                    val entry = FaultEntry(
+                        year = uiState.selectedYear,              // ← pass Year? directly
+                        brand = uiState.selectedBrand,           // if brand is also a domain model
+                        model = uiState.selectedModel,           // same here
+                        location = uiState.selectedLocation,     // and here
+                        title = uiState.title,
+                        timestamp = System.currentTimeMillis()
                     )
+                    // Create entry and navigate
+                    viewModel.createEntry { newId ->
+                        navController.navigate("edit_entry_description/$newId")
+                    }
                 },
                 enabled = uiState.isContinueEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.button_continue))
             }
+
         }
     }
 }

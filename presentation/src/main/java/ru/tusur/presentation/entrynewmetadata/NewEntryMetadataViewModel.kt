@@ -2,21 +2,19 @@ package ru.tusur.presentation.entrynewmetadata
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import ru.tusur.core.util.ValidationUtils
-import ru.tusur.domain.model.Brand
-import ru.tusur.domain.model.Location
-import ru.tusur.domain.model.Model
-import ru.tusur.domain.model.Year
+import ru.tusur.domain.model.*
+import ru.tusur.domain.usecase.entry.CreateEntryUseCase
 import ru.tusur.domain.usecase.reference.*
 
 class NewEntryMetadataViewModel(
-    getYears: GetYearsUseCase,
-    getBrands: GetBrandsUseCase,
+    private val getYears: GetYearsUseCase,
+    private val getBrands: GetBrandsUseCase,
     private val getModelsForBrandAndYear: GetModelsForBrandAndYearUseCase,
-    getLocations: GetLocationsUseCase,
+    private val getLocations: GetLocationsUseCase,
     private val addYear: AddYearUseCase,
     private val addBrand: AddBrandUseCase,
     private val addModel: AddModelUseCase,
@@ -24,14 +22,11 @@ class NewEntryMetadataViewModel(
     private val deleteYearUseCase: DeleteYearUseCase,
     private val deleteBrandUseCase: DeleteBrandUseCase,
     private val deleteModelUseCase: DeleteModelUseCase,
-    private val deleteLocationUseCase: DeleteLocationUseCase
-
+    private val deleteLocationUseCase: DeleteLocationUseCase,
+    private val createEntryUseCase: CreateEntryUseCase
 ) : ViewModel() {
 
     data class UiState(
-        val entryId: Long? = null,
-        val isContinueEnabled: Boolean = false,
-
         val years: List<Year> = emptyList(),
         val brands: List<Brand> = emptyList(),
         val models: List<Model> = emptyList(),
@@ -42,222 +37,247 @@ class NewEntryMetadataViewModel(
         val selectedModel: Model? = null,
         val selectedLocation: Location? = null,
 
+        val title: String = "",
+        val entryId: Long? = null,
+
         val newYearInput: String = "",
         val newBrandInput: String = "",
         val newModelInput: String = "",
-        val newLocationInput: String = "",
-
-        val title: String = ""
-    )
+        val newLocationInput: String = ""
+    ) {
+        val isContinueEnabled: Boolean
+            get() = selectedYear != null &&
+                    selectedBrand != null &&
+                    selectedModel != null &&
+                    selectedLocation != null &&
+                    title.isNotBlank()
+    }
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
-    // Reactive brand/year selections
-    private val selectedBrand = MutableStateFlow<Brand?>(null)
-    private val selectedYear = MutableStateFlow<Year?>(null)
-
-    // Reactive filtered models
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val filteredModelsFlow: Flow<List<Model>> =
-        combine(selectedBrand, selectedYear) { brand, year ->
-            if (brand == null || year == null) null else brand to year
-        }.flatMapLatest { pair ->
-            if (pair == null) flowOf(emptyList())
-            else getModelsForBrandAndYear(pair.first, pair.second)
-        }
-
     init {
-        combine(
-            getYears(),
-            getBrands(),
-            filteredModelsFlow,
-            getLocations()
-        ) { years, brands, models, locations ->
+        loadInitialData()
+    }
+
+    // ---------------------------------------------------------
+    // Load initial reference data
+    // ---------------------------------------------------------
+
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            val years = getYears().first()
+            val brands = getBrands().first()
+            val locations = getLocations().first()
+
             _uiState.value = _uiState.value.copy(
                 years = years,
                 brands = brands,
-                models = models,
                 locations = locations
             )
-        }.launchIn(viewModelScope)
+        }
     }
 
-    // -------------------------
-    // SELECTION HANDLERS
-    // -------------------------
+    // ---------------------------------------------------------
+    // Selectors
+    // ---------------------------------------------------------
 
     fun onYearSelected(year: Year?) {
-        selectedYear.value = year
-        _uiState.value = _uiState.value.copy(
-            selectedYear = year,
-            selectedModel = null // reset model when year changes
-        )
-        updateContinueButton()
+        _uiState.value = _uiState.value.copy(selectedYear = year)
+        reloadModels()
     }
 
     fun onBrandSelected(brand: Brand?) {
-        selectedBrand.value = brand
-        _uiState.value = _uiState.value.copy(
-            selectedBrand = brand,
-            selectedModel = null // reset model when brand changes
-        )
-        updateContinueButton()
+        _uiState.value = _uiState.value.copy(selectedBrand = brand)
+        reloadModels()
     }
 
     fun onModelSelected(model: Model?) {
         _uiState.value = _uiState.value.copy(selectedModel = model)
-        updateContinueButton()
     }
 
     fun onLocationSelected(location: Location?) {
         _uiState.value = _uiState.value.copy(selectedLocation = location)
-        updateContinueButton()
-    }
-
-    // -------------------------
-    // INPUT HANDLERS
-    // -------------------------
-
-    fun onNewYearInputChanged(text: String) {
-        _uiState.value = _uiState.value.copy(newYearInput = text)
-    }
-
-    fun onNewBrandInputChanged(text: String) {
-        _uiState.value = _uiState.value.copy(newBrandInput = text)
-    }
-
-    fun onNewModelInputChanged(text: String) {
-        _uiState.value = _uiState.value.copy(newModelInput = text)
-    }
-
-    fun onNewLocationInputChanged(text: String) {
-        _uiState.value = _uiState.value.copy(newLocationInput = text)
     }
 
     fun onTitleChanged(text: String) {
         _uiState.value = _uiState.value.copy(title = text)
-        updateContinueButton()
     }
 
-    // -------------------------
-    // ADD NEW METADATA
-    // -------------------------
+    // ---------------------------------------------------------
+    // Reload models when year or brand changes
+    // ---------------------------------------------------------
+
+    private fun reloadModels() {
+        val year = _uiState.value.selectedYear
+        val brand = _uiState.value.selectedBrand
+
+        if (year != null && brand != null) {
+            viewModelScope.launch {
+                val models = getModelsForBrandAndYear(brand, year).first()
+                _uiState.value = _uiState.value.copy(models = models)
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Add new reference items
+    // ---------------------------------------------------------
+
+    fun onNewYearInputChanged(value: String) {
+        _uiState.value = _uiState.value.copy(newYearInput = value)
+    }
+
+    fun onNewBrandInputChanged(value: String) {
+        _uiState.value = _uiState.value.copy(newBrandInput = value)
+    }
+
+    fun onNewModelInputChanged(value: String) {
+        _uiState.value = _uiState.value.copy(newModelInput = value)
+    }
+
+    fun onNewLocationInputChanged(value: String) {
+        _uiState.value = _uiState.value.copy(newLocationInput = value)
+    }
 
     fun addNewYear() {
-        val input = _uiState.value.newYearInput
+        viewModelScope.launch {
+            val input = _uiState.value.newYearInput
+            val yearValue = input.toIntOrNull() ?: return@launch
 
-        ValidationUtils.validateYear(input).onSuccess { yearInt ->
-            viewModelScope.launch {
-                addYear(Year(yearInt)).onSuccess {
-                    val year = Year(yearInt)
-                    selectedYear.value = year
-                    _uiState.value = _uiState.value.copy(
-                        newYearInput = "",
-                        selectedYear = year,
-                        selectedModel = null
-                    )
-                }
-            }
+            val year = Year(yearValue)
+            addYear(year)
+
+            val years = getYears().first()
+
+            _uiState.value = _uiState.value.copy(
+                years = years,
+                selectedYear = year,
+                newYearInput = ""
+            )
         }
     }
 
     fun addNewBrand() {
-        val input = ValidationUtils.maxLengthTrim(_uiState.value.newBrandInput, 30)
-        if (input.isEmpty()) return
-
-        val brand = Brand(input)
-
         viewModelScope.launch {
-            addBrand(brand).onSuccess {
-                selectedBrand.value = brand
-                _uiState.value = _uiState.value.copy(
-                    newBrandInput = "",
-                    selectedBrand = brand,
-                    selectedModel = null
-                )
-            }
+            val name = _uiState.value.newBrandInput
+            if (name.isBlank()) return@launch
+
+            val brand = Brand(name)
+            addBrand(brand)
+
+            val brands = getBrands().first()
+
+            _uiState.value = _uiState.value.copy(
+                brands = brands,
+                selectedBrand = brand,
+                newBrandInput = ""
+            )
         }
     }
 
     fun addNewModel() {
-        val input = _uiState.value.newModelInput.trim()
-        val brand = _uiState.value.selectedBrand ?: return
-        val year = _uiState.value.selectedYear ?: return
-        if (input.isEmpty()) return
-
-        val model = Model(input, brand, year)
-
         viewModelScope.launch {
-            addModel(model).onSuccess {
-                _uiState.value = _uiState.value.copy(
-                    newModelInput = "",
-                    models = _uiState.value.models + model,
-                    selectedModel = model
-                )
-            }
+            val name = _uiState.value.newModelInput
+            if (name.isBlank()) return@launch
+
+            val year = _uiState.value.selectedYear ?: return@launch
+            val brand = _uiState.value.selectedBrand ?: return@launch
+
+            val model = Model(
+                name = name,
+                brand = brand,
+                year = year
+            )
+
+            addModel(model)
+
+            val models = getModelsForBrandAndYear(brand, year).first()
+
+            _uiState.value = _uiState.value.copy(
+                models = models,
+                selectedModel = model,
+                newModelInput = ""
+            )
         }
     }
 
     fun addNewLocation() {
-        val input = ValidationUtils.maxLengthTrim(_uiState.value.newLocationInput, 15)
-        if (input.isEmpty()) return
-
-        val location = Location(input)
-
         viewModelScope.launch {
-            addLocation(location).onSuccess {
-                _uiState.value = _uiState.value.copy(
-                    newLocationInput = "",
-                    selectedLocation = location
-                )
-            }
+            val name = _uiState.value.newLocationInput
+            if (name.isBlank()) return@launch
+
+            val location = Location(name)
+            addLocation(location)
+
+            val locations = getLocations().first()
+
+            _uiState.value = _uiState.value.copy(
+                locations = locations,
+                selectedLocation = location,
+                newLocationInput = ""
+            )
         }
     }
 
-    // -------------------------
-    // DELETE LOGIC
-    // -------------------------
-
+    // ---------------------------------------------------------
+    // Delete reference items
+    // ---------------------------------------------------------
 
     fun deleteYear(year: Year) {
         viewModelScope.launch {
             deleteYearUseCase(year)
+            _uiState.value = _uiState.value.copy(years = getYears().first())
         }
     }
 
     fun deleteBrand(brand: Brand) {
         viewModelScope.launch {
             deleteBrandUseCase(brand)
+            _uiState.value = _uiState.value.copy(brands = getBrands().first())
         }
     }
 
     fun deleteModel(model: Model) {
         viewModelScope.launch {
             deleteModelUseCase(model)
+            reloadModels()
         }
     }
 
     fun deleteLocation(location: Location) {
         viewModelScope.launch {
             deleteLocationUseCase(location)
+            _uiState.value = _uiState.value.copy(locations = getLocations().first())
         }
     }
 
+    // ---------------------------------------------------------
+    // Create entry and return ID
+    // ---------------------------------------------------------
 
-    // -------------------------
-    // CONTINUE BUTTON LOGIC
-    // -------------------------
-
-    private fun updateContinueButton() {
+    fun createEntry(onCreated: (Long) -> Unit) {
         val state = _uiState.value
-        _uiState.value = state.copy(
-            isContinueEnabled =
-                state.selectedYear != null &&
-                        state.selectedBrand != null &&
-                        state.selectedModel != null &&
-                        state.selectedLocation != null &&
-                        ValidationUtils.nonEmpty(state.title)
+
+        val entry = FaultEntry(
+            year = state.selectedYear,
+            brand = state.selectedBrand,
+            model = state.selectedModel,
+            location = state.selectedLocation,
+            title = state.title,
+            timestamp = System.currentTimeMillis()
         )
+
+        viewModelScope.launch {
+            val result = createEntryUseCase(entry)
+
+            val id = result.getOrNull()
+
+            _uiState.value = _uiState.value.copy(entryId = id)
+
+            if (id != null) {
+                onCreated(id)
+            }
+        }
     }
 }

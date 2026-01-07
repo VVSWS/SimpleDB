@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -38,6 +39,15 @@ fun RecordingViewScreen(
     val uiState by viewModel.state.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    // 🔄 Refresh when returning to this screen
+    LaunchedEffect(Unit) {
+        navController.currentBackStackEntryFlow.collect { entry ->
+            if (entry.destination.route?.startsWith("recording_view") == true) {
+                viewModel.refresh()
+            }
+        }
+    }
+
     // Navigate back after deletion
     if (uiState.isDeleted) {
         LaunchedEffect(Unit) {
@@ -58,6 +68,22 @@ fun RecordingViewScreen(
                     }
                 },
                 actions = {
+
+                    // EDIT ICON
+                    IconButton(
+                        onClick = {
+                            uiState.entry?.id?.let { id ->
+                                navController.navigate("edit_entry_description/$id")
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.cd_edit_entry)
+                        )
+                    }
+
+                    // DELETE ICON
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(
                             Icons.Default.Delete,

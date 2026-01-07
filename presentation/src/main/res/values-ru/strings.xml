@@ -79,6 +79,9 @@
     <string name="button_back">Назад</string>
     <string name="edit_description_title">Описание записи</string>
     <string name="cd_add_image">Добавить изображение</string>
+    <string name="button_cancel">Отмена</string>
+    <string name="cd_delete_image">Удалить изображение</string>
+
 
     <string name="label_description">Описание</string>
 
@@ -105,6 +108,8 @@
     <string name="show_brand_sign">Производитель:</string>
     <string name="show_model_sign">Модель:</string>
     <string name="show_location_sign">Система:</string>
+    <string name="cd_edit_entry">Правка:</string>
+
 
     <!-- Messages -->
     <string name="title_entry_details">Детали записи</string>

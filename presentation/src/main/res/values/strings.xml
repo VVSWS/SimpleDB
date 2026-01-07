@@ -82,6 +82,7 @@
     <string name="button_back">Back</string>
     <string name="edit_description_title">Entry Description</string>
     <string name="cd_add_image">Add Image</string>
+    <string name="button_cancel">Cancel</string>
 
     <string name="label_description">Description</string>
 
@@ -99,6 +100,8 @@
     <string name="dialog_delete_message">Are you sure you want to delete "%1$s"?</string>
     <string name="dialog_delete_confirm">Delete</string>
     <string name="dialog_delete_cancel">Cancel</string>
+    <string name="cd_delete_image">Delete image</string>
+
 
     <!-- Entry Details Screen -->
     <string name="show_image_sign">Images:</string>
@@ -108,6 +111,10 @@
     <string name="show_brand_sign">Brand:</string>
     <string name="show_model_sign">Model:</string>
     <string name="show_location_sign">Location:</string>
+    <string name="cd_edit_entry">Edit:</string>
+
+
+
 
     <!-- Messages -->
     <string name="title_entry_details">Entry Details</string>

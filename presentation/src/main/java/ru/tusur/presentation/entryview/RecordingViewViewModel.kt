@@ -33,10 +33,12 @@ class RecordingViewViewModel(
         }
     }
 
+    fun refresh() = loadEntry()
+
+
     fun deleteEntry() {
         val e = _state.value.entry ?: return
 
-        // Convert EntryWithRecording → FaultEntry
         val faultEntry = FaultEntry(
             id = e.id,
             title = e.title,
@@ -45,7 +47,8 @@ class RecordingViewViewModel(
             model = e.model,
             location = e.location,
             timestamp = e.timestamp,
-            description = e.description ?: ""   // FIXED: FaultEntry expects non-null String
+            description = e.description ?: "",
+            imageUris = e.imageUris
         )
 
         viewModelScope.launch {

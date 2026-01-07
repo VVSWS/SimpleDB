@@ -85,6 +85,9 @@
     <string name="button_back">Atrás</string>
     <string name="edit_description_title">Descripción de la entrada</string>
     <string name="cd_add_image">Añadir imagen</string>
+    <string name="button_cancel">Cancelar</string>
+    <string name="cd_delete_image">Eliminar imagen</string>
+
 
     <string name="label_description">Descripción</string>
 
@@ -111,6 +114,8 @@
     <string name="show_brand_sign">Marca:</string>
     <string name="show_model_sign">Modelo:</string>
     <string name="show_location_sign">Ubicación:</string>
+    <string name="cd_edit_entry">Editar entrada</string>
+
 
     <!-- Messages -->
     <string name="title_entry_details">Detalles de la entrada</string>

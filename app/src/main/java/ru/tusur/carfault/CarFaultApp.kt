@@ -77,31 +77,16 @@ fun CarFaultApp() {
                 }
 
                 composable(
-                    route = "edit_entry/{entryId}/{year}/{brand}/{model}/{location}/{title}/description",
+                    route = "edit_entry_description/{entryId}",
                     arguments = listOf(
-                        navArgument("entryId") { type = NavType.LongType },
-                        navArgument("year") { type = NavType.IntType },
-                        navArgument("brand") { type = NavType.StringType },
-                        navArgument("model") { type = NavType.StringType },
-                        navArgument("location") { type = NavType.StringType },
-                        navArgument("title") { type = NavType.StringType }
+                        navArgument("entryId") { type = NavType.LongType }
                     )
-                ) { entry ->
-                    val entryId = entry.arguments!!.getLong("entryId")
-                    val year = entry.arguments!!.getInt("year")
-                    val brand = Uri.decode(entry.arguments!!.getString("brand")!!)
-                    val model = Uri.decode(entry.arguments!!.getString("model")!!)
-                    val location = Uri.decode(entry.arguments!!.getString("location")!!)
-                    val title = Uri.decode(entry.arguments!!.getString("title")!!)
+                ) { backStackEntry ->
+                    val entryId = backStackEntry.arguments!!.getLong("entryId")
 
                     EditEntryDescriptionScreen(
                         navController = navController,
-                        entryId = entryId,
-                        year = year,
-                        brand = brand,
-                        model = model,
-                        location = location,
-                        title = title
+                        entryId = entryId
                     )
                 }
             }

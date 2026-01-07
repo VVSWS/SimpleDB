@@ -78,7 +78,7 @@ val appModule = module {
     single { ReferenceDataMapper() }
 
     // Repositories
-    single<FaultRepository> { DefaultFaultRepository(get(), get(), get()) }
+    single<FaultRepository> { DefaultFaultRepository( appContext = get(), entryDao = get(), imageDao = get(), mapper = get() ) }
     single<ReferenceDataRepository> {
         DefaultReferenceDataRepository(get(), get(), get(), get(), get())
     }
@@ -117,6 +117,8 @@ val appModule = module {
     factory { DeleteModelUseCase(get()) }
     factory { DeleteLocationUseCase(get()) }
     factory { DeleteYearUseCase(get()) }
+    factory { DeleteImageUseCase(get()) }
+
 
     // ViewModels
     viewModel { MainViewModel(get()) }
@@ -151,7 +153,8 @@ val appModule = module {
             deleteYearUseCase = get(),
             deleteBrandUseCase = get(),
             deleteModelUseCase = get(),
-            deleteLocationUseCase = get()
+            deleteLocationUseCase = get(),
+            createEntryUseCase = get()
         )
     }
 
@@ -160,7 +163,8 @@ val appModule = module {
             getEntryById = get(),
             createEntry = get(),
             updateEntry = get(),
-            deleteEntry = get()
+            deleteEntry = get(),
+            deleteImageUseCase = get()
         )
     }
 

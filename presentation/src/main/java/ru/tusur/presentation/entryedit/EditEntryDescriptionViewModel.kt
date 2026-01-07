@@ -6,16 +6,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import ru.tusur.core.files.savePickedImage
 import ru.tusur.domain.model.FaultEntry
 import ru.tusur.domain.usecase.entry.*
 import ru.tusur.presentation.common.DescriptionError
+import ru.tusur.core.files.ImageStorage
+
 
 class EditEntryDescriptionViewModel(
     private val getEntryById: GetEntryByIdUseCase,
     private val createEntry: CreateEntryUseCase,
     private val updateEntry: UpdateEntryUseCase,
-    private val deleteEntry: DeleteEntryUseCase
+    private val deleteEntry: DeleteEntryUseCase,
+    private val deleteImageUseCase: DeleteImageUseCase? = null // optional if you have it
 ) : ViewModel() {
 
     data class UiState(
@@ -73,10 +75,7 @@ class EditEntryDescriptionViewModel(
     // ---------------------------------------------------------
 
     fun onDescriptionChanged(description: String) {
-        val error = when {
-            description.isBlank() -> DescriptionError.Empty
-            else -> null
-        }
+        val error = if (description.isBlank()) DescriptionError.Empty else null
 
         _uiState.value = _uiState.value.copy(
             entry = _uiState.value.entry.copy(description = description),
@@ -85,13 +84,34 @@ class EditEntryDescriptionViewModel(
     }
 
     fun onImagesSelected(context: Context, uris: List<Uri>) {
-        val newPaths = uris.map { savePickedImage(context, it) }
+        val newPaths = uris.map { ImageStorage.savePickedImage(context, it) }
 
         _uiState.value = _uiState.value.copy(
             entry = _uiState.value.entry.copy(
                 imageUris = _uiState.value.entry.imageUris + newPaths
             )
         )
+    }
+
+    // ---------------------------------------------------------
+    // Remove image
+    // ---------------------------------------------------------
+
+    fun removeImage(path: String) {
+        viewModelScope.launch {
+            try {
+                deleteImageUseCase?.invoke(path)
+
+                val updated = _uiState.value.entry.copy(
+                    imageUris = _uiState.value.entry.imageUris - path
+                )
+
+                _uiState.value = _uiState.value.copy(entry = updated)
+
+            } catch (e: Exception) {
+                // If you want error handling, add error to UiState
+            }
+        }
     }
 
     // ---------------------------------------------------------
