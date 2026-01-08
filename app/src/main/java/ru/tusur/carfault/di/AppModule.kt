@@ -163,10 +163,11 @@ val appModule = module {
             getEntryById = get(),
             createEntry = get(),
             updateEntry = get(),
-            deleteEntry = get(),
+            deleteEntryUseCase = get(),   // ✅ FIXED
             deleteImageUseCase = get()
         )
     }
+
 
     viewModel { (id: Long) -> RecordingViewViewModel(get<FaultRepository>(), id) }
 

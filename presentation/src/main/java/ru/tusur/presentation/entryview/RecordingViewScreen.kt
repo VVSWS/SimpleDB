@@ -39,7 +39,7 @@ fun RecordingViewScreen(
     val uiState by viewModel.state.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // 🔄 Refresh when returning to this screen
+    // Refresh when returning to this screen
     LaunchedEffect(Unit) {
         navController.currentBackStackEntryFlow.collect { entry ->
             if (entry.destination.route?.startsWith("recording_view") == true) {
@@ -48,7 +48,6 @@ fun RecordingViewScreen(
         }
     }
 
-    // Navigate back after deletion
     if (uiState.isDeleted) {
         LaunchedEffect(Unit) {
             navController.popBackStack()
@@ -68,8 +67,6 @@ fun RecordingViewScreen(
                     }
                 },
                 actions = {
-
-                    // EDIT ICON
                     IconButton(
                         onClick = {
                             uiState.entry?.id?.let { id ->
@@ -77,18 +74,11 @@ fun RecordingViewScreen(
                             }
                         }
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = stringResource(R.string.cd_edit_entry)
-                        )
+                        Icon(Icons.Default.Edit, contentDescription = null)
                     }
 
-                    // DELETE ICON
                     IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.cd_delete_entry)
-                        )
+                        Icon(Icons.Default.Delete, contentDescription = null)
                     }
                 }
             )
@@ -115,13 +105,10 @@ fun RecordingViewScreen(
                 )
             }
 
-            else -> uiState.entry?.let { entry ->
-                RecordingViewContent(
-                    entry = entry,
-                    onBack = { navController.popBackStack() },
-                    modifier = Modifier.padding(padding)
-                )
-            }
+            else -> RecordingViewContent(
+                uiState = uiState,
+                modifier = Modifier.padding(padding)
+            )
         }
 
         if (showDeleteDialog) {
@@ -139,10 +126,10 @@ fun RecordingViewScreen(
 
 @Composable
 fun RecordingViewContent(
-    entry: EntryWithRecording,
-    onBack: () -> Unit,
+    uiState: RecordingViewUiState,
     modifier: Modifier = Modifier
 ) {
+    val entry = uiState.entry ?: return
     var selectedImage by remember { mutableStateOf<String?>(null) }
 
     val formattedDate = remember(entry.timestamp) {
@@ -152,6 +139,7 @@ fun RecordingViewContent(
 
     val descriptionText = entry.description?.ifBlank { null }
         ?: stringResource(R.string.no_description_provided)
+
     val context = LocalContext.current
 
     Column(
@@ -160,7 +148,6 @@ fun RecordingViewContent(
             .padding(16.dp)
     ) {
 
-        // Title
         Text(
             text = entry.title.ifBlank { stringResource(R.string.untitled_entry) },
             style = MaterialTheme.typography.headlineMedium
@@ -168,7 +155,6 @@ fun RecordingViewContent(
 
         Spacer(Modifier.height(12.dp))
 
-        // Metadata
         Text("${stringResource(id = R.string.show_date_sign)} $formattedDate")
         Text("${stringResource(id = R.string.show_year_sign)} ${entry.year?.value}")
         Text("${stringResource(id = R.string.show_brand_sign)} ${entry.brand?.name}")
@@ -177,7 +163,6 @@ fun RecordingViewContent(
 
         Spacer(Modifier.height(20.dp))
 
-        // Description
         Text(
             text = stringResource(id = R.string.show_description_sign),
             style = MaterialTheme.typography.titleMedium
@@ -186,7 +171,6 @@ fun RecordingViewContent(
 
         Spacer(Modifier.height(20.dp))
 
-        // Images
         Text(
             text = stringResource(id = R.string.show_image_sign),
             style = MaterialTheme.typography.titleMedium
@@ -199,7 +183,7 @@ fun RecordingViewContent(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                items(entry.imageUris) { uri ->
+                items(entry.imageUris, key = { it }) { uri ->
                     Box(
                         modifier = Modifier
                             .size(140.dp)
@@ -215,16 +199,8 @@ fun RecordingViewContent(
                 }
             }
         }
-
-        Spacer(Modifier.height(32.dp))
-
-        // Back button
-        Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.button_back))
-        }
     }
 
-    // Full-screen image viewer
     if (selectedImage != null) {
         FullScreenImageViewer(
             relativePath = selectedImage!!,

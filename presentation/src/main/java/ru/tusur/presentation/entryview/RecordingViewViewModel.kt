@@ -24,7 +24,7 @@ class RecordingViewViewModel(
     private fun loadEntry() {
         viewModelScope.launch {
             try {
-                _state.value = RecordingViewUiState(isLoading = true)
+                _state.value = _state.value.copy(isLoading = true)
                 val entry = repository.getEntryWithRecording(entryId)
                 _state.value = RecordingViewUiState(entry = entry)
             } catch (e: Exception) {
@@ -35,7 +35,63 @@ class RecordingViewViewModel(
 
     fun refresh() = loadEntry()
 
+    // ---------------------------------------------------------
+    // Delete image by URI (String)
+    // ---------------------------------------------------------
+    fun deleteImage(uri: String) {
+        viewModelScope.launch {
+            try {
+                repository.deleteImage(uri)
 
+                // Reload entry so UI updates immediately
+                val updated = repository.getEntryWithRecording(entryId)
+                _state.value = _state.value.copy(entry = updated)
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = e.message ?: "Failed to delete image"
+                )
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Update description using updateEntry(entry)
+    // ---------------------------------------------------------
+    fun updateDescription(newDescription: String) {
+        val current = _state.value.entry ?: return
+
+        val updatedEntry = FaultEntry(
+            id = current.id,
+            title = current.title,
+            year = current.year,
+            brand = current.brand,
+            model = current.model,
+            location = current.location,
+            timestamp = current.timestamp,
+            description = newDescription,
+            imageUris = current.imageUris
+        )
+
+        viewModelScope.launch {
+            try {
+                repository.updateEntry(updatedEntry)
+
+                // Reload entry so UI updates immediately
+                val refreshed = repository.getEntryWithRecording(entryId)
+                _state.value = _state.value.copy(entry = refreshed)
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = e.message ?: "Failed to update description"
+                )
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Delete entire entry
+    // ---------------------------------------------------------
     fun deleteEntry() {
         val e = _state.value.entry ?: return
 
@@ -56,7 +112,9 @@ class RecordingViewViewModel(
                 repository.deleteEntry(faultEntry)
                 _state.value = _state.value.copy(isDeleted = true)
             } catch (ex: Exception) {
-                _state.value = _state.value.copy(error = ex.message ?: "Failed to delete entry")
+                _state.value = _state.value.copy(
+                    error = ex.message ?: "Failed to delete entry"
+                )
             }
         }
     }

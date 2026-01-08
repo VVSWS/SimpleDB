@@ -12,8 +12,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -23,10 +25,6 @@ import coil.compose.rememberAsyncImagePainter
 import org.koin.compose.koinInject
 import ru.tusur.presentation.R
 import ru.tusur.presentation.common.DescriptionError
-import androidx.compose.ui.Alignment
-import androidx.compose.material.icons.filled.Close
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,12 +35,12 @@ fun EditEntryDescriptionScreen(
     val viewModel: EditEntryDescriptionViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
 
-    // Load entry data
+    // Load entry once
     LaunchedEffect(entryId) {
         viewModel.loadEntry(entryId)
     }
 
-    // Image picker launcher
+    // Image picker
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris ->
@@ -77,6 +75,20 @@ fun EditEntryDescriptionScreen(
         }
     ) { padding ->
 
+        // If entry is still loading or null, show nothing yet
+        val entry = uiState.entry
+        if (entry == null) {
+            Box(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -88,7 +100,7 @@ fun EditEntryDescriptionScreen(
 
             // DESCRIPTION FIELD
             OutlinedTextField(
-                value = uiState.entry.description ?: "",
+                value = entry.description ?: "",
                 onValueChange = viewModel::onDescriptionChanged,
                 label = { Text(stringResource(R.string.label_description)) },
                 modifier = Modifier.fillMaxWidth(),
@@ -107,12 +119,12 @@ fun EditEntryDescriptionScreen(
             }
 
             // IMAGE PREVIEW
-            if (uiState.entry.imageUris.isNotEmpty()) {
+            if (entry.imageUris.isNotEmpty()) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(uiState.entry.imageUris) { path ->
+                    items(entry.imageUris) { path ->
                         Box {
                             val file = navController.context.filesDir.resolve(path)
                             val fileUri = Uri.fromFile(file)
@@ -141,7 +153,6 @@ fun EditEntryDescriptionScreen(
                         }
                     }
                 }
-
             }
 
             Spacer(Modifier.height(24.dp))
@@ -155,7 +166,7 @@ fun EditEntryDescriptionScreen(
                 Text(stringResource(R.string.button_save))
             }
 
-            // CANCEL BUTTON (only in edit mode)
+            // CANCEL BUTTON
             if (uiState.isEditMode) {
                 Button(
                     onClick = { navController.popBackStack() },
