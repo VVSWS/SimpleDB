@@ -72,6 +72,11 @@ class DefaultFaultRepository(
         saveImages(entry.id, entry.imageUris)
     }
 
+    override suspend fun getEntryCount(): Int {
+        return entryDao.getEntryCount()
+    }
+
+
     override suspend fun deleteEntry(entry: FaultEntry) {
         imageDao.deleteImagesForEntry(entry.id)
         entryDao.deleteEntry(mapper.toEntity(entry))

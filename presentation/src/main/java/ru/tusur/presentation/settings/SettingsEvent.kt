@@ -4,4 +4,6 @@ sealed class SettingsEvent {
     data object DatabaseCreated : SettingsEvent()
     data class DatabaseError(val message: String) : SettingsEvent()
     data object DatabaseOpened : SettingsEvent()
+    object DatabaseExists : SettingsEvent()
+
 }

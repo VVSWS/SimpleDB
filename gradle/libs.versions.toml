@@ -2,7 +2,12 @@
 # Core
 agp = "8.9.3"
 datastorePreferences = "1.1.1"
+desugar_jdk_libs = "2.1.5"
+desugar_jdk_libsVersion = "2.0.4"
+documentfile = "1.1.0"
 kotlin = "2.0.21"
+kotlinxSerializationJson = "1.8.1"
+kotlinxSerializationJsonVersion = "1.6.3"
 ksp = "2.0.21-1.0.25"
 
 # AndroidX
@@ -39,6 +44,11 @@ datastorePreferencesCoreAndroid = "1.2.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-datastore-preferences-v111 = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
+desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
+desugar_jdk_libs-v204 = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libsVersion" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+kotlinx-serialization-json-v163 = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJsonVersion" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 # Lifecycle

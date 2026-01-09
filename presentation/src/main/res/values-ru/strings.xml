@@ -144,5 +144,21 @@
     <string name="settings_db_merge">Объединить базу данных</string>
     <string name="settings_db_export">Экспортировать базу данных</string>
 
+    <!-- DB -->
+    <string name="db_created">Создана новая база данных</string>
+    <string name="db_create_failed">Не удалось создать базу данных: %1$s</string>
+
+    <string name="db_merged">Добавлено %1$d записей</string>
+    <string name="db_merge_failed">Ошибка объединения: %1$s</string>
+
+    <string name="db_exported">База данных экспортирована</string>
+    <string name="db_export_failed">Ошибка экспорта: %1$s</string>
+
+    <string name="db_exists">База данных уже существует</string>
+    <string name="settings_db_export_success">"Экспорт выполнен успешно"</string>
+    <string name="settings_db_export_failed">Экспорт не выполнен: %1$s</string>
+
+
+
 
 </resources>

@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ru.tusur.core.util.FileHelper
+import ru.tusur.domain.repository.FaultRepository
 import java.io.File
 
 data class CurrentDbInfo(
@@ -13,8 +14,10 @@ data class CurrentDbInfo(
 )
 
 class GetCurrentDatabaseInfoUseCase(
-    private val context: Context
-) {
+    private val context: Context,
+    private val repository: FaultRepository
+)
+ {
 
     operator fun invoke(): Flow<CurrentDbInfo> = flow {
         val dbFile: File = FileHelper.getActiveDatabaseFile(context)
@@ -24,13 +27,13 @@ class GetCurrentDatabaseInfoUseCase(
             return@flow
         }
 
-        // We don't open Room here — too heavy.
-        // Just report file info.
+        val count = repository.getEntryCount()
+
         emit(
             CurrentDbInfo(
                 isActive = true,
                 filename = dbFile.name,
-                entryCount = 0 // optional: you can add a DAO call later
+                entryCount = count
             )
         )
     }

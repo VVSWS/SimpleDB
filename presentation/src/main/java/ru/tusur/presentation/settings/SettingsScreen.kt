@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
-import ru.tusur.core.util.FileHelper
 import ru.tusur.presentation.R
 
 @Composable
@@ -30,27 +29,27 @@ fun SettingsScreen(
     val context = LocalContext.current
     val uiState by viewModel.state.collectAsState()
 
-    val pickDbForMerge = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+    // FOLDER PICKER FOR MERGE (OpenDocumentTree)
+    val mergeFolderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
-        uri?.let {
-            val file = FileHelper.copyUriToTempFile(context, it)
-            viewModel.mergeDatabase(file)
-        }
+        uri?.let { viewModel.mergeDatabase(it) }
     }
 
-    val exportDbLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/octet-stream")
+    // FOLDER PICKER FOR EXPORT
+    val exportFolderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
-        uri?.let { viewModel.exportDatabase(it) }
+        uri?.let { viewModel.exportDatabaseToFolder(it) }
     }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                is SettingsEvent.DatabaseError -> Unit
-                is SettingsEvent.DatabaseCreated -> Unit
-                is SettingsEvent.DatabaseOpened -> Unit
+                is SettingsEvent.DatabaseCreated -> {}
+                is SettingsEvent.DatabaseError -> {}
+                is SettingsEvent.DatabaseExists -> {}
+                is SettingsEvent.DatabaseOpened -> {}
             }
         }
     }
@@ -138,7 +137,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = { pickDbForMerge.launch("*/*") },
+                onClick = { mergeFolderLauncher.launch(null) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.settings_db_merge))
@@ -147,10 +146,23 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = { exportDbLauncher.launch("carfault_export.db") },
+                onClick = { exportFolderLauncher.launch(null) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.settings_db_export))
+            }
+
+            if (uiState.exportProgress in 0f..0.99f) {
+                Spacer(modifier = Modifier.height(16.dp))
+                LinearProgressIndicator(
+                    progress = { uiState.exportProgress },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Text(
+                    text = "${(uiState.exportProgress * 100).toInt()}%",
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -183,6 +195,7 @@ private fun ThemeRadioButton(
             selected = selected,
             onClick = onClick
         )
+
         Text(
             text = label,
             modifier = Modifier.padding(start = 8.dp)

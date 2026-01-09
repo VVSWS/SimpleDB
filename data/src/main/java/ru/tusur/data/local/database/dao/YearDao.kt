@@ -11,13 +11,19 @@ import ru.tusur.data.local.entity.YearEntity
 @Dao
 interface YearDao {
 
-    @Query("SELECT * FROM years ORDER BY value DESC")
-    fun getAllYears(): Flow<List<YearEntity>>
-
+    // UI adds or edits a year
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertYear(entity: YearEntity): Long
 
+    // Merge/import adds missing years without overwriting user changes
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIfMissing(entity: YearEntity)
+
+    // UI deletes a year
     @Delete
     suspend fun deleteYear(entity: YearEntity)
 
+    // Dropdown list
+    @Query("SELECT * FROM years ORDER BY value ASC")
+    fun getAllYears(): Flow<List<YearEntity>>
 }

@@ -32,7 +32,7 @@ interface EntryDao {
     fun getAllSync(): List<EntryEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entry: EntryEntity)
+    suspend fun insert(entry: EntryEntity): Long
 
     @Query("SELECT * FROM entries WHERE id = :id")
     suspend fun getById(id: Long): EntryEntity?
@@ -61,12 +61,23 @@ interface EntryDao {
     @Update
     suspend fun updateEntry(entry: EntryEntity)
 
+    @Query("SELECT COUNT(*) FROM entries")
+    suspend fun getEntryCount(): Int
+
     @Delete
     suspend fun deleteEntry(entry: EntryEntity)
+
+    @Query("SELECT id FROM entries")
+    suspend fun getAllIds(): List<Long>
 
     @Transaction
     @Query("SELECT * FROM entries WHERE id = :id")
     suspend fun getEntryWithRecording(id: Long): EntryWithImages
+
+    @Transaction
+    @Query("SELECT * FROM entries ORDER BY timestamp DESC")
+    suspend fun getAllEntriesWithImages(): List<EntryWithImages>
+
 
     // ---------------------------------------------------------
     // ⭐ REQUIRED FOR ROOM 2.8.4 — manual composite model lookup

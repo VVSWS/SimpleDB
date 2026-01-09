@@ -26,6 +26,7 @@ interface FaultRepository {
     suspend fun saveImages(entryId: Long, uris: List<String>)
     suspend fun getEntryWithRecording(id: Long): EntryWithRecording
     suspend fun deleteImage(path: String)
+    suspend fun getEntryCount(): Int
 
 
 }

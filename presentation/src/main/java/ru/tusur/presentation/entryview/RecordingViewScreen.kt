@@ -40,13 +40,10 @@ fun RecordingViewScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     // Refresh when returning to this screen
-    LaunchedEffect(Unit) {
-        navController.currentBackStackEntryFlow.collect { entry ->
-            if (entry.destination.route?.startsWith("recording_view") == true) {
-                viewModel.refresh()
-            }
-        }
+    LaunchedEffect(entryId) {
+        viewModel.refresh()
     }
+
 
     if (uiState.isDeleted) {
         LaunchedEffect(Unit) {

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    kotlin("plugin.serialization") version "1.9.0"
 }
 
 android {
@@ -41,10 +42,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
+    implementation(libs.kotlinx.serialization.json.v163)
 
     implementation(project(":core"))
 
-    // Coroutines (только core — без Android-биндингов)
+    // Coroutines
     implementation(libs.kotlinx.coroutines.core)
 
     // Test

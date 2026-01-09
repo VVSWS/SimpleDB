@@ -2,13 +2,15 @@ package ru.tusur.carfault.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import androidx.datastore.preferences.core.Preferences
 import ru.tusur.core.util.FileHelper
+import ru.tusur.data.backup.ExportImagesUseCase
+import ru.tusur.data.backup.MergeJsonDatabaseUseCase
 import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.data.local.DatabaseMergeRepositoryImpl
 import ru.tusur.data.local.MergeDatabaseManager
@@ -24,9 +26,9 @@ import ru.tusur.domain.repository.DatabaseValidator
 import ru.tusur.domain.repository.FaultRepository
 import ru.tusur.domain.repository.ReferenceDataRepository
 import ru.tusur.domain.usecase.database.CreateDatabaseUseCase
-import ru.tusur.domain.usecase.database.ExportDatabaseUseCase
+import ru.tusur.data.backup.ExportDatabaseUseCase
+import ru.tusur.data.backup.ImportJsonDatabaseUseCase
 import ru.tusur.domain.usecase.database.GetCurrentDatabaseInfoUseCase
-import ru.tusur.domain.usecase.database.MergeDatabaseUseCase
 import ru.tusur.domain.usecase.entry.*
 import ru.tusur.domain.usecase.reference.*
 import ru.tusur.presentation.about.AboutViewModel
@@ -38,9 +40,16 @@ import ru.tusur.presentation.entryview.RecordingViewViewModel
 import ru.tusur.presentation.mainscreen.MainViewModel
 import ru.tusur.presentation.search.SharedSearchViewModel
 import ru.tusur.presentation.settings.SettingsViewModel
+import ru.tusur.presentation.util.StringProvider
 import java.io.File
+import ru.tusur.presentation.util.AndroidStringProvider
+import ru.tusur.domain.repository.DatabaseRepository
+import ru.tusur.data.repository.DatabaseRepositoryImpl
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
+//val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+val Context.dataStore by preferencesDataStore(name = "settings")
+
 
 val appModule = module {
 
@@ -55,6 +64,8 @@ val appModule = module {
     // Database
     single { DatabaseProvider(androidContext()) }
     single { MergeDatabaseManager(androidContext(), get()) }
+    single { ExportImagesUseCase(get()) }
+
 
     single<File>(named("activeDbFile")) {
         FileHelper.getActiveDatabaseFile(androidContext())
@@ -64,6 +75,9 @@ val appModule = module {
         val dbFile: File = get(named("activeDbFile"))
         get<DatabaseProvider>().getDatabase(dbFile)
     }
+    //UTIL
+    single<StringProvider> { AndroidStringProvider(androidContext()) }
+
 
     // DAOs
     single<EntryDao> { get<AppDatabase>().entryDao() }
@@ -77,6 +91,12 @@ val appModule = module {
     single { EntryMapper() }
     single { ReferenceDataMapper() }
 
+    // Repository
+    single<DatabaseRepository> { DatabaseRepositoryImpl(provider = get()) }
+
+    // Use case
+    single { MergeJsonDatabaseUseCase(context = get(), db = get()) }
+
     // Repositories
     single<FaultRepository> { DefaultFaultRepository( appContext = get(), entryDao = get(), imageDao = get(), mapper = get() ) }
     single<ReferenceDataRepository> {
@@ -89,9 +109,11 @@ val appModule = module {
 
     // Use cases - Database
     single { CreateDatabaseUseCase(androidContext()) }
-    single { GetCurrentDatabaseInfoUseCase(androidContext()) }
-    factory { MergeDatabaseUseCase(get()) }
-    factory { ExportDatabaseUseCase(androidContext()) }
+    single { GetCurrentDatabaseInfoUseCase(androidContext(), get<FaultRepository>()) }
+    factory { ExportDatabaseUseCase(androidContext(), get()) }
+    factory { ImportJsonDatabaseUseCase(androidContext(), get()) }
+    factory { MergeJsonDatabaseUseCase(androidContext(), get()) }
+
 
     // Use cases - Entry
     factory { GetEntriesUseCase(get()) }
@@ -163,7 +185,7 @@ val appModule = module {
             getEntryById = get(),
             createEntry = get(),
             updateEntry = get(),
-            deleteEntryUseCase = get(),   // ✅ FIXED
+            deleteEntryUseCase = get(),
             deleteImageUseCase = get()
         )
     }
@@ -173,12 +195,12 @@ val appModule = module {
 
     viewModel {
         SettingsViewModel(
-            context = androidContext(),
             dataStore = get(),
             createDbUseCase = get(),
             mergeDbUseCase = get(),
             exportDbUseCase = get(),
-            provider = get()
+            provider = get(),
+            strings = get()
         )
     }
 

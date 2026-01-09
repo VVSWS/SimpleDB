@@ -11,13 +11,19 @@ import ru.tusur.data.local.entity.LocationEntity
 @Dao
 interface LocationDao {
 
-    @Query("SELECT * FROM locations ORDER BY name ASC")
-    fun getAllLocations(): Flow<List<LocationEntity>>
-
+    // Used by UI when user adds a location manually
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLocation(entity: LocationEntity): Long
 
+    // Used by merge/import to avoid overwriting user changes
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIfMissing(entity: LocationEntity)
+
+    // Used by UI to delete a location
     @Delete
     suspend fun deleteLocation(entity: LocationEntity)
 
+    // Used by dropdowns
+    @Query("SELECT * FROM locations ORDER BY name ASC")
+    fun getAllLocations(): Flow<List<LocationEntity>>
 }

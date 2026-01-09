@@ -151,6 +151,22 @@
     <string name="settings_db_merge">Fusionar base de datos</string>
     <string name="settings_db_export">Exportar base de datos</string>
 
+    <!-- DB -->
+    <string name="db_created">Base de datos creada</string>
+    <string name="db_create_failed">No se pudo crear la base de datos: %1$s</string>
+
+    <string name="db_merged">Se fusionaron %1$d registros</string>
+    <string name="db_merge_failed">Error al fusionar: %1$s</string>
+
+    <string name="db_exported">Base de datos exportada</string>
+    <string name="db_export_failed">Error al exportar: %1$s</string>
+
+    <string name="db_exists">La base de datos ya existe</string>
+    <string name="settings_db_export_success">Copia de seguridad exportada correctamente</string>
+    <string name="settings_db_export_failed">Error al exportar: %1$s</string>
+
+
+
 
 
 

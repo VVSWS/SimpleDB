@@ -152,6 +152,21 @@
     <string name="settings_db_merge">Merge Database</string>
     <string name="settings_db_export">Export Database</string>
 
+    <!-- DB -->
+    <string name="db_created">New database created</string>
+    <string name="db_create_failed">Failed to create database: %1$s</string>
+
+    <string name="db_merged">Merged %1$d entries</string>
+    <string name="db_merge_failed">Merge failed: %1$s</string>
+
+    <string name="db_exported">Database exported</string>
+    <string name="db_export_failed">Export failed: %1$s</string>
+
+    <string name="db_exists">Database already exists</string>
+    <string name="settings_db_export_success">Backup exported successfully</string>
+    <string name="settings_db_export_failed">Export failed: %1$s</string>
+
+
 
 
 
