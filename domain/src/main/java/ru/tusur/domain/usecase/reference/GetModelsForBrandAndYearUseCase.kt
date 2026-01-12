@@ -11,3 +11,4 @@ class GetModelsForBrandAndYearUseCase(
     operator fun invoke(brand: Brand, year: Year) =
         repository.getModelsForBrandAndYear(brand, year)
 }
+

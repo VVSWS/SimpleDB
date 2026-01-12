@@ -3,7 +3,6 @@ package ru.tusur.presentation.entryedit
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -17,12 +16,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
+import ru.tusur.core.ui.component.ImageThumbnail
 import ru.tusur.presentation.R
 import ru.tusur.presentation.common.DescriptionError
 
@@ -32,13 +31,11 @@ fun EditEntryDescriptionScreen(
     navController: NavController,
     entryId: Long
 ) {
-    val viewModel: EditEntryDescriptionViewModel = koinInject()
-    val uiState by viewModel.uiState.collectAsState()
+    // Inject ViewModel with ID parameter
+    val viewModel: EditEntryDescriptionViewModel =
+        koinInject(parameters = { parametersOf(entryId) })
 
-    // Load entry once
-    LaunchedEffect(entryId) {
-        viewModel.loadEntry(entryId)
-    }
+    val uiState by viewModel.uiState.collectAsState()
 
     // Image picker
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -75,8 +72,8 @@ fun EditEntryDescriptionScreen(
         }
     ) { padding ->
 
-        // If entry is still loading or null, show nothing yet
         val entry = uiState.entry
+
         if (entry == null) {
             Box(
                 modifier = Modifier
@@ -100,7 +97,7 @@ fun EditEntryDescriptionScreen(
 
             // DESCRIPTION FIELD
             OutlinedTextField(
-                value = entry.description ?: "",
+                value = entry.description,
                 onValueChange = viewModel::onDescriptionChanged,
                 label = { Text(stringResource(R.string.label_description)) },
                 modifier = Modifier.fillMaxWidth(),
@@ -124,22 +121,16 @@ fun EditEntryDescriptionScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(entry.imageUris) { path ->
+                    items(entry.imageUris) { uri ->
                         Box {
-                            val file = navController.context.filesDir.resolve(path)
-                            val fileUri = Uri.fromFile(file)
-
-                            Image(
-                                painter = rememberAsyncImagePainter(fileUri),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .padding(4.dp),
-                                contentScale = ContentScale.Crop
+                            ImageThumbnail(
+                                uri = uri,
+                                modifier = Modifier.size(120.dp),
+                                onClick = { /* optional */ }
                             )
 
                             IconButton(
-                                onClick = { viewModel.removeImage(path) },
+                                onClick = { viewModel.removeImage(uri) },
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .size(24.dp)
@@ -167,15 +158,14 @@ fun EditEntryDescriptionScreen(
             }
 
             // CANCEL BUTTON
-            if (uiState.isEditMode) {
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.secondary)
-                ) {
-                    Text(stringResource(R.string.button_cancel))
-                }
+            Button(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.secondary)
+            ) {
+                Text(stringResource(R.string.button_cancel))
             }
+
 
             // NAVIGATE BACK AFTER SAVE
             if (uiState.saveCompleted) {

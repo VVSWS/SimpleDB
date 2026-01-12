@@ -7,5 +7,5 @@ import ru.tusur.domain.repository.FaultRepository
 class GetEntriesUseCase(
     private val repository: FaultRepository
 ) {
-    operator fun invoke(): Flow<List<FaultEntry>> = repository.getAllEntries()
+    operator fun invoke() = repository.getAllEntries()
 }

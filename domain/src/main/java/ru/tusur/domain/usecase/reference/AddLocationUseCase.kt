@@ -6,6 +6,5 @@ import ru.tusur.domain.repository.ReferenceDataRepository
 class AddLocationUseCase(
     private val repository: ReferenceDataRepository
 ) {
-    suspend operator fun invoke(location: Location): Result<Unit> =
-        repository.addLocation(location)
+    suspend operator fun invoke(location: Location) = repository.addLocation(location)
 }

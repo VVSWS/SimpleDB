@@ -34,9 +34,13 @@ fun CarFaultApp() {
 
             NavHost(navController = navController, startDestination = "main") {
 
-                composable("main") {
-                    MainScreen(navController)
+                composable("main") { backStackEntry ->
+                    MainScreen(
+                        navController = navController,
+                        backStackEntry = backStackEntry
+                    )
                 }
+
 
                 composable("recent_entries") {
                     EntryListScreen(navController, isSearchMode = false)

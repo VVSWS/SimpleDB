@@ -5,7 +5,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,46 +12,41 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import java.io.File
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.geometry.Offset
-
-@Composable
-fun FullScreenImageViewer(
-    relativePath: String,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    val file = File(context.filesDir, relativePath)
-
-    ZoomableImage(
-        file = file,
-        onDismiss = onDismiss
-    )
-}
+import androidx.core.net.toUri
 
 @Composable
 fun ZoomableImage(
-    file: File,
+    uri: String,
     onDismiss: () -> Unit
 ) {
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
+    val context = LocalContext.current
+
+    val model = remember(uri) {
+        when {
+            uri.startsWith("content://") -> uri.toUri()
+            uri.startsWith("file://") -> uri.toUri()
+            uri.startsWith("/") -> File(uri) // absolute path
+            else -> File(context.filesDir, uri) // relative path
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            // Pinch‑to‑zoom + pan
             .pointerInput(Unit) {
                 detectTransformGestures { _, pan, zoom, _ ->
                     scale = (scale * zoom).coerceIn(1f, 5f)
                     offset += pan
                 }
             }
-            // Double‑tap zoom + tap to dismiss
             .pointerInput(Unit) {
                 detectTapGestures(
                     onDoubleTap = {
@@ -65,7 +59,7 @@ fun ZoomableImage(
         contentAlignment = Alignment.Center
     ) {
         AsyncImage(
-            model = file,
+            model = model,
             contentDescription = null,
             modifier = Modifier
                 .graphicsLayer(
@@ -79,3 +73,4 @@ fun ZoomableImage(
         )
     }
 }
+

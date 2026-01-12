@@ -4,24 +4,31 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import ru.tusur.domain.model.FaultEntry
-import ru.tusur.domain.usecase.entry.*
-import ru.tusur.presentation.common.DescriptionError
 import ru.tusur.core.files.ImageStorage
+import ru.tusur.domain.model.FaultEntry
+import ru.tusur.domain.usecase.entry.CreateEntryUseCase
+import ru.tusur.domain.usecase.entry.DeleteEntryUseCase
+import ru.tusur.domain.usecase.entry.GetEntryByIdUseCase
+import ru.tusur.domain.usecase.entry.UpdateEntryUseCase
+import ru.tusur.presentation.common.DescriptionError
 
 class EditEntryDescriptionViewModel(
+    private val id: Long,
     private val getEntryById: GetEntryByIdUseCase,
     private val createEntry: CreateEntryUseCase,
     private val updateEntry: UpdateEntryUseCase,
-    private val deleteEntryUseCase: DeleteEntryUseCase,
-    private val deleteImageUseCase: DeleteImageUseCase? = null
+    private val deleteEntryUseCase: DeleteEntryUseCase
 ) : ViewModel() {
+
+    // ---------------------------------------------------------
+    // UI STATE
+    // ---------------------------------------------------------
 
     data class UiState(
         val entry: FaultEntry? = null,
-        val isEditMode: Boolean = false,
         val isLoading: Boolean = false,
         val isSaving: Boolean = false,
         val saveCompleted: Boolean = false,
@@ -37,24 +44,34 @@ class EditEntryDescriptionViewModel(
     val uiState: StateFlow<UiState> = _uiState
 
     // ---------------------------------------------------------
+    // INIT
+    // ---------------------------------------------------------
+
+    init {
+        loadEntry()
+    }
+
+    // ---------------------------------------------------------
     // Load entry
     // ---------------------------------------------------------
 
-    fun loadEntry(entryId: Long) {
+    private fun loadEntry() {
         _uiState.value = _uiState.value.copy(isLoading = true)
 
         viewModelScope.launch {
-            getEntryById(entryId)
-                .onSuccess { entry ->
-                    _uiState.value = _uiState.value.copy(
-                        entry = entry,
-                        isEditMode = true,
-                        isLoading = false
-                    )
-                }
-                .onFailure {
-                    _uiState.value = UiState(isLoading = false)
-                }
+            val entry = getEntryById(id)
+
+            _uiState.value = if (entry != null) {
+                _uiState.value.copy(
+                    entry = entry,
+                    isLoading = false
+                )
+            } else {
+                _uiState.value.copy(
+                    isLoading = false,
+                    descriptionError = DescriptionError.Empty
+                )
+            }
         }
     }
 
@@ -84,10 +101,6 @@ class EditEntryDescriptionViewModel(
             )
         )
     }
-
-    // ---------------------------------------------------------
-    // Remove image (UI only, DB updated on save)
-    // ---------------------------------------------------------
 
     fun removeImage(path: String) {
         val current = _uiState.value.entry ?: return
@@ -133,10 +146,12 @@ class EditEntryDescriptionViewModel(
         val entry = _uiState.value.entry ?: return
 
         viewModelScope.launch {
-            deleteEntryUseCase(entry)
-                .onSuccess {
-                    _uiState.value = _uiState.value.copy(saveCompleted = true)
-                }
+            try {
+                deleteEntryUseCase(entry)
+                _uiState.value = _uiState.value.copy(saveCompleted = true)
+            } catch (_: Exception) {
+                // You may add error handling if needed
+            }
         }
     }
 

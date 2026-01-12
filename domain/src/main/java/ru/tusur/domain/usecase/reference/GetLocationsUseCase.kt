@@ -7,5 +7,5 @@ import ru.tusur.domain.repository.ReferenceDataRepository
 class GetLocationsUseCase(
     private val repository: ReferenceDataRepository
 ) {
-    operator fun invoke(): Flow<List<Location>> = repository.getLocations()
+    operator fun invoke() = repository.getLocations()
 }

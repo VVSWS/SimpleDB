@@ -165,6 +165,14 @@
     <string name="settings_db_export_success">Copia de seguridad exportada correctamente</string>
     <string name="settings_db_export_failed">Error al exportar: %1$s</string>
 
+    <!-- DELETE DB -->
+    <string name="settings_db_delete">Eliminar base de datos</string>
+    <string name="settings_db_delete_title">¿Eliminar la base de datos?</string>
+    <string name="settings_db_delete_confirm">Esto eliminará permanentemente todas las entradas e imágenes. Esta acción no se puede deshacer.</string>
+    <string name="settings_delete">Eliminar</string>
+    <string name="settings_cancel">Cancelar</string>
+    <string name="settings_db_delete_success">Base de datos eliminada correctamente</string>
+    <string name="settings_db_delete_failed">Error al eliminar la base de datos: %1$s</string>
 
 
 

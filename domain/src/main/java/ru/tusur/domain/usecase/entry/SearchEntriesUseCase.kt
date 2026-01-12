@@ -11,7 +11,6 @@ class SearchEntriesUseCase(
         brand: String?,
         model: String?,
         location: String?
-    ): Result<List<FaultEntry>> {
-        return runCatching { repository.searchEntries(year, brand, model, location) }
-    }
+    ) = repository.searchEntries(year, brand, model, location)
 }
+

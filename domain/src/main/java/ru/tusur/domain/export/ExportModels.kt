@@ -6,15 +6,18 @@ import kotlinx.serialization.Serializable
 data class ExportEntry(
     val id: Long,
     val timestamp: Long,
+
+    // Domain dictionary values
     val year: Int?,
     val brand: String?,
     val modelName: String?,
-    val modelBrand: String?,
-    val modelYear: Int?,
     val location: String?,
+
+    // Entry content
     val title: String,
     val description: String,
-    val notes: String?,
+
+    // Image URIs (files exported separately)
     val images: List<String>
 )
 

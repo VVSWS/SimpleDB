@@ -18,6 +18,7 @@ import androidx.room.PrimaryKey
     indices = [Index("entryId")]
 )
 data class EntryImageEntity(
-    @PrimaryKey val uri: String,
-    val entryId: Long
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val entryId: Long,
+    val uri: String
 )

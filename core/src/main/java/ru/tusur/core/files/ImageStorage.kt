@@ -7,12 +7,6 @@ import java.io.FileOutputStream
 
 object ImageStorage {
 
-    fun createImageFile(context: Context): File {
-        val imagesDir = File(context.filesDir, "images")
-        if (!imagesDir.exists()) imagesDir.mkdirs()
-        return File(imagesDir, "img_${System.currentTimeMillis()}.jpg")
-    }
-
     fun resolveImageFile(context: Context, relativePath: String): File {
         return File(context.filesDir, relativePath)
     }

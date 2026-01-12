@@ -35,7 +35,7 @@ class EntryListViewModel(
 
         viewModelScope.launch {
             try {
-                val entries = getRecentEntriesUseCase().getOrThrow()
+                val entries = getRecentEntriesUseCase()
                 _uiState.value = _uiState.value.copy(
                     entries = entries,
                     isLoading = false
@@ -62,8 +62,7 @@ class EntryListViewModel(
                     brand = filter.brand,
                     model = filter.model,
                     location = filter.location
-                ).getOrThrow()
-
+                )
                 _uiState.value = _uiState.value.copy(
                     entries = entries,
                     isLoading = false

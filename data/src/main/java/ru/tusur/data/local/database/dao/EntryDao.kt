@@ -1,29 +1,22 @@
 package ru.tusur.data.local.database.dao
 
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import ru.tusur.data.local.entity.EntryEntity
 import ru.tusur.data.local.entity.EntryWithImages
 import ru.tusur.data.local.entity.EntryWithRelations
 import ru.tusur.data.local.entity.ModelEntity
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Transaction
-import androidx.room.Update
 
 @Dao
 interface EntryDao {
 
-    // OVERVIEW LIST
+    // ---------------------------------------------------------
+    // LISTS
+    // ---------------------------------------------------------
+
     @Transaction
     @Query("SELECT * FROM entries ORDER BY timestamp DESC")
     fun getAllEntries(): Flow<List<EntryWithRelations>>
-
-    @Transaction
-    @Query("SELECT * FROM entries WHERE id = :id")
-    suspend fun getEntryById(id: Long): EntryWithImages?
 
     @Query("SELECT * FROM entries ORDER BY timestamp DESC LIMIT 5")
     suspend fun getRecentEntries(): List<EntryEntity>
@@ -31,14 +24,24 @@ interface EntryDao {
     @Query("SELECT * FROM entries")
     fun getAllSync(): List<EntryEntity>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entry: EntryEntity): Long
+    // ---------------------------------------------------------
+    // SINGLE ENTRY
+    // ---------------------------------------------------------
+
+    @Transaction
+    @Query("SELECT * FROM entries WHERE id = :id")
+    suspend fun getEntryById(id: Long): EntryWithImages?
 
     @Query("SELECT * FROM entries WHERE id = :id")
     suspend fun getById(id: Long): EntryEntity?
 
-    @Delete
-    suspend fun delete(entry: EntryEntity)
+    @Transaction
+    @Query("SELECT * FROM entries WHERE id = :id")
+    suspend fun getEntryWithRecording(id: Long): EntryWithImages
+
+    // ---------------------------------------------------------
+    // SEARCH
+    // ---------------------------------------------------------
 
     @Query("""
         SELECT * FROM entries
@@ -55,33 +58,37 @@ interface EntryDao {
         location: String?
     ): List<EntryEntity>
 
+    // ---------------------------------------------------------
+    // CRUD
+    // ---------------------------------------------------------
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEntry(entry: EntryEntity): Long
 
     @Update
     suspend fun updateEntry(entry: EntryEntity)
 
-    @Query("SELECT COUNT(*) FROM entries")
-    suspend fun getEntryCount(): Int
-
     @Delete
     suspend fun deleteEntry(entry: EntryEntity)
+
+    @Query("SELECT COUNT(*) FROM entries")
+    suspend fun getEntryCount(): Int
 
     @Query("SELECT id FROM entries")
     suspend fun getAllIds(): List<Long>
 
-    @Transaction
-    @Query("SELECT * FROM entries WHERE id = :id")
-    suspend fun getEntryWithRecording(id: Long): EntryWithImages
+    // ---------------------------------------------------------
+    // IMAGES (joined)
+    // ---------------------------------------------------------
 
     @Transaction
     @Query("SELECT * FROM entries ORDER BY timestamp DESC")
     suspend fun getAllEntriesWithImages(): List<EntryWithImages>
 
+    // ---------------------------------------------------------
+    // MODEL LOOKUP (composite key)
+    // ---------------------------------------------------------
 
-    // ---------------------------------------------------------
-    // ⭐ REQUIRED FOR ROOM 2.8.4 — manual composite model lookup
-    // ---------------------------------------------------------
     @Query("""
         SELECT * FROM models
         WHERE name = :modelName

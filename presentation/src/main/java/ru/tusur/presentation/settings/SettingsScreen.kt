@@ -20,6 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
 import ru.tusur.presentation.R
+import ru.tusur.core.ui.theme.ThemeMode
+
+
+
+
 
 @Composable
 fun SettingsScreen(
@@ -29,20 +34,21 @@ fun SettingsScreen(
     val context = LocalContext.current
     val uiState by viewModel.state.collectAsState()
 
-    // FOLDER PICKER FOR MERGE (OpenDocumentTree)
+    // MERGE FOLDER PICKER
     val mergeFolderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
         uri?.let { viewModel.mergeDatabase(it) }
     }
 
-    // FOLDER PICKER FOR EXPORT
+    // EXPORT FOLDER PICKER
     val exportFolderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
         uri?.let { viewModel.exportDatabaseToFolder(it) }
     }
 
+    // EVENTS
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
@@ -56,6 +62,7 @@ fun SettingsScreen(
 
     Column(Modifier.fillMaxSize()) {
 
+        // TOP BAR
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 3.dp,
@@ -88,6 +95,7 @@ fun SettingsScreen(
             }
         }
 
+        // MAIN CONTENT
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -95,6 +103,7 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
+            // THEME SECTION
             Text(
                 text = stringResource(R.string.settings_theme),
                 style = MaterialTheme.typography.titleMedium,
@@ -103,70 +112,137 @@ fun SettingsScreen(
 
             ThemeRadioButton(
                 label = stringResource(R.string.settings_theme_system),
-                selected = uiState.theme == SettingsViewModel.Theme.SYSTEM,
-                onClick = { viewModel.setTheme(SettingsViewModel.Theme.SYSTEM) }
+                selected = uiState.theme == ThemeMode.SYSTEM,
+                onClick = { viewModel.setTheme(ThemeMode.SYSTEM) }
             )
 
             ThemeRadioButton(
                 label = stringResource(R.string.settings_theme_light),
-                selected = uiState.theme == SettingsViewModel.Theme.LIGHT,
-                onClick = { viewModel.setTheme(SettingsViewModel.Theme.LIGHT) }
+                selected = uiState.theme == ThemeMode.LIGHT,
+                onClick = { viewModel.setTheme(ThemeMode.LIGHT) }
             )
 
             ThemeRadioButton(
                 label = stringResource(R.string.settings_theme_dark),
-                selected = uiState.theme == SettingsViewModel.Theme.DARK,
-                onClick = { viewModel.setTheme(SettingsViewModel.Theme.DARK) }
+                selected = uiState.theme == ThemeMode.DARK,
+                onClick = { viewModel.setTheme(ThemeMode.DARK) }
             )
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // DATABASE SECTION
             Text(
                 text = stringResource(R.string.settings_db),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
+            // CREATE DB
             Button(
                 onClick = { viewModel.createNewDatabase() },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState.mergeProgress == null && uiState.exportProgress == null
             ) {
                 Text(stringResource(R.string.settings_db_create))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // MERGE DB
             Button(
                 onClick = { mergeFolderLauncher.launch(null) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState.mergeProgress == null && uiState.exportProgress == null
             ) {
                 Text(stringResource(R.string.settings_db_merge))
             }
 
+            // MERGE PROGRESS BAR
+            uiState.mergeProgress?.let { progress ->
+                Spacer(modifier = Modifier.height(16.dp))
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
+                    text = "${(progress * 100).toInt()}%",
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
+            // EXPORT DB
             Button(
                 onClick = { exportFolderLauncher.launch(null) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState.mergeProgress == null && uiState.exportProgress == null
             ) {
                 Text(stringResource(R.string.settings_db_export))
             }
 
-            if (uiState.exportProgress in 0f..0.99f) {
+            // EXPORT PROGRESS BAR
+            uiState.exportProgress?.let { progress ->
                 Spacer(modifier = Modifier.height(16.dp))
                 LinearProgressIndicator(
-                    progress = { uiState.exportProgress },
+                    progress = { progress },
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Text(
-                    text = "${(uiState.exportProgress * 100).toInt()}%",
+                    text = "${(progress * 100).toInt()}%",
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // DELETE DATABASE BUTTON
+            var showDeleteDialog by remember { mutableStateOf(false) }
+
+            Button(
+                onClick = { showDeleteDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ),
+                enabled = uiState.mergeProgress == null && uiState.exportProgress == null
+            ) {
+                Text(stringResource(R.string.settings_db_delete))
+            }
+
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    title = {
+                        Text(stringResource(R.string.settings_db_delete_title))
+                    },
+                    text = {
+                        Text(stringResource(R.string.settings_db_delete_confirm))
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showDeleteDialog = false
+                                viewModel.deleteDatabase()
+                            }
+                        ) {
+                            Text(stringResource(R.string.settings_delete))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteDialog = false }) {
+                            Text(stringResource(R.string.settings_cancel))
+                        }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
+            // MESSAGE
             uiState.message?.let { msg ->
                 Text(
                     text = msg,

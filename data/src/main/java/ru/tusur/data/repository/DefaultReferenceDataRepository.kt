@@ -2,10 +2,7 @@ package ru.tusur.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import ru.tusur.data.local.database.dao.BrandDao
-import ru.tusur.data.local.database.dao.LocationDao
-import ru.tusur.data.local.database.dao.ModelDao
-import ru.tusur.data.local.database.dao.YearDao
+import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.data.mapper.ReferenceDataMapper
 import ru.tusur.domain.model.Brand
 import ru.tusur.domain.model.Location
@@ -14,12 +11,14 @@ import ru.tusur.domain.model.Year
 import ru.tusur.domain.repository.ReferenceDataRepository
 
 class DefaultReferenceDataRepository(
-    private val yearDao: YearDao,
-    private val brandDao: BrandDao,
-    private val modelDao: ModelDao,
-    private val locationDao: LocationDao,
+    private val provider: DatabaseProvider,
     private val mapper: ReferenceDataMapper
 ) : ReferenceDataRepository {
+
+    private val yearDao get() = provider.getCurrentDatabase().yearDao()
+    private val brandDao get() = provider.getCurrentDatabase().brandDao()
+    private val modelDao get() = provider.getCurrentDatabase().modelDao()
+    private val locationDao get() = provider.getCurrentDatabase().locationDao()
 
     // -------------------------
     // YEARS
@@ -87,12 +86,8 @@ class DefaultReferenceDataRepository(
 
     override suspend fun addModel(model: Model): Result<Unit> = try {
         val entity = mapper.toEntity(model)
-
-        // Room @Insert(onConflict = REPLACE) returns Unit, not ID
         modelDao.insertModel(entity)
-
         Result.success(Unit)
-
     } catch (e: Exception) {
         Result.failure(e)
     }
@@ -134,5 +129,4 @@ class DefaultReferenceDataRepository(
     override suspend fun deleteLocation(location: Location) {
         locationDao.deleteLocation(mapper.toEntity(location))
     }
-
 }

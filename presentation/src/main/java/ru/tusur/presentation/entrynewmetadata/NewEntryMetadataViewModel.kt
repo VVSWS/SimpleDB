@@ -271,7 +271,7 @@ class NewEntryMetadataViewModel(
         viewModelScope.launch {
             val result = createEntryUseCase(entry)
 
-            val id = result.getOrNull()
+            val id = result
 
             _uiState.value = _uiState.value.copy(entryId = id)
 

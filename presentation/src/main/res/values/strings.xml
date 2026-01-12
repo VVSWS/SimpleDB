@@ -166,7 +166,14 @@
     <string name="settings_db_export_success">Backup exported successfully</string>
     <string name="settings_db_export_failed">Export failed: %1$s</string>
 
-
+    <!-- DELETE DB -->
+    <string name="settings_db_delete">Delete database</string>
+    <string name="settings_db_delete_title">Delete database?</string>
+    <string name="settings_db_delete_confirm">This will permanently remove all entries and images. This action cannot be undone.</string>
+    <string name="settings_delete">Delete</string>
+    <string name="settings_cancel">Cancel</string>
+    <string name="settings_db_delete_success">Database deleted successfully</string>
+    <string name="settings_db_delete_failed">Failed to delete database: %1$s</string>
 
 
 

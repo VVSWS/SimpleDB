@@ -18,13 +18,15 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-import ru.tusur.domain.model.EntryWithRecording
 import ru.tusur.presentation.R
 import ru.tusur.presentation.common.ConfirmDeleteDialog
-import ru.tusur.presentation.entryview.components.FullScreenImageViewer
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.net.toUri
+import ru.tusur.core.ui.component.ImageThumbnail
+import ru.tusur.presentation.entryview.components.ZoomableImage
+import java.io.File
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -181,17 +183,27 @@ fun RecordingViewContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(entry.imageUris, key = { it }) { uri ->
+                    val model = remember(uri) {
+                        when {
+                            uri.startsWith("content://") -> uri.toUri()
+                            uri.startsWith("file://") -> uri.toUri()
+                            uri.startsWith("/") -> File(uri) // absolute path
+                            else -> File(context.filesDir, uri) // relative path
+                        }
+                    }
+
                     Box(
                         modifier = Modifier
                             .size(140.dp)
                             .padding(4.dp)
                             .clickable { selectedImage = uri }
                     ) {
-                        AsyncImage(
-                            model = File(context.filesDir, uri),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize()
+                        ImageThumbnail(
+                            uri = uri,
+                            modifier = Modifier.size(140.dp),
+                            onClick = { selectedImage = uri }
                         )
+
                     }
                 }
             }
@@ -199,9 +211,10 @@ fun RecordingViewContent(
     }
 
     if (selectedImage != null) {
-        FullScreenImageViewer(
-            relativePath = selectedImage!!,
+        ZoomableImage(
+            uri = selectedImage!!,
             onDismiss = { selectedImage = null }
         )
+
     }
 }

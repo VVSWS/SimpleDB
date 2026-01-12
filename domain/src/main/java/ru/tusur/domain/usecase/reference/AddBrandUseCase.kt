@@ -6,6 +6,5 @@ import ru.tusur.domain.repository.ReferenceDataRepository
 class AddBrandUseCase(
     private val repository: ReferenceDataRepository
 ) {
-    suspend operator fun invoke(brand: Brand): Result<Unit> =
-        repository.addBrand(brand)
+    suspend operator fun invoke(brand: Brand) = repository.addBrand(brand)
 }

@@ -7,5 +7,5 @@ import ru.tusur.domain.repository.ReferenceDataRepository
 class GetBrandsUseCase(
     private val repository: ReferenceDataRepository
 ) {
-    operator fun invoke(): Flow<List<Brand>> = repository.getBrands()
+    operator fun invoke() = repository.getBrands()
 }

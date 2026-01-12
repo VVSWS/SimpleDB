@@ -1,29 +1,25 @@
 package ru.tusur.data.local.database.dao
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import ru.tusur.data.local.entity.YearEntity
 
 @Dao
 interface YearDao {
 
-    // UI adds or edits a year
+    // Insert or update a year (UI usage)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertYear(entity: YearEntity): Long
 
-    // Merge/import adds missing years without overwriting user changes
+    // Insert only if missing (import/merge usage)
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfMissing(entity: YearEntity)
 
-    // UI deletes a year
+    // Delete a year
     @Delete
     suspend fun deleteYear(entity: YearEntity)
 
-    // Dropdown list
+    // Observe all years sorted ascending
     @Query("SELECT * FROM years ORDER BY value ASC")
     fun getAllYears(): Flow<List<YearEntity>>
 }

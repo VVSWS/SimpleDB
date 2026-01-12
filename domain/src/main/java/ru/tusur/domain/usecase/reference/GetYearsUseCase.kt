@@ -7,5 +7,5 @@ import ru.tusur.domain.repository.ReferenceDataRepository
 class GetYearsUseCase(
     private val repository: ReferenceDataRepository
 ) {
-    operator fun invoke(): Flow<List<Year>> = repository.getYears()
+    operator fun invoke() = repository.getYears()
 }

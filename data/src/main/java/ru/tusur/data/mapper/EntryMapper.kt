@@ -1,10 +1,10 @@
 package ru.tusur.data.mapper
 
 import ru.tusur.data.local.entity.EntryEntity
-import ru.tusur.data.local.entity.EntryWithImages
 import ru.tusur.data.local.entity.EntryWithRelations
 import ru.tusur.data.local.entity.ModelEntity
 import ru.tusur.domain.model.*
+import ru.tusur.data.local.entity.EntryWithImages as RoomEntryWithImages
 
 class EntryMapper {
 
@@ -91,7 +91,8 @@ class EntryMapper {
     }
 
     // ---------------------------------------------------------
-    // ENTRY WITH RELATIONS → DOMAIN (model passed manually)
+    // ENTRY WITH RELATIONS → DOMAIN
+    // (used for lists, search results)
     // ---------------------------------------------------------
 
     fun fromRelations(rel: EntryWithRelations, model: ModelEntity?): FaultEntry {
@@ -110,10 +111,11 @@ class EntryMapper {
     }
 
     // ---------------------------------------------------------
-    // ENTRY WITH IMAGES → DOMAIN (model passed manually)
+    // ENTRY WITH IMAGES → DOMAIN
+    // (used for detail screen)
     // ---------------------------------------------------------
 
-    fun fromImages(rel: EntryWithImages, model: ModelEntity?): FaultEntry {
+    fun fromImages(rel: RoomEntryWithImages, model: ModelEntity?): FaultEntry {
         val e = rel.entry
 
         return FaultEntry(
@@ -130,7 +132,32 @@ class EntryMapper {
     }
 
     // ---------------------------------------------------------
-    // ENTRY WITH IMAGES → ENTRY WITH RECORDING (UI model)
+    // ENTRY WITH IMAGES → DOMAIN EntryWithImages wrapper
+    // (used by recording screen)
+    // ---------------------------------------------------------
+
+    fun toEntryWithImages(rel: RoomEntryWithImages, model: ModelEntity?): EntryWithImages {
+        val e = rel.entry
+        val uris = rel.images.map { it.uri }
+
+        return EntryWithImages(
+            entry = FaultEntry(
+                id = e.id,
+                year = e.year?.let { Year(it) },
+                brand = e.brand?.let { Brand(it) },
+                model = modelFromEntity(model),
+                location = e.location?.let { Location(it) },
+                title = e.title,
+                description = e.description,
+                timestamp = e.timestamp,
+                imageUris = uris
+            ),
+            imageUris = uris
+        )
+    }
+
+    // ---------------------------------------------------------
+    // ENTRY WITH IMAGES → ENTRY WITH RECORDING
     // ---------------------------------------------------------
 
     fun toRecording(entity: EntryWithImages, model: ModelEntity?): EntryWithRecording {
@@ -139,13 +166,13 @@ class EntryMapper {
         return EntryWithRecording(
             id = e.id,
             title = e.title,
-            year = e.year?.let { Year(it) },
-            brand = e.brand?.let { Brand(it) },
+            year = e.year,
+            brand = e.brand,
             model = modelFromEntity(model),
-            location = e.location?.let { Location(it) },
+            location = e.location,
             timestamp = e.timestamp,
             description = e.description,
-            imageUris = entity.images.map { it.uri }
+            imageUris = entity.imageUris
         )
     }
 }

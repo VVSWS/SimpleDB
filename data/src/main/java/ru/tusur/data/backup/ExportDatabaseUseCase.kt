@@ -5,15 +5,19 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import ru.tusur.data.local.database.AppDatabase
+import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.data.mapper.toExport
 import ru.tusur.domain.export.ExportDatabase
+import ru.tusur.domain.repository.FaultRepository
+import ru.tusur.domain.repository.ReferenceDataRepository
 import ru.tusur.domain.usecase.database.DatabaseExportProgress
 import java.io.File
 
 class ExportDatabaseUseCase(
     private val context: Context,
-    private val db: AppDatabase
+    private val provider: DatabaseProvider,
+    private val faultRepository: FaultRepository,
+    private val referenceRepository: ReferenceDataRepository
 ) {
 
     suspend operator fun invoke(
@@ -27,14 +31,17 @@ class ExportDatabaseUseCase(
             val docId = DocumentsContract.getTreeDocumentId(folderUri)
             val dirUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, docId)
 
-            // Load entries
-            val entries = db.entryDao().getAllEntriesWithImages()
+            // ---------------------------------------------------------
+            // 1. Load entries from repository (domain model)
+            // ---------------------------------------------------------
+            val entries = faultRepository.getEntriesWithImages()
             val export = ExportDatabase(entries.map { it.toExport() })
 
-            // Serialize JSON
+            // ---------------------------------------------------------
+            // 2. Serialize JSON
+            // ---------------------------------------------------------
             val jsonBytes = Json.encodeToString(export).toByteArray()
 
-            // Create JSON file
             val jsonUri = DocumentsContract.createDocument(
                 resolver,
                 dirUri,
@@ -46,7 +53,9 @@ class ExportDatabaseUseCase(
                 out.write(jsonBytes)
             }
 
-            // Create images folder
+            // ---------------------------------------------------------
+            // 3. Create images folder
+            // ---------------------------------------------------------
             val imagesFolderUri = DocumentsContract.createDocument(
                 resolver,
                 dirUri,
@@ -54,32 +63,34 @@ class ExportDatabaseUseCase(
                 "images"
             ) ?: throw IllegalStateException("Unable to create images folder")
 
-            // Count total bytes for progress
+            // ---------------------------------------------------------
+            // 4. Count total bytes for progress
+            // ---------------------------------------------------------
             val totalBytes = entries
-                .flatMap { it.images }
-                .mapNotNull { image ->
-                    val uri = image.uri
-
+                .flatMap { it.imageUris }
+                .sumOf { uri ->
                     when {
-                        uri.startsWith("content://") -> {
-                            resolver.openInputStream(Uri.parse(uri))?.available()?.toLong()
-                        }
-                        uri.startsWith("/") -> {
-                            File(uri).takeIf { it.exists() }?.length()
-                        }
-                        else -> {
-                            File(context.filesDir, uri).takeIf { it.exists() }?.length()
-                        }
+                        uri.startsWith("content://") ->
+                            resolver.openInputStream(Uri.parse(uri))
+                                ?.use { it.available().toLong() } ?: 0L
+
+                        uri.startsWith("/") ->
+                            File(uri).takeIf { it.exists() }?.length() ?: 0L
+
+                        else ->
+                            File(context.filesDir, uri).takeIf { it.exists() }?.length() ?: 0L
                     }
                 }
-                .sum()
 
             onProgress(DatabaseExportProgress.Started(totalBytes))
 
             var writtenBytes = 0L
 
-            // Copy images
+            // ---------------------------------------------------------
+            // 5. Copy images
+            // ---------------------------------------------------------
             entries.forEach { entry ->
+
                 val entryFolderUri = DocumentsContract.createDocument(
                     resolver,
                     imagesFolderUri,
@@ -87,18 +98,19 @@ class ExportDatabaseUseCase(
                     entry.entry.id.toString()
                 ) ?: return@forEach
 
-                entry.images.forEach { image ->
-                    val srcUri = Uri.parse(image.uri)
+                entry.imageUris.forEach { uriString ->
+
+                    val srcUri = Uri.parse(uriString)
 
                     val inputStream = when {
-                        image.uri.startsWith("content://") ->
+                        uriString.startsWith("content://") ->
                             resolver.openInputStream(srcUri)
 
-                        image.uri.startsWith("/") ->
-                            File(image.uri).takeIf { it.exists() }?.inputStream()
+                        uriString.startsWith("/") ->
+                            File(uriString).takeIf { it.exists() }?.inputStream()
 
                         else ->
-                            File(context.filesDir, image.uri).takeIf { it.exists() }?.inputStream()
+                            File(context.filesDir, uriString).takeIf { it.exists() }?.inputStream()
                     }
 
                     if (inputStream == null) return@forEach
@@ -107,7 +119,7 @@ class ExportDatabaseUseCase(
                         resolver,
                         entryFolderUri,
                         "image/jpeg",
-                        File(image.uri).name
+                        File(uriString).name
                     ) ?: return@forEach
 
                     resolver.openOutputStream(dstUri)?.use { out ->
@@ -118,10 +130,11 @@ class ExportDatabaseUseCase(
                             while (input.read(buffer).also { read = it } != -1) {
                                 out.write(buffer, 0, read)
                                 writtenBytes += read
+
                                 onProgress(
                                     DatabaseExportProgress.Progress(
-                                        writtenBytes,
-                                        totalBytes
+                                        writtenBytes = writtenBytes,
+                                        totalBytes = totalBytes
                                     )
                                 )
                             }
@@ -130,6 +143,9 @@ class ExportDatabaseUseCase(
                 }
             }
 
+            // ---------------------------------------------------------
+            // 6. Done
+            // ---------------------------------------------------------
             onProgress(DatabaseExportProgress.Finished)
             Result.success(Unit)
 

@@ -3,20 +3,25 @@ package ru.tusur.data.backup
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
-import androidx.room.withTransaction
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
-import ru.tusur.data.local.database.AppDatabase
-import ru.tusur.data.local.entity.*
+import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.domain.export.ExportDatabase
+import ru.tusur.domain.model.*
+import ru.tusur.domain.repository.FaultRepository
+import ru.tusur.domain.repository.ReferenceDataRepository
 import java.io.File
 
 class MergeJsonDatabaseUseCase(
     private val context: Context,
-    private val db: AppDatabase
+    private val provider: DatabaseProvider,
+    private val faultRepository: FaultRepository,
+    private val referenceRepository: ReferenceDataRepository
 ) {
 
-    suspend operator fun invoke(folderUri: Uri): Result<Int> {
+    suspend operator fun invoke(
+        folderUri: Uri,
+        onProgress: (step: Int, totalSteps: Int) -> Unit = { _, _ -> }
+    ): Result<Int> {
         return try {
             val resolver = context.contentResolver
 
@@ -24,102 +29,98 @@ class MergeJsonDatabaseUseCase(
             val rootDocId = DocumentsContract.getTreeDocumentId(folderUri)
             val rootDirUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, rootDocId)
 
+            // ---------------------------------------------------------
             // 1. Locate JSON file
+            // ---------------------------------------------------------
             val jsonUri = findJsonFile(resolver, rootDirUri)
                 ?: return Result.failure(Exception("JSON backup file not found"))
 
+            // ---------------------------------------------------------
             // 2. Read JSON
-            val jsonString = resolver.openInputStream(jsonUri)?.use { it.readBytes().decodeToString() }
+            // ---------------------------------------------------------
+            val jsonString = resolver.openInputStream(jsonUri)
+                ?.use { it.readBytes().decodeToString() }
                 ?: return Result.failure(Exception("Unable to read JSON file"))
 
             val export = Json.decodeFromString<ExportDatabase>(jsonString)
 
+            // ---------------------------------------------------------
             // 3. Locate images folder
+            // ---------------------------------------------------------
             val imagesFolderUri = findImagesFolder(resolver, rootDirUri)
                 ?: return Result.failure(Exception("Images folder not found"))
 
+            val totalSteps = export.entries.size
             var mergedCount = 0
 
-            db.withTransaction {
+            // ---------------------------------------------------------
+            // 4. Merge entries
+            // ---------------------------------------------------------
+            export.entries.forEachIndexed { index, dto ->
 
-                export.entries.forEach { exportedEntry ->
+                onProgress(index, totalSteps)
 
-                    // -------------------------------
-                    // Null-safety validation
-                    // -------------------------------
-                    val brand = exportedEntry.brand
-                        ?: error("Backup entry is missing brand")
+                // Validate required fields
+                val brandName = dto.brand ?: error("Backup entry missing brand")
+                val locationName = dto.location ?: error("Backup entry missing location")
+                val modelName = dto.modelName ?: error("Backup entry missing modelName")
+                val yearValue = dto.year ?: error("Backup entry missing year")
 
-                    val location = exportedEntry.location
-                        ?: error("Backup entry is missing location")
+                // Convert to domain models
+                val brand = Brand(brandName)
+                val location = Location(locationName)
+                val year = Year(yearValue)
+                val model = Model(
+                    name = modelName,
+                    brand = brand,
+                    year = year
+                )
 
-                    val modelName = exportedEntry.modelName
-                        ?: error("Backup entry is missing modelName")
+                // Insert dictionary values
+                referenceRepository.addBrand(brand)
+                referenceRepository.addLocation(location)
+                referenceRepository.addYear(year)
+                referenceRepository.addModel(model)
 
-                    val year = exportedEntry.year
-                        ?: error("Backup entry is missing year")
+                // ---------------------------------------------------------
+                // Create FaultEntry (domain model)
+                // ---------------------------------------------------------
+                val newEntry = FaultEntry(
+                    id = 0, // auto-generate
+                    timestamp = dto.timestamp,
+                    year = year,
+                    brand = brand,
+                    model = model,
+                    location = location,
+                    title = dto.title,
+                    description = dto.description,
+                    imageUris = emptyList()
+                )
 
-                    // -------------------------------
-                    // Insert dictionary values
-                    // -------------------------------
-                    db.brandDao().insertIfMissing(BrandEntity(brand))
-                    db.locationDao().insertIfMissing(LocationEntity(location))
-                    db.yearDao().insertIfMissing(YearEntity(year))
+                // Insert entry
+                val newEntryId = faultRepository.createEntry(newEntry)
 
-                    // Composite ModelEntity
-                    db.modelDao().insertIfMissing(
-                        ModelEntity(
-                            name = modelName,
-                            brandName = brand,
-                            yearValue = year
-                        )
-                    )
+                // ---------------------------------------------------------
+                // 5. Copy images
+                // ---------------------------------------------------------
+                val newImageUris = copyImagesForEntry(
+                    context = context,
+                    resolver = resolver,
+                    imagesFolderUri = imagesFolderUri,
+                    oldEntryId = dto.id,
+                    newEntryId = newEntryId,
+                    imageNames = dto.images
+                )
 
-                    // -------------------------------
-                    // Insert entry
-                    // -------------------------------
-                    val newEntryId = db.entryDao().insert(
-                        EntryEntity(
-                            id = 0,
-                            timestamp = exportedEntry.timestamp,
-                            year = year,
-                            brand = brand,
-                            modelName = modelName,
-                            modelBrand = exportedEntry.modelBrand,
-                            modelYear = exportedEntry.modelYear,
-                            location = location,
-                            title = exportedEntry.title,
-                            description = exportedEntry.description,
-                            notes = exportedEntry.notes
-                        )
-                    )
-
-                    // -------------------------------
-                    // Copy images
-                    // -------------------------------
-                    val newImagePaths = copyImagesForEntry(
-                        context = context,
-                        resolver = resolver,
-                        imagesFolderUri = imagesFolderUri,
-                        oldEntryId = exportedEntry.id,
-                        newEntryId = newEntryId,
-                        imageNames = exportedEntry.images
-                    )
-
-                    // Insert images
-                    newImagePaths.forEach { path ->
-                        db.entryImageDao().insertImage(
-                            EntryImageEntity(
-                                uri = path,
-                                entryId = newEntryId
-                            )
-                        )
-                    }
-
-                    mergedCount++
+                // Attach images to entry
+                newImageUris.forEach { uri ->
+                    faultRepository.addImageToEntry(newEntryId, uri)
                 }
+
+                mergedCount++
             }
 
+            onProgress(totalSteps, totalSteps)
             Result.success(mergedCount)
 
         } catch (e: Exception) {
@@ -128,7 +129,7 @@ class MergeJsonDatabaseUseCase(
     }
 
     // ------------------------------------------------------------
-    // Helpers
+    // Helpers (unchanged)
     // ------------------------------------------------------------
 
     private fun findJsonFile(resolver: android.content.ContentResolver, dirUri: Uri): Uri? {
@@ -197,19 +198,16 @@ class MergeJsonDatabaseUseCase(
         imageNames: List<String>
     ): List<String> {
 
-        val resultPaths = mutableListOf<String>()
+        val resultUris = mutableListOf<String>()
 
-        // Locate entry folder inside images/
         val entryFolderUri = findEntryImageFolder(resolver, imagesFolderUri, oldEntryId)
             ?: return emptyList()
 
-        // Prepare destination folder
         val dstDir = File(context.filesDir, "images/$newEntryId")
         dstDir.mkdirs()
 
-        // Copy each image
         imageNames.forEach { rawName ->
-            val cleanName = File(rawName).name   // normalize filename
+            val cleanName = File(rawName).name
 
             val srcUri = findImageFile(resolver, entryFolderUri, cleanName)
                 ?: return@forEach
@@ -222,10 +220,16 @@ class MergeJsonDatabaseUseCase(
                 }
             }
 
-            resultPaths.add(dstFile.absolutePath)
+            val contentUri = androidx.core.content.FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                dstFile
+            )
+
+            resultUris.add(contentUri.toString())
         }
 
-        return resultPaths
+        return resultUris
     }
 
     private fun findEntryImageFolder(

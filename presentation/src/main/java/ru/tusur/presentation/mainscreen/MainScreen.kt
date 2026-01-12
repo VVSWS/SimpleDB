@@ -14,14 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import org.koin.compose.koinInject
 import ru.tusur.core.ui.component.StatusBanner
 import ru.tusur.presentation.R
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun MainScreen(navController: NavController) {
-    val viewModel: MainViewModel = koinInject()
+fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) {
+    val viewModel: MainViewModel = koinViewModel(viewModelStoreOwner = backStackEntry)
     val uiState by viewModel.uiState.collectAsState()
 
     Column(Modifier.fillMaxSize()) {
@@ -78,7 +79,6 @@ fun MainScreen(navController: NavController) {
             item {
                 Button(
                     onClick = { navController.navigate("recent_entries") },
-                    enabled = uiState.isActive,
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth()
@@ -91,7 +91,6 @@ fun MainScreen(navController: NavController) {
             item {
                 Button(
                     onClick = { navController.navigate("new_metadata") },
-                    enabled = uiState.isActive,
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth()
@@ -104,7 +103,6 @@ fun MainScreen(navController: NavController) {
             item {
                 Button(
                     onClick = { navController.navigate("search") },
-                    enabled = uiState.isActive,
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth()
@@ -116,24 +114,6 @@ fun MainScreen(navController: NavController) {
             // Status bar
             item {
                 Spacer(modifier = Modifier.height(32.dp))
-                if (uiState.isActive) {
-                    Text(
-                        text = stringResource(
-                            R.string.main_status_with_db,
-                            uiState.filename ?: stringResource(R.string.main_fallback_db_name),
-                            uiState.entryCount
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                } else {
-                    StatusBanner(
-                        text = stringResource(R.string.main_status_no_db),
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
             }
         }
     }

@@ -1,9 +1,9 @@
 package ru.tusur.core.util
 
 import android.content.Context
+import android.net.Uri
 import java.io.File
 import java.io.IOException
-import android.net.Uri
 
 object FileHelper {
 
@@ -21,6 +21,36 @@ object FileHelper {
     }
 
     /**
+     * Creates a fresh empty database file.
+     * Deletes old DB + WAL/SHM before creating a new one.
+     */
+    fun createEmptyDatabaseFile(context: Context) {
+        val dbFile = getActiveDatabaseFile(context)
+
+        // Ensure directory exists
+        dbFile.parentFile?.mkdirs()
+
+        // Delete old DB + WAL/SHM
+        if (dbFile.exists()) dbFile.delete()
+        File(dbFile.path + "-wal").delete()
+        File(dbFile.path + "-shm").delete()
+
+        // Create new empty file
+        dbFile.createNewFile()
+    }
+
+    /**
+     * Deletes the active DB file and its WAL/SHM companions.
+     */
+    fun deleteActiveDatabaseFile(context: Context) {
+        val dbFile = getActiveDatabaseFile(context)
+
+        dbFile.delete()
+        File(dbFile.path + "-wal").delete()
+        File(dbFile.path + "-shm").delete()
+    }
+
+    /**
      * Copies a content:// URI (from SAF or file picker) into a temporary file
      * inside the app's cache directory. Returns the resulting File.
      */
@@ -28,7 +58,6 @@ object FileHelper {
     fun copyUriToTempFile(context: Context, uri: Uri): File {
         val contentResolver = context.contentResolver
 
-        // Create a temp file inside cache directory
         val tempFile = File.createTempFile("import_", ".db", context.cacheDir)
 
         contentResolver.openInputStream(uri)?.use { input ->
@@ -48,7 +77,6 @@ object FileHelper {
         }
     }
 
-
     /**
      * Ensure a DB name starts with BD_ and has .db extension.
      */
@@ -59,11 +87,11 @@ object FileHelper {
 
         return "${DB_PREFIX}${base}.db"
     }
+
     fun databaseExists(context: Context): Boolean {
-        val file = FileHelper.getActiveDatabaseFile(context)
+        val file = getActiveDatabaseFile(context)
         return file.exists() && file.length() > 100
     }
-
 
     /**
      * Copy a file, overwriting the destination.

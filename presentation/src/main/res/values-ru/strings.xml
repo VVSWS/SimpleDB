@@ -158,6 +158,16 @@
     <string name="settings_db_export_success">"Экспорт выполнен успешно"</string>
     <string name="settings_db_export_failed">Экспорт не выполнен: %1$s</string>
 
+    <!-- DELETE DB -->
+    <string name="settings_db_delete">Удалить базу данных</string>
+    <string name="settings_db_delete_title">Удалить базу данных?</string>
+    <string name="settings_db_delete_confirm">Это приведет к безвозвратному удалению всех записей и изображений. Это действие необратимо..</string>
+    <string name="settings_delete">Удалить</string>
+    <string name="settings_cancel">Отмена</string>
+    <string name="settings_db_delete_success">База данных успешно удалена</string>
+    <string name="settings_db_delete_failed">Невозможно удалить базу данных: %1$s</string>
+
+
 
 
 
