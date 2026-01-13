@@ -8,14 +8,19 @@ import kotlinx.coroutines.launch
 import ru.tusur.domain.model.FaultEntry
 import ru.tusur.domain.model.SearchFilter
 import ru.tusur.domain.usecase.entry.DeleteEntryUseCase
+import ru.tusur.domain.usecase.entry.GetEntryByIdUseCase
 import ru.tusur.domain.usecase.entry.GetRecentEntriesUseCase
 import ru.tusur.domain.usecase.entry.SearchEntriesUseCase
 import ru.tusur.presentation.common.EntryListError
+import ru.tusur.presentation.shared.AppEvent
+import ru.tusur.presentation.shared.SharedAppEventsViewModel
 
 class EntryListViewModel(
     private val getRecentEntriesUseCase: GetRecentEntriesUseCase,
     private val searchEntriesUseCase: SearchEntriesUseCase,
-    private val deleteEntryUseCase: DeleteEntryUseCase
+    private val getEntryByIdUseCase: GetEntryByIdUseCase,
+    private val deleteEntryUseCase: DeleteEntryUseCase,
+    private val sharedEvents: SharedAppEventsViewModel
 ) : ViewModel() {
 
     data class UiState(
@@ -77,14 +82,24 @@ class EntryListViewModel(
     }
 
     // ---------------------------------------------------------
-    // Delete entry
+    // Delete entry (correct version)
     // ---------------------------------------------------------
     fun deleteEntry(entry: FaultEntry) {
         viewModelScope.launch {
-            deleteEntryUseCase(entry)
+            // Load full entry with imageUris
+            val fullEntry = getEntryByIdUseCase(entry.id)
+
+            if (fullEntry != null) {
+                deleteEntryUseCase(fullEntry)
+            }
+
+            // Update local list
             _uiState.value = _uiState.value.copy(
                 entries = _uiState.value.entries.filterNot { it.id == entry.id }
             )
+
+            // Notify main screen to refresh DB info
+            sharedEvents.emit(AppEvent.EntryChanged)
         }
     }
 }

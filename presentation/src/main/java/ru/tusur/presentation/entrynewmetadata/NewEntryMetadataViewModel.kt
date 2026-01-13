@@ -9,6 +9,8 @@ import kotlinx.coroutines.launch
 import ru.tusur.domain.model.*
 import ru.tusur.domain.usecase.entry.CreateEntryUseCase
 import ru.tusur.domain.usecase.reference.*
+import ru.tusur.presentation.shared.AppEvent
+import ru.tusur.presentation.shared.SharedAppEventsViewModel
 
 class NewEntryMetadataViewModel(
     private val getYears: GetYearsUseCase,
@@ -23,7 +25,8 @@ class NewEntryMetadataViewModel(
     private val deleteBrandUseCase: DeleteBrandUseCase,
     private val deleteModelUseCase: DeleteModelUseCase,
     private val deleteLocationUseCase: DeleteLocationUseCase,
-    private val createEntryUseCase: CreateEntryUseCase
+    private val createEntryUseCase: CreateEntryUseCase,
+    private val sharedEvents: SharedAppEventsViewModel        // NEW
 ) : ViewModel() {
 
     data class UiState(
@@ -60,10 +63,6 @@ class NewEntryMetadataViewModel(
         loadInitialData()
     }
 
-    // ---------------------------------------------------------
-    // Load initial reference data
-    // ---------------------------------------------------------
-
     private fun loadInitialData() {
         viewModelScope.launch {
             val years = getYears().first()
@@ -77,10 +76,6 @@ class NewEntryMetadataViewModel(
             )
         }
     }
-
-    // ---------------------------------------------------------
-    // Selectors
-    // ---------------------------------------------------------
 
     fun onYearSelected(year: Year?) {
         _uiState.value = _uiState.value.copy(selectedYear = year)
@@ -104,10 +99,6 @@ class NewEntryMetadataViewModel(
         _uiState.value = _uiState.value.copy(title = text)
     }
 
-    // ---------------------------------------------------------
-    // Reload models when year or brand changes
-    // ---------------------------------------------------------
-
     private fun reloadModels() {
         val year = _uiState.value.selectedYear
         val brand = _uiState.value.selectedBrand
@@ -119,10 +110,6 @@ class NewEntryMetadataViewModel(
             }
         }
     }
-
-    // ---------------------------------------------------------
-    // Add new reference items
-    // ---------------------------------------------------------
 
     fun onNewYearInputChanged(value: String) {
         _uiState.value = _uiState.value.copy(newYearInput = value)
@@ -184,12 +171,7 @@ class NewEntryMetadataViewModel(
             val year = _uiState.value.selectedYear ?: return@launch
             val brand = _uiState.value.selectedBrand ?: return@launch
 
-            val model = Model(
-                name = name,
-                brand = brand,
-                year = year
-            )
-
+            val model = Model(name = name, brand = brand, year = year)
             addModel(model)
 
             val models = getModelsForBrandAndYear(brand, year).first()
@@ -220,10 +202,6 @@ class NewEntryMetadataViewModel(
         }
     }
 
-    // ---------------------------------------------------------
-    // Delete reference items
-    // ---------------------------------------------------------
-
     fun deleteYear(year: Year) {
         viewModelScope.launch {
             deleteYearUseCase(year)
@@ -253,7 +231,7 @@ class NewEntryMetadataViewModel(
     }
 
     // ---------------------------------------------------------
-    // Create entry and return ID
+    // Create entry and notify main screen
     // ---------------------------------------------------------
 
     fun createEntry(onCreated: (Long) -> Unit) {
@@ -269,15 +247,13 @@ class NewEntryMetadataViewModel(
         )
 
         viewModelScope.launch {
-            val result = createEntryUseCase(entry)
-
-            val id = result
+            val id = createEntryUseCase(entry)
 
             _uiState.value = _uiState.value.copy(entryId = id)
 
-            if (id != null) {
-                onCreated(id)
-            }
+            sharedEvents.emit(AppEvent.EntryChanged)
+            onCreated(id)
+
         }
     }
 }

@@ -24,8 +24,9 @@ class DatabaseProvider(
             Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
-                dbFile.nameWithoutExtension
+                "SimpleDB.db"
             )
+
                 .createFromFile(dbFile)
                 .fallbackToDestructiveMigration(true)
                 .build()
@@ -34,7 +35,7 @@ class DatabaseProvider(
             Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
-                dbFile.nameWithoutExtension
+                "SimpleDB.db" // ← FIXED HERE
             )
                 .fallbackToDestructiveMigration(true)
                 .build()
@@ -44,7 +45,6 @@ class DatabaseProvider(
     fun resetDatabase() {
         currentDatabase?.close()
         currentDatabase = null
-        // keep currentDbFile; FileHelper manages the file lifecycle
     }
 
     fun getCurrentDatabase(): AppDatabase {
@@ -63,9 +63,4 @@ class DatabaseProvider(
         return currentDbFile!!
     }
 
-    suspend fun getEntryCountSafe(): Int = try {
-        getCurrentDatabase().entryDao().getEntryCount()
-    } catch (e: Exception) {
-        0
-    }
 }

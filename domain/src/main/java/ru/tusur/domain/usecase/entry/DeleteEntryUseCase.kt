@@ -6,6 +6,9 @@ import ru.tusur.domain.repository.FaultRepository
 class DeleteEntryUseCase(
     private val repository: FaultRepository
 ) {
-    suspend operator fun invoke(entry: FaultEntry) = repository.deleteEntry(entry)
+    suspend operator fun invoke(entry: FaultEntry) {
+        repository.deleteEntry(entry)
+    }
 }
+
 

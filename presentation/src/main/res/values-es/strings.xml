@@ -26,7 +26,6 @@
     <string name="settings_theme_dark">Oscuro</string>
 
     <string name="settings_db">Gestión de Base de Datos</string>
-    <string name="settings_create_db">Crear Nueva Base de Datos</string>
     <string name="settings_open_db">Abrir Base de Datos Existente</string>
     <string name="settings_show_folder">Mostrar Carpeta de Base de Datos</string>
 
@@ -147,7 +146,6 @@
     <string name="error_title_empty">El título no puede estar vacío</string>
 
 
-    <string name="settings_db_create">Crear nueva base de datos</string>
     <string name="settings_db_merge">Fusionar base de datos</string>
     <string name="settings_db_export">Exportar base de datos</string>
 
@@ -165,17 +163,23 @@
     <string name="settings_db_export_success">Copia de seguridad exportada correctamente</string>
     <string name="settings_db_export_failed">Error al exportar: %1$s</string>
 
-    <!-- DELETE DB -->
-    <string name="settings_db_delete">Eliminar base de datos</string>
-    <string name="settings_db_delete_title">¿Eliminar la base de datos?</string>
-    <string name="settings_db_delete_confirm">Esto eliminará permanentemente todas las entradas e imágenes. Esta acción no se puede deshacer.</string>
-    <string name="settings_delete">Eliminar</string>
+
+    <!-- Reset DB -->
+    <string name="settings_db_reset">Restablecer base de datos</string>
+    <string name="settings_db_reset_success">La base de datos se ha restablecido correctamente</string>
+    <string name="settings_db_reset_title">Restablecer base de datos</string>
+    <string name="settings_db_reset_confirm">¿Seguro que deseas restablecer la base de datos? Se eliminarán todas las entradas e imágenes.</string>
+    <string name="settings_reset">Restablecer</string>
     <string name="settings_cancel">Cancelar</string>
-    <string name="settings_db_delete_success">Base de datos eliminada correctamente</string>
-    <string name="settings_db_delete_failed">Error al eliminar la base de datos: %1$s</string>
 
 
-
+    <!-- DB INFO -->
+    <string name="main_db_info">Información de la base de datos</string>
+    <string name="main_db_name">Nombre de la base de datos</string>
+    <string name="main_entry_count">Entradas</string>
+    <string name="main_image_count">Imágenes</string>
+    <string name="main_db_size">Tamaño de la base de datos</string>
+    <string name="main_images_folder_size">Tamaño de la carpeta de imágenes</string>
 
 
 </resources>

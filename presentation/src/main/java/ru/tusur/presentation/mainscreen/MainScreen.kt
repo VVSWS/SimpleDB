@@ -16,9 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import ru.tusur.core.ui.component.StatusBanner
-import ru.tusur.presentation.R
 import org.koin.androidx.compose.koinViewModel
+import ru.tusur.presentation.R
 
 @Composable
 fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) {
@@ -26,6 +25,10 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
     val uiState by viewModel.uiState.collectAsState()
 
     Column(Modifier.fillMaxSize()) {
+
+        // ---------------------------------------------------------
+        // TOP BAR
+        // ---------------------------------------------------------
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 3.dp,
@@ -68,14 +71,27 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
             }
         }
 
+        // ---------------------------------------------------------
+        // MAIN CONTENT
+        // ---------------------------------------------------------
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Recent Entries button
+
+            // ---------------------------------------------------------
+            // DATABASE INFO CARD
+            // ---------------------------------------------------------
+            item {
+                DatabaseInfoCard(uiState)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            // ---------------------------------------------------------
+            // ACTION BUTTONS
+            // ---------------------------------------------------------
             item {
                 Button(
                     onClick = { navController.navigate("recent_entries") },
@@ -87,7 +103,6 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                 }
             }
 
-            // Add Entry button
             item {
                 Button(
                     onClick = { navController.navigate("new_metadata") },
@@ -99,7 +114,6 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                 }
             }
 
-            // Search Entries button
             item {
                 Button(
                     onClick = { navController.navigate("search") },
@@ -111,10 +125,58 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                 }
             }
 
-            // Status bar
             item {
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
 }
+
+@Composable
+private fun DatabaseInfoCard(uiState: MainUiState) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            Text(
+                text = stringResource(R.string.main_db_info),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            InfoRow(label = stringResource(R.string.main_db_name), value = uiState.dbName)
+            InfoRow(label = stringResource(R.string.main_entry_count), value = uiState.entryCount.toString())
+            InfoRow(label = stringResource(R.string.main_db_size), value = uiState.dbSizeBytes.toReadableSize())
+            InfoRow(label = stringResource(R.string.main_image_count), value = uiState.imageCount.toString())
+            InfoRow(label = stringResource(R.string.main_images_folder_size), value = uiState.imagesFolderSizeBytes.toReadableSize())
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium)
+        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+    }
+}
+
+private fun Long.toReadableSize(): String {
+    if (this <= 0) return "0 B"
+
+    return when {
+        this < 1024 -> "< 1 KB"
+        this < 1024 * 1024 -> "${this / 1024} KB"
+        else -> String.format("%.2f MB", this / (1024f * 1024f))
+    }
+}
+

@@ -6,6 +6,8 @@ import ru.tusur.domain.repository.FaultRepository
 class UpdateEntryUseCase(
     private val repository: FaultRepository
 ) {
-    suspend operator fun invoke(entry: FaultEntry) = repository.updateEntry(entry)
+    suspend operator fun invoke(entry: FaultEntry){
+        repository.updateEntry(entry)
+    }
 }
 

@@ -1,6 +1,7 @@
 package ru.tusur.presentation.settings
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -21,18 +22,17 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
 import ru.tusur.presentation.R
 import ru.tusur.core.ui.theme.ThemeMode
-
-
-
-
+import ru.tusur.presentation.mainscreen.MainViewModel
 
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
+    mainViewModel: MainViewModel
 ) {
     val context = LocalContext.current
     val uiState by viewModel.state.collectAsState()
+    val mainUiState by mainViewModel.uiState.collectAsState()
 
     // MERGE FOLDER PICKER
     val mergeFolderLauncher = rememberLauncherForActivityResult(
@@ -48,15 +48,24 @@ fun SettingsScreen(
         uri?.let { viewModel.exportDatabaseToFolder(it) }
     }
 
-    // EVENTS
+    // SETTINGS EVENTS
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 is SettingsEvent.DatabaseCreated -> {}
                 is SettingsEvent.DatabaseError -> {}
-                is SettingsEvent.DatabaseExists -> {}
-                is SettingsEvent.DatabaseOpened -> {}
             }
+        }
+    }
+
+    // RESET SUCCESS TOAST
+    LaunchedEffect(mainUiState.resetCompleted) {
+        if (mainUiState.resetCompleted) {
+            Toast.makeText(
+                context,
+                context.getString(R.string.settings_db_reset_success),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -128,7 +137,6 @@ fun SettingsScreen(
                 onClick = { viewModel.setTheme(ThemeMode.DARK) }
             )
 
-
             Spacer(modifier = Modifier.height(24.dp))
 
             // DATABASE SECTION
@@ -137,17 +145,6 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
-
-            // CREATE DB
-            Button(
-                onClick = { viewModel.createNewDatabase() },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = uiState.mergeProgress == null && uiState.exportProgress == null
-            ) {
-                Text(stringResource(R.string.settings_db_create))
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             // MERGE DB
             Button(
@@ -158,7 +155,6 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings_db_merge))
             }
 
-            // MERGE PROGRESS BAR
             uiState.mergeProgress?.let { progress ->
                 Spacer(modifier = Modifier.height(16.dp))
                 LinearProgressIndicator(
@@ -182,7 +178,6 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings_db_export))
             }
 
-            // EXPORT PROGRESS BAR
             uiState.exportProgress?.let { progress ->
                 Spacer(modifier = Modifier.height(16.dp))
                 LinearProgressIndicator(
@@ -195,13 +190,13 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // DELETE DATABASE BUTTON
-            var showDeleteDialog by remember { mutableStateOf(false) }
+            // RESET DATABASE BUTTON + CONFIRMATION DIALOG
+            var showResetDialog by remember { mutableStateOf(false) }
 
             Button(
-                onClick = { showDeleteDialog = true },
+                onClick = { showResetDialog = true },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -209,30 +204,30 @@ fun SettingsScreen(
                 ),
                 enabled = uiState.mergeProgress == null && uiState.exportProgress == null
             ) {
-                Text(stringResource(R.string.settings_db_delete))
+                Text(stringResource(R.string.settings_db_reset))
             }
 
-            if (showDeleteDialog) {
+            if (showResetDialog) {
                 AlertDialog(
-                    onDismissRequest = { showDeleteDialog = false },
+                    onDismissRequest = { showResetDialog = false },
                     title = {
-                        Text(stringResource(R.string.settings_db_delete_title))
+                        Text(stringResource(R.string.settings_db_reset_title))
                     },
                     text = {
-                        Text(stringResource(R.string.settings_db_delete_confirm))
+                        Text(stringResource(R.string.settings_db_reset_confirm))
                     },
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                showDeleteDialog = false
-                                viewModel.deleteDatabase()
+                                showResetDialog = false
+                                mainViewModel.resetDatabase()
                             }
                         ) {
-                            Text(stringResource(R.string.settings_delete))
+                            Text(stringResource(R.string.settings_reset))
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showDeleteDialog = false }) {
+                        TextButton(onClick = { showResetDialog = false }) {
                             Text(stringResource(R.string.settings_cancel))
                         }
                     }
@@ -240,7 +235,6 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
 
             // MESSAGE
             uiState.message?.let { msg ->

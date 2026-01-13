@@ -17,7 +17,6 @@
     <string name="settings_language">Language</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_db">Database Management</string>
-    <string name="settings_create_db">Create New Database</string>
     <string name="settings_open_db">Open Existing Database</string>
     <string name="settings_show_folder">Show Database Folder</string>
     <string name="settings_language_en">English</string>
@@ -148,7 +147,6 @@
     <string name="label_title_brief">Brief title (≤50)</string>
     <string name="error_title_empty">Title cannot be empty</string>
 
-    <string name="settings_db_create">Create New Database</string>
     <string name="settings_db_merge">Merge Database</string>
     <string name="settings_db_export">Export Database</string>
 
@@ -166,17 +164,22 @@
     <string name="settings_db_export_success">Backup exported successfully</string>
     <string name="settings_db_export_failed">Export failed: %1$s</string>
 
-    <!-- DELETE DB -->
-    <string name="settings_db_delete">Delete database</string>
-    <string name="settings_db_delete_title">Delete database?</string>
-    <string name="settings_db_delete_confirm">This will permanently remove all entries and images. This action cannot be undone.</string>
-    <string name="settings_delete">Delete</string>
+
+    <!-- Reset DB -->
+    <string name="settings_db_reset">Reset Database</string>
+    <string name="settings_db_reset_success">Database reset successfully</string>
+    <string name="settings_db_reset_title">Reset Database</string>
+    <string name="settings_db_reset_confirm">Are you sure you want to reset the database? All entries and images will be deleted.</string>
+    <string name="settings_reset">Reset</string>
     <string name="settings_cancel">Cancel</string>
-    <string name="settings_db_delete_success">Database deleted successfully</string>
-    <string name="settings_db_delete_failed">Failed to delete database: %1$s</string>
 
-
-
+    <!-- DB INFO -->
+    <string name="main_db_info">Database Information</string>
+    <string name="main_db_name">Database name</string>
+    <string name="main_entry_count">Entries</string>
+    <string name="main_image_count">Images</string>
+    <string name="main_db_size">Database size</string>
+    <string name="main_images_folder_size">Images folder size</string>
 
 
 

@@ -9,11 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.tusur.core.ui.theme.ThemeMode
@@ -23,21 +19,17 @@ import ru.tusur.presentation.shared.AppEvent
 import ru.tusur.domain.usecase.database.DatabaseExportProgress
 import ru.tusur.presentation.R
 import ru.tusur.presentation.util.StringProvider
-import ru.tusur.core.util.FileHelper
-import ru.tusur.data.local.DatabaseProvider
-import ru.tusur.data.usecase.CreateDatabaseUseCaseImpl
 import ru.tusur.presentation.shared.SharedAppEventsViewModel
 
 class SettingsViewModel(
     private val context: Context,
     private val dataStore: DataStore<Preferences>,
-    private val createDbUseCaseImpl: CreateDatabaseUseCaseImpl,
     private val mergeDbUseCase: MergeJsonDatabaseUseCase,
     private val exportDbUseCase: ExportDatabaseUseCase,
-    private val provider: DatabaseProvider,
     private val strings: StringProvider,
     private val sharedEvents: SharedAppEventsViewModel
-) : ViewModel() {
+)
+ : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
     val state: StateFlow<SettingsState> = _state
@@ -46,15 +38,20 @@ class SettingsViewModel(
     val events: SharedFlow<SettingsEvent> = _events
 
     init {
-        loadSettings()
+        observeTheme()
     }
 
-    private fun loadSettings() {
+    // ---------------------------------------------------------
+    // THEME
+    // ---------------------------------------------------------
+    private fun observeTheme() {
         viewModelScope.launch {
             dataStore.data
                 .map { prefs ->
                     SettingsState(
-                        theme = ThemeMode.fromValue((prefs[KEY_THEME] ?: "0").toIntOrNull() ?: 0)
+                        theme = ThemeMode.fromValue(
+                            (prefs[KEY_THEME] ?: "0").toIntOrNull() ?: 0
+                        )
                     )
                 }
                 .collect { _state.value = it }
@@ -66,25 +63,7 @@ class SettingsViewModel(
             dataStore.edit { prefs ->
                 prefs[KEY_THEME] = theme.value.toString()
             }
-            _state.value = _state.value.copy(theme = theme)
-        }
-    }
-
-    // ---------------------------------------------------------
-    // CREATE DATABASE
-    // ---------------------------------------------------------
-    fun createNewDatabase() {
-        viewModelScope.launch {
-            createDbUseCaseImpl()
-            sharedEvents.emit(AppEvent.DatabaseCreated)
-        }
-    }
-
-    fun deleteDatabase() {
-        viewModelScope.launch {
-            provider.resetDatabase()
-            FileHelper.deleteActiveDatabaseFile(context)
-            sharedEvents.emit(AppEvent.DatabaseDeleted)
+            _state.update { it.copy(theme = theme) }
         }
     }
 
@@ -94,46 +73,56 @@ class SettingsViewModel(
     fun mergeDatabase(folderUri: Uri) {
         viewModelScope.launch {
             try {
-                _state.value = _state.value.copy(
-                    mergeProgress = 0f,
-                    mergeTotalSteps = null
-                )
+                _state.update {
+                    it.copy(
+                        mergeProgress = 0f,
+                        mergeTotalSteps = null
+                    )
+                }
 
                 val result = withContext(Dispatchers.IO) {
                     mergeDbUseCase(folderUri) { step, total ->
-                        _state.value = _state.value.copy(
-                            mergeProgress = step.toFloat() / total.toFloat(),
-                            mergeTotalSteps = total
+                        _state.update {
+                            it.copy(
+                                mergeProgress = step.toFloat() / total.toFloat(),
+                                mergeTotalSteps = total
+                            )
+                        }
+                    }
+                }
+
+                _state.update {
+                    it.copy(
+                        mergeProgress = null,
+                        mergeTotalSteps = null
+                    )
+                }
+
+                if (result.isSuccess) {
+                    val count = result.getOrNull() ?: 0
+                    _state.update {
+                        it.copy(message = strings.get(R.string.db_merged, count))
+                    }
+                    sharedEvents.emit(AppEvent.DatabaseMerged)
+                } else {
+                    _state.update {
+                        it.copy(
+                            message = strings.get(
+                                R.string.db_merge_failed,
+                                result.exceptionOrNull()?.message ?: ""
+                            )
                         )
                     }
                 }
 
-                _state.value = _state.value.copy(
-                    mergeProgress = null,
-                    mergeTotalSteps = null
-                )
-
-                if (result.isSuccess) {
-                    val count = result.getOrNull() ?: 0
-                    _state.value = _state.value.copy(
-                        message = strings.get(R.string.db_merged, count)
-                    )
-                    sharedEvents.emit(AppEvent.DatabaseMerged)
-                } else {
-                    _state.value = _state.value.copy(
-                        message = strings.get(
-                            R.string.db_merge_failed,
-                            result.exceptionOrNull()?.message ?: ""
-                        )
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        mergeProgress = null,
+                        mergeTotalSteps = null,
+                        message = strings.get(R.string.db_merge_failed, e.message ?: "")
                     )
                 }
-
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    mergeProgress = null,
-                    mergeTotalSteps = null,
-                    message = strings.get(R.string.db_merge_failed, e.message ?: "")
-                )
             }
         }
     }
@@ -150,10 +139,12 @@ class SettingsViewModel(
                         onProgress = { progress ->
                             when (progress) {
                                 is DatabaseExportProgress.Started -> {
-                                    _state.value = _state.value.copy(
-                                        exportProgress = 0f,
-                                        exportTotalBytes = progress.totalBytes
-                                    )
+                                    _state.update {
+                                        it.copy(
+                                            exportProgress = 0f,
+                                            exportTotalBytes = progress.totalBytes
+                                        )
+                                    }
                                 }
 
                                 is DatabaseExportProgress.Progress -> {
@@ -162,53 +153,61 @@ class SettingsViewModel(
                                                 progress.totalBytes.toFloat()
                                     } else 0f
 
-                                    _state.value = _state.value.copy(exportProgress = percent)
+                                    _state.update { it.copy(exportProgress = percent) }
                                 }
 
                                 is DatabaseExportProgress.Finished -> {
-                                    _state.value = _state.value.copy(exportProgress = 1f)
+                                    _state.update { it.copy(exportProgress = 1f) }
                                 }
 
                                 is DatabaseExportProgress.Error -> {
-                                    _state.value = _state.value.copy(
-                                        message = strings.get(
-                                            R.string.settings_db_export_failed,
-                                            progress.message
+                                    _state.update {
+                                        it.copy(
+                                            message = strings.get(
+                                                R.string.settings_db_export_failed,
+                                                progress.message
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }
                     )
                 }
 
-                _state.value = _state.value.copy(
-                    exportProgress = null,
-                    exportTotalBytes = null
-                )
-
-                if (result.isSuccess) {
-                    _state.value = _state.value.copy(
-                        message = strings.get(R.string.settings_db_export_success)
-                    )
-                } else {
-                    _state.value = _state.value.copy(
-                        message = strings.get(
-                            R.string.settings_db_export_failed,
-                            result.exceptionOrNull()?.message ?: ""
-                        )
+                _state.update {
+                    it.copy(
+                        exportProgress = null,
+                        exportTotalBytes = null
                     )
                 }
 
+                if (result.isSuccess) {
+                    _state.update {
+                        it.copy(message = strings.get(R.string.settings_db_export_success))
+                    }
+                } else {
+                    _state.update {
+                        it.copy(
+                            message = strings.get(
+                                R.string.settings_db_export_failed,
+                                result.exceptionOrNull()?.message ?: ""
+                            )
+                        )
+                    }
+                }
+
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    exportProgress = null,
-                    exportTotalBytes = null,
-                    message = strings.get(
-                        R.string.settings_db_export_failed,
-                        e.message ?: ""
+                _state.update {
+                    it.copy(
+                        exportProgress = null,
+                        exportTotalBytes = null,
+                        message = strings.get(
+                            R.string.settings_db_export_failed,
+                            e.message ?: ""
+                        )
                     )
-                )
+                }
             }
         }
     }

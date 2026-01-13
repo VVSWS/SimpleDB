@@ -14,12 +14,14 @@ import ru.tusur.data.backup.ImportJsonDatabaseUseCase
 import ru.tusur.data.backup.MergeJsonDatabaseUseCase
 import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.data.local.RoomDatabaseValidator
+import ru.tusur.data.local.database.AppDatabase
 import ru.tusur.data.mapper.EntryMapper
 import ru.tusur.data.mapper.ReferenceDataMapper
 import ru.tusur.data.repository.DefaultFaultRepository
 import ru.tusur.data.repository.DefaultReferenceDataRepository
 import ru.tusur.data.usecase.CreateDatabaseUseCaseImpl
 import ru.tusur.data.usecase.GetCurrentDatabaseInfoUseCase
+import ru.tusur.domain.repository.DatabaseMaintenanceRepository
 import ru.tusur.domain.repository.DatabaseValidator
 import ru.tusur.domain.repository.FaultRepository
 import ru.tusur.domain.repository.ReferenceDataRepository
@@ -37,39 +39,44 @@ import ru.tusur.presentation.settings.SettingsViewModel
 import ru.tusur.presentation.shared.SharedAppEventsViewModel
 import ru.tusur.presentation.util.AndroidStringProvider
 import ru.tusur.presentation.util.StringProvider
+import ru.tusur.data.repository.DatabaseMaintenanceRepositoryImpl
+
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 val appModule = module {
 
-    // ---------------------------------------------------------
     // Shared ViewModels
-    // ---------------------------------------------------------
     single { SharedSearchViewModel() }
     single { SharedAppEventsViewModel() }
 
-    // ---------------------------------------------------------
-    // Core / System helpers
-    // ---------------------------------------------------------
+    // Core helpers
     single { FileHelper }
     single<DatabaseValidator> { RoomDatabaseValidator() }
     single<DataStore<Preferences>> { androidContext().dataStore }
     single<StringProvider> { AndroidStringProvider(androidContext()) }
 
-    // ---------------------------------------------------------
-    // Database provider (dynamic DB switching)
-    // ---------------------------------------------------------
-    single { DatabaseProvider(androidContext()) }
+    // Database provider
+    single {
+        DatabaseProvider(androidContext())
+    }
 
-    // ---------------------------------------------------------
+    single<AppDatabase> {
+        get<DatabaseProvider>().getCurrentDatabase()
+    }
+
+
+
+    single<DatabaseMaintenanceRepository> {
+        DatabaseMaintenanceRepositoryImpl(db = get())
+    }
+
+
     // Mappers
-    // ---------------------------------------------------------
     single { EntryMapper() }
     single { ReferenceDataMapper() }
 
-    // ---------------------------------------------------------
     // Repositories
-    // ---------------------------------------------------------
     single<FaultRepository> {
         DefaultFaultRepository(
             appContext = androidContext(),
@@ -85,9 +92,7 @@ val appModule = module {
         )
     }
 
-    // ---------------------------------------------------------
-    // Use Cases — Database / Backup (NEW ARCHITECTURE)
-    // ---------------------------------------------------------
+    // Use Cases — Database / Backup
     single {
         CreateDatabaseUseCaseImpl(
             context = androidContext(),
@@ -124,15 +129,16 @@ val appModule = module {
 
     single { ExportImagesUseCase(get()) }
 
+    // NEW snapshot-based DB info use case
     single {
         GetCurrentDatabaseInfoUseCase(
-            provider = get()
+            context = androidContext(),
+            provider = get(),
+            faultRepository = get()
         )
     }
 
-    // ---------------------------------------------------------
     // Use Cases — Entry
-    // ---------------------------------------------------------
     factory { GetEntriesUseCase(get()) }
     factory { GetEntryByIdUseCase(get()) }
     factory { CreateEntryUseCase(get()) }
@@ -142,9 +148,7 @@ val appModule = module {
     factory { SearchEntriesUseCase(get()) }
     factory { GetModelsForBrandAndYearUseCase(get()) }
 
-    // ---------------------------------------------------------
     // Use Cases — Reference Data
-    // ---------------------------------------------------------
     factory { GetYearsUseCase(get()) }
     factory { AddYearUseCase(get()) }
     factory { AddModelUseCase(get()) }
@@ -159,23 +163,30 @@ val appModule = module {
     factory { DeleteYearUseCase(get()) }
     factory { DeleteImageUseCase(get()) }
 
-    // ---------------------------------------------------------
+
+
+
     // ViewModels
-    // ---------------------------------------------------------
     viewModel {
         MainViewModel(
             getCurrentDbInfo = get(),
+            faultRepository = get(),
+            dbMaintenanceRepository = get(),
             sharedEvents = get()
         )
     }
+
 
     viewModel {
         EntryListViewModel(
             getRecentEntriesUseCase = get(),
             searchEntriesUseCase = get(),
-            deleteEntryUseCase = get()
+            getEntryByIdUseCase = get(),
+            deleteEntryUseCase = get(),
+            sharedEvents = get()
         )
     }
+
 
     viewModel {
         EntrySearchViewModel(
@@ -200,7 +211,8 @@ val appModule = module {
             deleteBrandUseCase = get(),
             deleteModelUseCase = get(),
             deleteLocationUseCase = get(),
-            createEntryUseCase = get()
+            createEntryUseCase = get(),
+            sharedEvents = get()
         )
     }
 
@@ -210,13 +222,17 @@ val appModule = module {
             getEntryById = get(),
             createEntry = get(),
             updateEntry = get(),
-            deleteEntryUseCase = get()
+            deleteEntryUseCase = get(),
+            sharedEvents = get()
         )
     }
 
     viewModel { (id: Long) ->
         RecordingViewViewModel(
-            repository = get<FaultRepository>(),
+            repository = get(),
+            getEntryByIdUseCase = get(),
+            deleteEntryUseCase = get(),
+            sharedEvents = get(),
             entryId = id
         )
     }
@@ -225,10 +241,8 @@ val appModule = module {
         SettingsViewModel(
             context = androidContext(),
             dataStore = get(),
-            createDbUseCaseImpl = get(),
             mergeDbUseCase = get(),
             exportDbUseCase = get(),
-            provider = get(),
             strings = get(),
             sharedEvents = get()
         )

@@ -6,6 +6,9 @@ import ru.tusur.domain.repository.FaultRepository
 class CreateEntryUseCase(
     private val repository: FaultRepository
 ) {
-    suspend operator fun invoke(entry: FaultEntry) = repository.createEntry(entry)
+    suspend operator fun invoke(entry: FaultEntry): Long {
+        return repository.createEntry(entry)
+    }
 }
+
 

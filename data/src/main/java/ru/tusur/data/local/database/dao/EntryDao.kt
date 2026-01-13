@@ -101,4 +101,12 @@ interface EntryDao {
         modelBrand: String?,
         modelYear: Int?
     ): ModelEntity?
+
+    @Query("DELETE FROM entries WHERE id = :id")
+    suspend fun deleteEntryById(id: Long)
+
+
+    @Query("DELETE FROM entries")
+    suspend fun deleteAllEntries()
+
 }

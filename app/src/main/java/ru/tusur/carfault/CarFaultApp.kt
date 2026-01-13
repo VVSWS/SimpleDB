@@ -20,6 +20,7 @@ import ru.tusur.presentation.entrynewmetadata.NewEntryMetadataScreen
 import ru.tusur.presentation.entrysearch.EntrySearchScreen
 import ru.tusur.presentation.entryview.RecordingViewScreen
 import ru.tusur.presentation.mainscreen.MainScreen
+import ru.tusur.presentation.mainscreen.MainViewModel
 import ru.tusur.presentation.settings.SettingsScreen
 import ru.tusur.presentation.settings.SettingsViewModel
 
@@ -59,14 +60,18 @@ fun CarFaultApp() {
                 }
 
                 composable("settings") { backStackEntry ->
-                    val viewModel: SettingsViewModel = koinViewModel(
+                    val settingsViewModel: SettingsViewModel = koinViewModel(
                         viewModelStoreOwner = backStackEntry
                     )
+                    val mainViewModel: MainViewModel = koinViewModel()
+
                     SettingsScreen(
                         navController = navController,
-                        viewModel = viewModel
+                        viewModel = settingsViewModel,
+                        mainViewModel = mainViewModel
                     )
                 }
+
 
                 composable("about") {
                     AboutScreen(navController)

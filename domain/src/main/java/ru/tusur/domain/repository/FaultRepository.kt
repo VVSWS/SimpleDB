@@ -41,4 +41,7 @@ interface FaultRepository {
 
     // Used by recording screen
     suspend fun getEntryWithRecording(id: Long): EntryWithRecording
+
+    suspend fun resetDatabase()
+
 }

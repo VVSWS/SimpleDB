@@ -14,18 +14,17 @@ import ru.tusur.domain.usecase.entry.DeleteEntryUseCase
 import ru.tusur.domain.usecase.entry.GetEntryByIdUseCase
 import ru.tusur.domain.usecase.entry.UpdateEntryUseCase
 import ru.tusur.presentation.common.DescriptionError
+import ru.tusur.presentation.shared.AppEvent
+import ru.tusur.presentation.shared.SharedAppEventsViewModel
 
 class EditEntryDescriptionViewModel(
     private val id: Long,
     private val getEntryById: GetEntryByIdUseCase,
     private val createEntry: CreateEntryUseCase,
     private val updateEntry: UpdateEntryUseCase,
-    private val deleteEntryUseCase: DeleteEntryUseCase
+    private val deleteEntryUseCase: DeleteEntryUseCase,
+    private val sharedEvents: SharedAppEventsViewModel        // NEW
 ) : ViewModel() {
-
-    // ---------------------------------------------------------
-    // UI STATE
-    // ---------------------------------------------------------
 
     data class UiState(
         val entry: FaultEntry? = null,
@@ -43,17 +42,9 @@ class EditEntryDescriptionViewModel(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
-    // ---------------------------------------------------------
-    // INIT
-    // ---------------------------------------------------------
-
     init {
         loadEntry()
     }
-
-    // ---------------------------------------------------------
-    // Load entry
-    // ---------------------------------------------------------
 
     private fun loadEntry() {
         _uiState.value = _uiState.value.copy(isLoading = true)
@@ -74,10 +65,6 @@ class EditEntryDescriptionViewModel(
             }
         }
     }
-
-    // ---------------------------------------------------------
-    // Field updates
-    // ---------------------------------------------------------
 
     fun onDescriptionChanged(description: String) {
         val current = _uiState.value.entry ?: return
@@ -113,7 +100,7 @@ class EditEntryDescriptionViewModel(
     }
 
     // ---------------------------------------------------------
-    // Save entry
+    // Save entry (update)
     // ---------------------------------------------------------
 
     fun saveEntry() {
@@ -126,6 +113,9 @@ class EditEntryDescriptionViewModel(
         viewModelScope.launch {
             try {
                 updateEntry(entry)
+
+                // Notify main screen
+                sharedEvents.emit(AppEvent.EntryChanged)
 
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,
@@ -148,9 +138,13 @@ class EditEntryDescriptionViewModel(
         viewModelScope.launch {
             try {
                 deleteEntryUseCase(entry)
+
+                // Notify main screen
+                sharedEvents.emit(AppEvent.EntryChanged)
+
                 _uiState.value = _uiState.value.copy(saveCompleted = true)
             } catch (_: Exception) {
-                // You may add error handling if needed
+                // Optional: error handling
             }
         }
     }

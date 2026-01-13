@@ -14,3 +14,4 @@ data class SettingsState(
     val exportProgress: Float? = null,       // null = hidden
     val exportTotalBytes: Long? = null
 )
+ 

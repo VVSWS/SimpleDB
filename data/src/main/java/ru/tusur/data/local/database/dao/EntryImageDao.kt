@@ -26,4 +26,8 @@ interface EntryImageDao {
 
     @Query("DELETE FROM entry_images WHERE uri = :uri")
     suspend fun deleteImageByUri(uri: String)
+
+    @Query("DELETE FROM entry_images")
+    suspend fun deleteAllImages()
+
 }

@@ -7,10 +7,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.tusur.domain.model.EntryWithRecording
 import ru.tusur.domain.model.FaultEntry
+import ru.tusur.domain.usecase.entry.DeleteEntryUseCase
+import ru.tusur.domain.usecase.entry.GetEntryByIdUseCase
 import ru.tusur.domain.repository.FaultRepository
+import ru.tusur.presentation.shared.AppEvent
+import ru.tusur.presentation.shared.SharedAppEventsViewModel
 
 class RecordingViewViewModel(
     private val repository: FaultRepository,
+    private val getEntryByIdUseCase: GetEntryByIdUseCase,
+    private val deleteEntryUseCase: DeleteEntryUseCase,
+    private val sharedEvents: SharedAppEventsViewModel,
     private val entryId: Long
 ) : ViewModel() {
 
@@ -36,14 +43,13 @@ class RecordingViewViewModel(
     fun refresh() = loadEntry()
 
     // ---------------------------------------------------------
-    // Delete image by URI (String)
+    // Delete image by URI
     // ---------------------------------------------------------
     fun deleteImage(uri: String) {
         viewModelScope.launch {
             try {
                 repository.deleteImage(uri)
 
-                // Reload entry so UI updates immediately
                 val updated = repository.getEntryWithRecording(entryId)
                 _state.value = _state.value.copy(entry = updated)
 
@@ -56,7 +62,7 @@ class RecordingViewViewModel(
     }
 
     // ---------------------------------------------------------
-    // Update description using updateEntry(entry)
+    // Update description
     // ---------------------------------------------------------
     fun updateDescription(newDescription: String) {
         val current = _state.value.entry ?: return
@@ -77,7 +83,6 @@ class RecordingViewViewModel(
             try {
                 repository.updateEntry(updatedEntry)
 
-                // Reload entry so UI updates immediately
                 val refreshed = repository.getEntryWithRecording(entryId)
                 _state.value = _state.value.copy(entry = refreshed)
 
@@ -90,27 +95,26 @@ class RecordingViewViewModel(
     }
 
     // ---------------------------------------------------------
-    // Delete entire entry
+    // Delete entire entry (correct version)
     // ---------------------------------------------------------
     fun deleteEntry() {
         val e = _state.value.entry ?: return
 
-        val faultEntry = FaultEntry(
-            id = e.id,
-            title = e.title,
-            year = e.year,
-            brand = e.brand,
-            model = e.model,
-            location = e.location,
-            timestamp = e.timestamp,
-            description = e.description ?: "",
-            imageUris = e.imageUris
-        )
-
         viewModelScope.launch {
             try {
-                repository.deleteEntry(faultEntry)
+                // Load full entry with imageUris
+                val fullEntry = getEntryByIdUseCase(e.id)
+
+                if (fullEntry != null) {
+                    deleteEntryUseCase(fullEntry)
+                }
+
+                // Mark screen as deleted
                 _state.value = _state.value.copy(isDeleted = true)
+
+                // Notify main screen to refresh DB info
+                sharedEvents.emit(AppEvent.EntryChanged)
+
             } catch (ex: Exception) {
                 _state.value = _state.value.copy(
                     error = ex.message ?: "Failed to delete entry"

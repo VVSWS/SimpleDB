@@ -25,7 +25,6 @@
     <string name="settings_theme_dark">Тёмная</string>
 
     <string name="settings_db">Управление базой данных</string>
-    <string name="settings_create_db">Создать новую базу данных</string>
     <string name="settings_open_db">Открыть существующую базу данных</string>
     <string name="settings_show_folder">Показать папку базы данных</string>
 
@@ -140,7 +139,6 @@
     <string name="label_title_brief">Краткий заголовок (≤50)</string>
     <string name="error_title_empty">Заголовок не может быть пустым</string>
 
-    <string name="settings_db_create">Создать новую базу данных</string>
     <string name="settings_db_merge">Объединить базу данных</string>
     <string name="settings_db_export">Экспортировать базу данных</string>
 
@@ -158,15 +156,21 @@
     <string name="settings_db_export_success">"Экспорт выполнен успешно"</string>
     <string name="settings_db_export_failed">Экспорт не выполнен: %1$s</string>
 
-    <!-- DELETE DB -->
-    <string name="settings_db_delete">Удалить базу данных</string>
-    <string name="settings_db_delete_title">Удалить базу данных?</string>
-    <string name="settings_db_delete_confirm">Это приведет к безвозвратному удалению всех записей и изображений. Это действие необратимо..</string>
-    <string name="settings_delete">Удалить</string>
+    <!-- Reset DB -->
+    <string name="settings_db_reset">Удалить все записи</string>
+    <string name="settings_db_reset_success">Все записи успешно удалены</string>
+    <string name="settings_db_reset_title">Удалить все записи</string>
+    <string name="settings_db_reset_confirm">Вы уверены что хотите удалить все записи? Записи будут безвозвратно удалены.</string>
+    <string name="settings_reset">Удалить</string>
     <string name="settings_cancel">Отмена</string>
-    <string name="settings_db_delete_success">База данных успешно удалена</string>
-    <string name="settings_db_delete_failed">Невозможно удалить базу данных: %1$s</string>
 
+    <!-- DB INFO -->
+    <string name="main_db_info">Информация о базе данных</string>
+    <string name="main_db_name">База данных:</string>
+    <string name="main_entry_count">Всего записей:</string>
+    <string name="main_image_count">Всего изображений</string>
+    <string name="main_db_size">Размер базы данных</string>
+    <string name="main_images_folder_size">Размер папки с изображениями</string>
 
 
 

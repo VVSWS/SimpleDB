@@ -15,7 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.tusur.presentation.R
@@ -141,69 +142,78 @@ fun RecordingViewContent(
 
     val context = LocalContext.current
 
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
-        Text(
-            text = entry.title.ifBlank { stringResource(R.string.untitled_entry) },
-            style = MaterialTheme.typography.headlineMedium
-        )
+        item {
+            Text(
+                text = entry.title.ifBlank { stringResource(R.string.untitled_entry) },
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
 
-        Spacer(Modifier.height(12.dp))
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("${stringResource(id = R.string.show_date_sign)} $formattedDate")
+                Text("${stringResource(id = R.string.show_year_sign)} ${entry.year?.value}")
+                Text("${stringResource(id = R.string.show_brand_sign)} ${entry.brand?.name}")
+                Text("${stringResource(id = R.string.show_model_sign)} ${entry.model?.name}")
+                Text("${stringResource(id = R.string.show_location_sign)} ${entry.location?.name}")
+            }
+        }
 
-        Text("${stringResource(id = R.string.show_date_sign)} $formattedDate")
-        Text("${stringResource(id = R.string.show_year_sign)} ${entry.year?.value}")
-        Text("${stringResource(id = R.string.show_brand_sign)} ${entry.brand?.name}")
-        Text("${stringResource(id = R.string.show_model_sign)} ${entry.model?.name}")
-        Text("${stringResource(id = R.string.show_location_sign)} ${entry.location?.name}")
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(id = R.string.show_description_sign),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(descriptionText)
+            }
+        }
 
-        Spacer(Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(id = R.string.show_description_sign),
-            style = MaterialTheme.typography.titleMedium
-        )
-        Text(descriptionText)
-
-        Spacer(Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(id = R.string.show_image_sign),
-            style = MaterialTheme.typography.titleMedium
-        )
+        item {
+            Text(
+                text = stringResource(id = R.string.show_image_sign),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
 
         if (entry.imageUris.isEmpty()) {
-            Text(stringResource(R.string.no_images))
+            item {
+                Text(stringResource(R.string.no_images))
+            }
         } else {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(entry.imageUris, key = { it }) { uri ->
-                    val model = remember(uri) {
-                        when {
-                            uri.startsWith("content://") -> uri.toUri()
-                            uri.startsWith("file://") -> uri.toUri()
-                            uri.startsWith("/") -> File(uri) // absolute path
-                            else -> File(context.filesDir, uri) // relative path
+            item {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(entry.imageUris, key = { it }) { uri ->
+                        val model = remember(uri) {
+                            when {
+                                uri.startsWith("content://") -> uri.toUri()
+                                uri.startsWith("file://") -> uri.toUri()
+                                uri.startsWith("/") -> File(uri)
+                                else -> File(context.filesDir, uri)
+                            }
                         }
-                    }
 
-                    Box(
-                        modifier = Modifier
-                            .size(140.dp)
-                            .padding(4.dp)
-                            .clickable { selectedImage = uri }
-                    ) {
-                        ImageThumbnail(
-                            uri = uri,
-                            modifier = Modifier.size(140.dp),
-                            onClick = { selectedImage = uri }
-                        )
-
+                        Box(
+                            modifier = Modifier
+                                .size(140.dp)
+                                .clickable { selectedImage = uri }
+                        ) {
+                            ImageThumbnail(
+                                uri = uri,
+                                modifier = Modifier.size(140.dp),
+                                onClick = { selectedImage = uri }
+                            )
+                        }
                     }
                 }
             }
@@ -215,6 +225,5 @@ fun RecordingViewContent(
             uri = selectedImage!!,
             onDismiss = { selectedImage = null }
         )
-
     }
 }

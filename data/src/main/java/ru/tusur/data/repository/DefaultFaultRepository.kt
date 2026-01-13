@@ -1,6 +1,7 @@
 package ru.tusur.data.repository
 
 import android.content.Context
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.tusur.core.files.ImageStorage
@@ -72,14 +73,26 @@ class DefaultFaultRepository(
     // ---------------------------------------------------------
 
     override suspend fun createEntry(entry: FaultEntry): Long {
-        val id = entryDao.insertEntry(mapper.toEntity(entry))
+        val db = provider.getCurrentDatabase()
 
-        entry.imageUris.forEach { uri ->
-            imageDao.insertImage(EntryImageEntity(entryId = id, uri = uri))
+        return db.withTransaction {
+            val id = entryDao.insertEntry(mapper.toEntity(entry))
+
+            entry.imageUris.forEach { uri ->
+                imageDao.insertImage(
+                    EntryImageEntity(
+                        entryId = id,
+                        uri = uri
+                    )
+                )
+            }
+
+            id
         }
-
-        return id
     }
+
+
+
 
     override suspend fun updateEntry(entry: FaultEntry) {
         entryDao.updateEntry(mapper.toEntity(entry))
@@ -92,17 +105,18 @@ class DefaultFaultRepository(
     }
 
     override suspend fun deleteEntry(entry: FaultEntry) {
-        // Delete image rows
-        imageDao.deleteImagesForEntry(entry.id)
+        val db = provider.getCurrentDatabase()
 
-        // Delete entry
-        entryDao.deleteEntry(mapper.toEntity(entry))
+        db.withTransaction {
+            imageDao.deleteImagesForEntry(entry.id)
+            entryDao.deleteEntryById(entry.id)   // ← correct
+        }
 
-        // Delete image files
         entry.imageUris.forEach { uri ->
-            ImageStorage.deleteImageFile(appContext.filesDir, uri)
+            ImageStorage.deleteImageFile(appContext, uri)
         }
     }
+
 
     override suspend fun getEntryCount(): Int {
         return entryDao.getEntryCount()
@@ -118,11 +132,11 @@ class DefaultFaultRepository(
 
     override suspend fun removeImageFromEntry(entryId: Long, uri: String) {
         imageDao.deleteImage(entryId, uri)
-        ImageStorage.deleteImageFile(appContext.filesDir, uri)
+        ImageStorage.deleteImageFile(appContext, uri)
     }
 
     override suspend fun deleteImage(uri: String) {
-        ImageStorage.deleteImageFile(appContext.filesDir, uri)
+        ImageStorage.deleteImageFile(appContext, uri)
     }
 
     override suspend fun getEntriesWithImages(): List<EntryWithImages> {
@@ -155,5 +169,19 @@ class DefaultFaultRepository(
         // Now convert to EntryWithRecording
         return mapper.toRecording(domainEntryWithImages, model)
     }
-}
 
+    // ---------------------------------------------------------
+    // Reset database (entries + images only)
+    // ---------------------------------------------------------
+
+    override suspend fun resetDatabase() {
+        // 1. Delete all entry rows
+        entryDao.deleteAllEntries()
+
+        // 2. Delete all image rows
+        imageDao.deleteAllImages()
+
+        // 3. Delete all image files
+        ImageStorage.clearAllImages(appContext.filesDir)
+    }
+}

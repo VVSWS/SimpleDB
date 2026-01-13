@@ -8,8 +8,6 @@ interface StringProvider {
 
     fun databaseCreated(): String
     fun databaseCreateError(): String
-    fun databaseDeleted(): String
-    fun databaseDeleteError(): String
 }
 
 class AndroidStringProvider(
@@ -25,9 +23,5 @@ class AndroidStringProvider(
     override fun databaseCreateError(): String =
         context.getString(R.string.db_create_failed)
 
-    override fun databaseDeleted(): String =
-        context.getString(R.string.settings_db_delete_success)
 
-    override fun databaseDeleteError(): String =
-        context.getString(R.string.settings_db_delete_failed)
 }
