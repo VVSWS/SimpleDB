@@ -30,6 +30,8 @@ fun EntrySearchScreen(
     val sharedSearchViewModel: SharedSearchViewModel = koinViewModel()
 
     Scaffold(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {

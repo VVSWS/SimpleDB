@@ -3,6 +3,7 @@ package ru.tusur.presentation.entrylist
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -18,6 +19,14 @@ import ru.tusur.domain.model.FaultEntry
 import ru.tusur.presentation.R
 import ru.tusur.presentation.common.ConfirmDeleteDialog
 import ru.tusur.presentation.common.EntryListError
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +38,7 @@ fun EntryListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val filter by sharedSearchViewModel.filter.collectAsState()
+    val listState = rememberLazyListState()
 
     // Load data depending on mode
     LaunchedEffect(isSearchMode, filter) {
@@ -61,6 +71,9 @@ fun EntryListScreen(
     }
 
     Scaffold(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
+            contentWindowInsets = WindowInsets(0, 0, 0, 60),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -84,8 +97,14 @@ fun EntryListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(
+                    top = 0.dp,
+                    bottom = padding.calculateBottomPadding(),
+                    start = padding.calculateStartPadding(LayoutDirection.Ltr),
+                    end = padding.calculateEndPadding(LayoutDirection.Ltr)
+                )
+
+                .padding(horizontal = 4.dp)
         ) {
 
             // Loading indicator
@@ -115,18 +134,43 @@ fun EntryListScreen(
             }
 
             // Entries list
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp)
             ) {
-                items(uiState.entries) { entry ->
-                    EntryListItem(
-                        entry = entry,
-                        onClick = { navController.navigate("view_entry/${entry.id}") },
-                        onDelete = { entryToDelete = entry }
-                    )
+
+                // LIST
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    contentPadding = PaddingValues(vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(uiState.entries) { entry ->
+                        EntryListItem(
+                            entry = entry,
+                            onClick = { navController.navigate("view_entry/${entry.id}") },
+                            onDelete = { entryToDelete = entry }
+                        )
+                    }
                 }
+
+                // SPACE between list and scrollbar
+                Spacer(modifier = Modifier.width(6.dp))
+
+                // SCROLLBAR
+                LazyColumnScrollbar(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(6.dp)
+                )
             }
         }
     }
@@ -183,4 +227,49 @@ fun EntryListItem(
             }
         }
     }
+}
+
+@Composable
+private fun LazyColumnScrollbar(
+    state: LazyListState,
+    modifier: Modifier = Modifier,
+    thickness: Dp = 4.dp,
+    color: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+) {
+    val layoutInfo = state.layoutInfo
+    val totalItems = layoutInfo.totalItemsCount
+    if (totalItems == 0) return
+
+    val firstVisible = state.firstVisibleItemIndex
+    val visibleItems = layoutInfo.visibleItemsInfo.size
+
+    if (totalItems == 0 || visibleItems >= totalItems) return
+
+    val fraction = remember(firstVisible, totalItems) {
+        firstVisible.toFloat() / (totalItems - visibleItems).coerceAtLeast(1)
+    }
+
+    Box(
+        modifier = modifier
+            .width(thickness)
+            .fillMaxHeight()
+            .drawBehind {
+                // Track
+                drawRoundRect(
+                    color = color.copy(alpha = 0.15f),
+                    cornerRadius = CornerRadius(size.width / 2)
+                )
+
+                // Thumb
+                val thumbHeight = size.height * (visibleItems.toFloat() / totalItems)
+                val thumbTop = (size.height - thumbHeight) * fraction
+
+                drawRoundRect(
+                    color = color,
+                    topLeft = Offset(0f, thumbTop),
+                    size = Size(size.width, thumbHeight),
+                    cornerRadius = CornerRadius(size.width / 2)
+                )
+            }
+    )
 }

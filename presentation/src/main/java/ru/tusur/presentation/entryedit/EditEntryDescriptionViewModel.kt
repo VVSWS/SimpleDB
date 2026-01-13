@@ -89,15 +89,20 @@ class EditEntryDescriptionViewModel(
         )
     }
 
-    fun removeImage(path: String) {
+    fun removeImage(context: Context, path: String) {
         val current = _uiState.value.entry ?: return
 
+        // 1. Delete the actual file
+        ImageStorage.deleteImageFile(context, path)
+
+        // 2. Update UI state
         _uiState.value = _uiState.value.copy(
             entry = current.copy(
                 imageUris = current.imageUris - path
             )
         )
     }
+
 
     // ---------------------------------------------------------
     // Save entry (update)

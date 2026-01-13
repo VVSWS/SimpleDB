@@ -36,6 +36,8 @@ fun EditEntryDescriptionScreen(
         koinInject(parameters = { parametersOf(entryId) })
 
     val uiState by viewModel.uiState.collectAsState()
+    val context = navController.context
+
 
     // Image picker
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -47,6 +49,8 @@ fun EditEntryDescriptionScreen(
     }
 
     Scaffold(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.edit_description_title)) },
@@ -89,6 +93,7 @@ fun EditEntryDescriptionScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
+                .imePadding()
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
                 .fillMaxSize(),
@@ -130,7 +135,7 @@ fun EditEntryDescriptionScreen(
                             )
 
                             IconButton(
-                                onClick = { viewModel.removeImage(uri) },
+                                onClick = { viewModel.removeImage(context, uri) },
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .size(24.dp)
@@ -141,6 +146,7 @@ fun EditEntryDescriptionScreen(
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             }
+
                         }
                     }
                 }

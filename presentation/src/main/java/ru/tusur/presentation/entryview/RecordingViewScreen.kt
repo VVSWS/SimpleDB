@@ -55,6 +55,8 @@ fun RecordingViewScreen(
     }
 
     Scaffold(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.title_entry_details)) },

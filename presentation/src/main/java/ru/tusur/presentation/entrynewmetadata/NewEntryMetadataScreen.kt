@@ -27,6 +27,8 @@ fun NewEntryMetadataScreen(navController: NavController) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -51,6 +53,7 @@ fun NewEntryMetadataScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .imePadding()
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {

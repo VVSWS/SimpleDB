@@ -24,6 +24,7 @@ import ru.tusur.presentation.R
 import ru.tusur.core.ui.theme.ThemeMode
 import ru.tusur.presentation.mainscreen.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
@@ -69,44 +70,33 @@ fun SettingsScreen(
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
-
-        // TOP BAR
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 3.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.cd_back)
+    Scaffold(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.settings_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_back)
+                        )
+                    }
                 }
-
-                Text(
-                    text = stringResource(R.string.settings_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                )
-            }
+            )
         }
+    ) { padding ->
 
-        // MAIN CONTENT
         Column(
             modifier = Modifier
+                .padding(padding)
                 .fillMaxSize()
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())

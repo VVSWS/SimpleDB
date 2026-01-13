@@ -1,5 +1,6 @@
 package ru.tusur.presentation.mainscreen
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -19,79 +20,55 @@ import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import ru.tusur.presentation.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) {
     val viewModel: MainViewModel = koinViewModel(viewModelStoreOwner = backStackEntry)
     val uiState by viewModel.uiState.collectAsState()
 
-    Column(Modifier.fillMaxSize()) {
-
-        // ---------------------------------------------------------
-        // TOP BAR
-        // ---------------------------------------------------------
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 3.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Text(
-                    text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 16.dp)
-                )
-
-                IconButton(
-                    onClick = { navController.navigate("settings") },
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = stringResource(R.string.main_settings)
+    Scaffold(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
+                },
+                actions = {
+                    IconButton(onClick = { navController.navigate("settings") }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.main_settings)
+                        )
+                    }
+                    IconButton(onClick = { navController.navigate("about") }) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = stringResource(R.string.main_about)
+                        )
+                    }
                 }
-
-                IconButton(
-                    onClick = { navController.navigate("about") },
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = stringResource(R.string.main_about)
-                    )
-                }
-            }
+            )
         }
+    ) { padding ->
 
-        // ---------------------------------------------------------
-        // MAIN CONTENT
-        // ---------------------------------------------------------
         LazyColumn(
             modifier = Modifier
+                .padding(padding)
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // ---------------------------------------------------------
-            // DATABASE INFO CARD
-            // ---------------------------------------------------------
             item {
                 DatabaseInfoCard(uiState)
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // ---------------------------------------------------------
-            // ACTION BUTTONS
-            // ---------------------------------------------------------
             item {
                 Button(
                     onClick = { navController.navigate("recent_entries") },
@@ -170,6 +147,7 @@ private fun InfoRow(label: String, value: String) {
     }
 }
 
+@SuppressLint("DefaultLocale")
 private fun Long.toReadableSize(): String {
     if (this <= 0) return "0 B"
 
