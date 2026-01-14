@@ -1,7 +1,7 @@
 <resources>
 
     <!-- App -->
-    <string name="app_name">База Данных</string>
+    <string name="app_name">CarFault</string>
 
     <!-- MainScreen -->
     <string name="main_recent_entries">Последние записи</string>
@@ -98,8 +98,10 @@
     <string name="dialog_delete_message">Вы уверены, что хотите удалить "%1$s"?</string>
     <string name="dialog_delete_confirm">Удалить</string>
     <string name="dialog_delete_cancel">Отмена</string>
+    <string name="confirm_delete_message">Вы уверены, что хотите удалить это изображение?</string>
 
-    <!-- Entry Details Screen -->
+
+        <!-- Entry Details Screen -->
     <string name="show_image_sign">Изображения:</string>
     <string name="show_description_sign">Описание:</string>
     <string name="show_date_sign">Дата:</string>
@@ -131,7 +133,7 @@
     <string name="entry_list_fallback_entry">эту запись</string>
 
     <!-- New Entry -->
-    <string name="new_entry_metadata_title">Метаданные новой записи</string>
+    <string name="new_entry_metadata_title">Введите данные:</string>
     <string name="new_search_title">Поиск</string>
 
     <string name="main_fallback_db_name">текущая.db</string>
@@ -172,7 +174,20 @@
     <string name="main_db_size">Размер базы данных</string>
     <string name="main_images_folder_size">Размер папки с изображениями</string>
 
+    <!-- HELP MAIN SCREEN-->
+    <string name="cd_help">Help</string>
+    <string name="help_title_mainscreen">Для чего это приложение?</string>
+    <string name="help_information_mainscreen">Это простая база данных, для хранения информации о неисправностях автомобилей и любой техники, которую вы можете охарактеризовать параметрами:\n  Год выпуска->Производитель->\n  Модель->\n  Одна из систем модели->\n  Краткое описание неисправности->\n  Детальное описание + Фото.</string>
+    <string name="help_dialog_close_mainscreen">Ясно!</string>
 
+    <!-- HELP NEW ENTRY-->
+    <string name="help_title_newentry">Внимание!</string>
+    <string name="help_information_newentry">Модель зависит от производителя и года выпуска. Например, если вы выбрали 2019 год выпуска и производителя Ауди, то в поле модели будут отображены исключительно те модели, которые вы добавляли для Ауди 2019 года выпуска. То есть Ауди А5 2019г. и Ауди А5 2025 г. это две разные модели.</string>
+    <string name="help_dialog_close_newentry">Понятно!</string>
 
+    <!-- HELP ENTRY VIEW-->
+    <string name="help_title_entryview">Подсказка!</string>
+    <string name="help_information_entryview">Чтобы вернуться не к списку, а к записи, свернув изображение, просто кликните по изображению один раз ;)</string>
+    <string name="help_dialog_close_entryview">Ok!</string>
 
 </resources>

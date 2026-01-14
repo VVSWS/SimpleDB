@@ -100,6 +100,7 @@
     <string name="dialog_delete_confirm">Delete</string>
     <string name="dialog_delete_cancel">Cancel</string>
     <string name="cd_delete_image">Delete image</string>
+    <string name="confirm_delete_message">Are you sure you want to delete this image?</string>
 
 
     <!-- Entry Details Screen -->
@@ -137,7 +138,7 @@
 
 
     <!-- New Entry -->
-    <string name="new_entry_metadata_title">New Entry Metadata</string>
+    <string name="new_entry_metadata_title">Enter parameters:</string>
     <string name="new_search_title">Search</string>
 
     new_search_title
@@ -180,6 +181,24 @@
     <string name="main_image_count">Images</string>
     <string name="main_db_size">Database size</string>
     <string name="main_images_folder_size">Images folder size</string>
+
+    <!-- HELP MAIN SCREEN-->
+    <string name="cd_help">Help</string>
+    <string name="help_title_mainscreen">What is this app for?</string>
+    <string name="help_information_mainscreen">This is a simple database for storing information about malfunctions of cars and any equipment that you can characterize by the parameters:\n  Year of manufacture->\n  Manufacturer->\n  Model->\n  One of the model`s systems->\n  Brief description of the malfunction->\n  Detailed description + Photo.</string>
+    <string name="help_dialog_close_mainscreen">Great!</string>
+
+    <!-- HELP NEW ENTRY-->
+    <string name="help_title_newentry">Attention!</string>
+    <string name="help_information_newentry">The Model depends on the Brand and Year. For example, if you selected the 2019 model year and the brand Audi, the Model field will only display the models you added for the 2019 Audi. This means that the 2019 Audi A5 and the 2025 Audi A5 are two different models.</string>
+    <string name="help_dialog_close_newentry">Ok!</string>
+
+    <!-- HELP ENTRY VIEW-->
+    <string name="help_title_entryview">Clue.</string>
+    <string name="help_information_entryview">To return not to the list, but to the entry, by collapsing the image, just click on the image once ;)</string>
+    <string name="help_dialog_close_entryview">Ok!</string>
+
+
 
 
 

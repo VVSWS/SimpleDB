@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -19,12 +20,18 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import ru.tusur.presentation.R
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) {
     val viewModel: MainViewModel = koinViewModel(viewModelStoreOwner = backStackEntry)
     val uiState by viewModel.uiState.collectAsState()
+    var showHelpDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier
@@ -45,6 +52,15 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                             contentDescription = stringResource(R.string.main_settings)
                         )
                     }
+
+                    // Help icon
+                    IconButton(onClick = { showHelpDialog = true }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Help,
+                            contentDescription = stringResource(R.string.cd_help)
+                        )
+                    }
+
                     IconButton(onClick = { navController.navigate("about") }) {
                         Icon(
                             imageVector = Icons.Default.Info,
@@ -106,6 +122,24 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
+    }
+
+    // AlertDialog
+    if (showHelpDialog) {
+        AlertDialog(
+            onDismissRequest = { showHelpDialog = false },
+            title = {
+                Text(stringResource(R.string.help_title_mainscreen))
+            },
+            text = {
+                Text(stringResource(R.string.help_information_mainscreen))
+            },
+            confirmButton = {
+                TextButton(onClick = { showHelpDialog = false }) {
+                    Text(stringResource(R.string.help_dialog_close_mainscreen))
+                }
+            }
+        )
     }
 }
 

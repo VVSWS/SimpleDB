@@ -5,8 +5,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -15,9 +15,14 @@ import androidx.navigation.NavController
 import org.koin.compose.koinInject
 import ru.tusur.presentation.common.component.EditableDropdownSelector
 import ru.tusur.presentation.common.component.CompactTextField
-import android.net.Uri
 import ru.tusur.presentation.R
 import ru.tusur.domain.model.FaultEntry
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,6 +30,7 @@ import ru.tusur.domain.model.FaultEntry
 fun NewEntryMetadataScreen(navController: NavController) {
     val viewModel: NewEntryMetadataViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
+    var showHelpDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier
@@ -42,6 +48,16 @@ fun NewEntryMetadataScreen(navController: NavController) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.cd_back)
+                        )
+                    }
+                },
+
+                actions = {
+                    // Help icon
+                    IconButton(onClick = { showHelpDialog = true }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Help,
+                            contentDescription = stringResource(R.string.cd_help)
                         )
                     }
                 }
@@ -163,5 +179,23 @@ fun NewEntryMetadataScreen(navController: NavController) {
             }
 
         }
+    }
+
+    // AlertDialog
+    if (showHelpDialog) {
+        AlertDialog(
+            onDismissRequest = { showHelpDialog = false },
+            title = {
+                Text(stringResource(R.string.help_title_newentry))
+            },
+            text = {
+                Text(stringResource(R.string.help_information_newentry))
+            },
+            confirmButton = {
+                TextButton(onClick = { showHelpDialog = false }) {
+                    Text(stringResource(R.string.help_dialog_close_newentry))
+                }
+            }
+        )
     }
 }

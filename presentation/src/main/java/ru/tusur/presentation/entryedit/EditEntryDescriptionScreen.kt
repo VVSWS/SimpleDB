@@ -1,6 +1,5 @@
 package ru.tusur.presentation.entryedit
 
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -24,6 +23,9 @@ import org.koin.core.parameter.parametersOf
 import ru.tusur.core.ui.component.ImageThumbnail
 import ru.tusur.presentation.R
 import ru.tusur.presentation.common.DescriptionError
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Delete
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,7 +128,13 @@ fun EditEntryDescriptionScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(entry.imageUris) { uri ->
+                    items(
+                        items = entry.imageUris,
+                        key = { uri -> uri }   // IMPORTANT: stable key
+                    ) { uri ->
+
+                        var showDeleteDialog by remember { mutableStateOf(false) }
+
                         Box {
                             ImageThumbnail(
                                 uri = uri,
@@ -134,21 +142,50 @@ fun EditEntryDescriptionScreen(
                                 onClick = { /* optional */ }
                             )
 
+                            // Delete button with red background
                             IconButton(
-                                onClick = { viewModel.removeImage(context, uri) },
+                                onClick = { showDeleteDialog = true },
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
-                                    .size(24.dp)
+                                    .size(28.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.error,
+                                        shape = CircleShape
+                                    )
                             ) {
                                 Icon(
-                                    Icons.Default.Close,
+                                    imageVector = Icons.Default.Delete,
                                     contentDescription = stringResource(R.string.cd_delete_image),
-                                    tint = MaterialTheme.colorScheme.error
+                                    tint = MaterialTheme.colorScheme.onError
                                 )
                             }
 
+                            // Confirmation dialog
+                            if (showDeleteDialog) {
+                                AlertDialog(
+                                    onDismissRequest = { showDeleteDialog = false },
+                                    title = { Text(stringResource(R.string.cd_delete_image)) },
+                                    text = { Text(stringResource(R.string.confirm_delete_message)) },
+                                    confirmButton = {
+                                        TextButton(
+                                            onClick = {
+                                                showDeleteDialog = false
+                                                viewModel.removeImage(context, uri)
+                                            }
+                                        ) {
+                                            Text(stringResource(R.string.dialog_delete_confirm))
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { showDeleteDialog = false }) {
+                                            Text(stringResource(R.string.dialog_delete_cancel))
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
+
                 }
             }
 

@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.automirrored.filled.Help
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.tusur.presentation.R
@@ -27,6 +27,10 @@ import androidx.core.net.toUri
 import ru.tusur.core.ui.component.ImageThumbnail
 import ru.tusur.presentation.entryview.components.ZoomableImage
 import java.io.File
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +45,7 @@ fun RecordingViewScreen(
 
     val uiState by viewModel.state.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showHelpDialog by remember { mutableStateOf(false) }
 
     // Refresh when returning to this screen
     LaunchedEffect(entryId) {
@@ -77,6 +82,14 @@ fun RecordingViewScreen(
                         }
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null)
+                    }
+
+                    // Help icon
+                    IconButton(onClick = { showHelpDialog = true }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Help,
+                            contentDescription = stringResource(R.string.cd_help)
+                        )
                     }
 
                     IconButton(onClick = { showDeleteDialog = true }) {
@@ -121,6 +134,24 @@ fun RecordingViewScreen(
                     showDeleteDialog = false
                 },
                 onDismiss = { showDeleteDialog = false }
+            )
+        }
+
+        // AlertDialog
+        if (showHelpDialog) {
+            AlertDialog(
+                onDismissRequest = { showHelpDialog = false },
+                title = {
+                    Text(stringResource(R.string.help_title_entryview))
+                },
+                text = {
+                    Text(stringResource(R.string.help_information_entryview))
+                },
+                confirmButton = {
+                    TextButton(onClick = { showHelpDialog = false }) {
+                        Text(stringResource(R.string.help_dialog_close_entryview))
+                    }
+                }
             )
         }
     }

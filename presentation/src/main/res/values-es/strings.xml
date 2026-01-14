@@ -104,8 +104,10 @@
     <string name="dialog_delete_message">¿Seguro que deseas eliminar "%1$s"?</string>
     <string name="dialog_delete_confirm">Eliminar</string>
     <string name="dialog_delete_cancel">Cancelar</string>
+    <string name="confirm_delete_message">¿Seguro que deseas eliminar esta imagen?</string>
 
-    <!-- Entry Details Screen -->
+
+        <!-- Entry Details Screen -->
     <string name="show_image_sign">Imágenes:</string>
     <string name="show_description_sign">Descripción:</string>
     <string name="show_date_sign">Fecha:</string>
@@ -137,7 +139,7 @@
     <string name="entry_list_fallback_entry">esta entrada</string>
 
     <!-- New Entry -->
-    <string name="new_entry_metadata_title">Metadatos de nueva entrada</string>
+    <string name="new_entry_metadata_title">Rellene los parámetros:</string>
     <string name="new_search_title">Buscar</string>
 
     <string name="main_fallback_db_name">actual.db</string>
@@ -180,6 +182,22 @@
     <string name="main_image_count">Imágenes</string>
     <string name="main_db_size">Tamaño de la base de datos</string>
     <string name="main_images_folder_size">Tamaño de la carpeta de imágenes</string>
+
+    <!-- HELP MAIN SCREEN-->
+    <string name="cd_help">Help</string>
+    <string name="help_title_mainscreen">¿Para qué sirve esta aplicación?</string>
+    <string name="help_information_mainscreen">Esta es una base de datos simple para almacenar información sobre fallas de automóviles y cualquier equipo que pueda caracterizar por los parámetros:\n  Año de fabricación->\n  Fabricante->\n  Modelo->\n  Uno de los sistemas del modelo->\n  Breve descripción de la falla->\n  Descripción detallada + Foto.</string>
+    <string name="help_dialog_close_mainscreen">¡Claro!</string>
+
+    <!-- HELP NEW ENTRY-->
+    <string name="help_title_newentry">¡Atención!</string>
+    <string name="help_information_newentry">El Modelo depende de la Marca y el Año. Por ejemplo, si seleccionaste el modelo 2019 y la marca Audi, el campo "Modelo" solo mostrará los modelos que añadiste para el Audi 2019. Esto significa que el Audi A5 2019 y el Audi A5 2025 son dos modelos diferentes.</string>
+    <string name="help_dialog_close_newentry">¡De acuerdo!</string>
+
+    <!-- HELP ENTRY VIEW-->
+    <string name="help_title_entryview">Clave.</string>
+    <string name="help_information_entryview">Para volver no a la lista, sino a la entrada, contrayendo la imagen, simplemente haga clic en la imagen una vez ;)</string>
+    <string name="help_dialog_close_entryview">Ok!</string>
 
 
 </resources>
