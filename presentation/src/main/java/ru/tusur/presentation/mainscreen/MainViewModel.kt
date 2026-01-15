@@ -1,6 +1,5 @@
 package ru.tusur.presentation.mainscreen
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,8 +9,8 @@ import kotlinx.coroutines.launch
 import ru.tusur.data.usecase.GetCurrentDatabaseInfoUseCase
 import ru.tusur.domain.repository.DatabaseMaintenanceRepository
 import ru.tusur.domain.repository.FaultRepository
-import ru.tusur.presentation.shared.SharedAppEventsViewModel
 import ru.tusur.presentation.shared.AppEvent
+import ru.tusur.presentation.shared.SharedAppEventsViewModel
 
 
 data class MainUiState(

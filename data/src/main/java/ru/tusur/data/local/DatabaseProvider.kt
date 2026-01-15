@@ -56,11 +56,4 @@ class DatabaseProvider(
             ?: throw IllegalStateException("Database initialization failed")
     }
 
-    fun getActiveDatabaseFile(): File {
-        if (currentDbFile == null) {
-            currentDbFile = FileHelper.getActiveDatabaseFile(context)
-        }
-        return currentDbFile!!
-    }
-
 }

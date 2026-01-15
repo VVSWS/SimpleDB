@@ -55,11 +55,6 @@
     <string name="error_year_must_be_4">Year must be exactly 4 digits</string>
     <string name="invalid_yeaar">Invalid year</string>
 
-
-
-
-
-
     <!-- Dropdown menu -->
     <string name="dropdown_add_new">Add new…</string>
     <string name="dropdown_none">None</string>
@@ -71,7 +66,6 @@
     <string name="hint_select_brand">Select a brand…</string>
     <string name="hint_select_model">Select a model…</string>
     <string name="hint_select_location">Select a location…</string>
-
 
 
     <!-- Search screen -->
@@ -88,17 +82,17 @@
     <string name="edit_description_title">Entry Description</string>
     <string name="cd_add_image">Add Image</string>
     <string name="button_cancel">Cancel</string>
-
     <string name="label_description">Description</string>
-
     <string name="button_save">Save</string>
     <string name="button_delete">Delete</string>
-
 
     <!-- Dialog -->
     <string name="dialog_add_new_title">Add new</string>
     <string name="dialog_add">Add</string>
     <string name="dialog_cancel">Cancel</string>
+    <string name="entry_saved">Entry saved</string>
+    <string name="entry_saved_confirm">Great!</string>
+
 
     <!-- Delete confirmation dialog -->
     <string name="dialog_delete_title">Delete item</string>

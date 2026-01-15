@@ -2,7 +2,6 @@ package ru.tusur.data.backup
 
 import android.content.Context
 import kotlinx.serialization.json.Json
-import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.domain.export.ExportDatabase
 import ru.tusur.domain.model.*
 import ru.tusur.domain.repository.FaultRepository
@@ -12,7 +11,6 @@ import java.io.InputStream
 
 class ImportJsonDatabaseUseCase(
     private val context: Context,
-    private val provider: DatabaseProvider,
     private val faultRepository: FaultRepository,
     private val referenceRepository: ReferenceDataRepository
 ) {

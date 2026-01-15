@@ -65,12 +65,9 @@ val appModule = module {
         get<DatabaseProvider>().getCurrentDatabase()
     }
 
-
-
     single<DatabaseMaintenanceRepository> {
         DatabaseMaintenanceRepositoryImpl(db = get())
     }
-
 
     // Mappers
     single { EntryMapper() }
@@ -103,7 +100,6 @@ val appModule = module {
     single {
         MergeJsonDatabaseUseCase(
             context = androidContext(),
-            provider = get(),
             faultRepository = get(),
             referenceRepository = get()
         )
@@ -112,16 +108,13 @@ val appModule = module {
     single {
         ExportDatabaseUseCase(
             context = androidContext(),
-            provider = get(),
-            faultRepository = get(),
-            referenceRepository = get()
+            faultRepository = get()
         )
     }
 
     single {
         ImportJsonDatabaseUseCase(
             context = androidContext(),
-            provider = get(),
             faultRepository = get(),
             referenceRepository = get()
         )
@@ -241,7 +234,6 @@ val appModule = module {
 
     viewModel {
         SettingsViewModel(
-            context = androidContext(),
             dataStore = get(),
             mergeDbUseCase = get(),
             exportDbUseCase = get(),

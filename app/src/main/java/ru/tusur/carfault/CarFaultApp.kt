@@ -1,7 +1,6 @@
 package ru.tusur.carfault
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -22,8 +21,6 @@ import ru.tusur.presentation.mainscreen.MainScreen
 import ru.tusur.presentation.mainscreen.MainViewModel
 import ru.tusur.presentation.settings.SettingsScreen
 import ru.tusur.presentation.settings.SettingsViewModel
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.WindowInsets
 
 @Composable
 fun CarFaultApp() {

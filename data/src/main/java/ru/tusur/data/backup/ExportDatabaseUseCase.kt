@@ -3,21 +3,16 @@ package ru.tusur.data.backup
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.data.mapper.toExport
 import ru.tusur.domain.export.ExportDatabase
 import ru.tusur.domain.repository.FaultRepository
-import ru.tusur.domain.repository.ReferenceDataRepository
 import ru.tusur.domain.usecase.database.DatabaseExportProgress
 import java.io.File
 
 class ExportDatabaseUseCase(
     private val context: Context,
-    private val provider: DatabaseProvider,
-    private val faultRepository: FaultRepository,
-    private val referenceRepository: ReferenceDataRepository
+    private val faultRepository: FaultRepository
 ) {
 
     suspend operator fun invoke(

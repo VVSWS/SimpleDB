@@ -1,6 +1,5 @@
 package ru.tusur.presentation.settings
 
-import android.content.Context
 import android.net.Uri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -22,7 +21,6 @@ import ru.tusur.presentation.util.StringProvider
 import ru.tusur.presentation.shared.SharedAppEventsViewModel
 
 class SettingsViewModel(
-    private val context: Context,
     private val dataStore: DataStore<Preferences>,
     private val mergeDbUseCase: MergeJsonDatabaseUseCase,
     private val exportDbUseCase: ExportDatabaseUseCase,

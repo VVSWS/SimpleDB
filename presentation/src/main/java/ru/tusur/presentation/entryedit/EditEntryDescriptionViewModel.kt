@@ -23,7 +23,7 @@ class EditEntryDescriptionViewModel(
     private val createEntry: CreateEntryUseCase,
     private val updateEntry: UpdateEntryUseCase,
     private val deleteEntryUseCase: DeleteEntryUseCase,
-    private val sharedEvents: SharedAppEventsViewModel        // NEW
+    private val sharedEvents: SharedAppEventsViewModel
 ) : ViewModel() {
 
     data class UiState(
@@ -31,7 +31,8 @@ class EditEntryDescriptionViewModel(
         val isLoading: Boolean = false,
         val isSaving: Boolean = false,
         val saveCompleted: Boolean = false,
-        val descriptionError: DescriptionError? = null
+        val descriptionError: DescriptionError? = null,
+        val showSaveSuccess: Boolean = false
     ) {
         val isValid: Boolean
             get() = entry != null &&
@@ -124,7 +125,8 @@ class EditEntryDescriptionViewModel(
 
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,
-                    saveCompleted = true
+                    saveCompleted = true,
+                    showSaveSuccess = true
                 )
 
             } catch (e: Exception) {
@@ -133,28 +135,12 @@ class EditEntryDescriptionViewModel(
         }
     }
 
-    // ---------------------------------------------------------
-    // Delete entry
-    // ---------------------------------------------------------
-
-    fun deleteEntry() {
-        val entry = _uiState.value.entry ?: return
-
-        viewModelScope.launch {
-            try {
-                deleteEntryUseCase(entry)
-
-                // Notify main screen
-                sharedEvents.emit(AppEvent.EntryChanged)
-
-                _uiState.value = _uiState.value.copy(saveCompleted = true)
-            } catch (_: Exception) {
-                // Optional: error handling
-            }
-        }
-    }
-
     fun consumeSaveCompleted() {
         _uiState.value = _uiState.value.copy(saveCompleted = false)
     }
+
+    fun dismissSaveSuccess() {
+        _uiState.value = _uiState.value.copy(showSaveSuccess = false)
+    }
+
 }

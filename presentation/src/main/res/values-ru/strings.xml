@@ -100,6 +100,8 @@
     <string name="dialog_add_new_title">Добавить новое</string>
     <string name="dialog_add">Добавить</string>
     <string name="dialog_cancel">Отмена</string>
+    <string name="entry_saved">Запись сохранена</string>
+    <string name="entry_saved_confirm">Отлично!</string>
 
     <!-- Delete dialog -->
     <string name="dialog_delete_title">Удалить элемент</string>

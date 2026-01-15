@@ -1,9 +1,8 @@
 package ru.tusur.data.local
 
 import android.database.sqlite.SQLiteDatabase
-import ru.tusur.domain.repository.DatabaseValidator as DomainDatabaseValidator
-import ru.tusur.core.util.FileHelper
 import java.io.File
+import ru.tusur.domain.repository.DatabaseValidator as DomainDatabaseValidator
 
 class RoomDatabaseValidator : DomainDatabaseValidator {
 

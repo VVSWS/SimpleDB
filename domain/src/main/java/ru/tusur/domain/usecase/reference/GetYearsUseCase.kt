@@ -1,7 +1,5 @@
 package ru.tusur.domain.usecase.reference
 
-import kotlinx.coroutines.flow.Flow
-import ru.tusur.domain.model.Year
 import ru.tusur.domain.repository.ReferenceDataRepository
 
 class GetYearsUseCase(

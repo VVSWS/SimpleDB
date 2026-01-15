@@ -207,15 +207,25 @@ fun EditEntryDescriptionScreen(
             ) {
                 Text(stringResource(R.string.button_cancel))
             }
-
-
-            // NAVIGATE BACK AFTER SAVE
-            if (uiState.saveCompleted) {
-                LaunchedEffect(Unit) {
-                    navController.popBackStack()
-                    viewModel.consumeSaveCompleted()
-                }
-            }
         }
+
+        // SUCCESS POP-UP
+        if (uiState.showSaveSuccess) {
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissSaveSuccess() },
+                title = { Text(stringResource(R.string.entry_saved)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.dismissSaveSuccess()
+                            navController.popBackStack()
+                        }
+                    ) {
+                        Text(stringResource(R.string.entry_saved_confirm))
+                    }
+                }
+            )
+        }
+
     }
 }

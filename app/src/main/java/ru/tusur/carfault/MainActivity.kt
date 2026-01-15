@@ -4,18 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
-import org.koin.androidx.compose.koinViewModel
-import ru.tusur.core.ui.theme.CarFaultTheme
-import ru.tusur.presentation.settings.SettingsViewModel
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.core.view.WindowCompat
+import org.koin.androidx.compose.koinViewModel
+import ru.tusur.core.ui.theme.CarFaultTheme
 import ru.tusur.core.ui.theme.ThemeMode
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-
-
-
+import ru.tusur.presentation.settings.SettingsViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -24,7 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            // Get theme from your settings VM (or a dedicated ThemeViewModel)
+            // Get theme from settings VM (or a dedicated ThemeViewModel)
             val settingsViewModel: SettingsViewModel = koinViewModel()
             val uiState = settingsViewModel.state.collectAsState()
             val darkTheme = when (uiState.value.theme) {

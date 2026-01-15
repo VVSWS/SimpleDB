@@ -100,6 +100,8 @@
     <string name="dialog_add_new_title">Agregar nuevo</string>
     <string name="dialog_add">Agregar</string>
     <string name="dialog_cancel">Cancelar</string>
+    <string name="entry_saved">La grabación ha sido guardada</string>
+    <string name="entry_saved_confirm">¡Excelente!</string>
 
     <!-- Delete confirmation dialog -->
     <string name="dialog_delete_title">Eliminar elemento</string>

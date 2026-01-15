@@ -14,9 +14,6 @@ import ru.tusur.presentation.shared.AppEvent
 import ru.tusur.presentation.shared.SharedAppEventsViewModel
 import ru.tusur.presentation.util.StringProvider
 
-
-
-
 class NewEntryMetadataViewModel(
     private val getYears: GetYearsUseCase,
     private val getBrands: GetBrandsUseCase,

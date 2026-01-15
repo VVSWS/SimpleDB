@@ -63,26 +63,15 @@ fun AboutScreen(navController: NavController) {
                 TextButton(
                     onClick = {
                         val email = "v7337337@gmail.com"
-                        val subject = "About CarFault App"
+                        // Copy to clipboard
+                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                                as android.content.ClipboardManager
 
-                        val intent = Intent(Intent.ACTION_SENDTO).apply {
-                            data = "mailto:$email".toUri()
-                            putExtra(Intent.EXTRA_SUBJECT, subject)
-                            putExtra(Intent.EXTRA_TEXT, "Hello developer,\n\n")
-                        }
+                        val clip = android.content.ClipData.newPlainText("email", email)
+                        clipboard.setPrimaryClip(clip)
 
-                        if (intent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(intent)
-                        } else {
-                            // Copy to clipboard
-                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
-                                    as android.content.ClipboardManager
+                        Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
 
-                            val clip = android.content.ClipData.newPlainText("email", email)
-                            clipboard.setPrimaryClip(clip)
-
-                            Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
-                        }
                     }
                 ) {
                     Text(
