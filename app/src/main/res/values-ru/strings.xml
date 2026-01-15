@@ -26,11 +26,6 @@
     <string name="settings_theme_light">Светлая</string>
     <string name="settings_theme_dark">Тёмная</string>
 
-    <!-- About -->
-    <string name="about_title">О приложении</string>
-    <string name="about_version">v1.0.0 (Сборка 20251219)</string>
-    <string name="about_license">Лицензия MIT — только для некоммерческого использования</string>
-    <string name="about_copyright">
-        © 2025, Студент ТУСУР
-    </string>
+
+
 </resources>

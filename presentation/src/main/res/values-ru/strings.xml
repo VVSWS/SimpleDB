@@ -3,6 +3,16 @@
     <!-- App -->
     <string name="app_name">CarFault</string>
 
+    <!-- About screen -->
+    <string name="about_title">О приложении</string>
+    <string name="about_license">Это свободное программное обеспечение с открытым исходным кодом (FOSS), распространяемое по лицензии MIT. Вы можете свободно использовать его в любых законных целях.</string>
+    <string name="about_copyright">© 2025, TUSUR</string>
+    <string name="about_version">Версия: v1.0.0 (Build 20251219)</string>
+    <string name="contact_developer">Связь с разработчиком: v7337337@gmail.com</string>
+    <string name="email_copied">Адрес скопирован в буфер обмена.</string>
+
+
+
     <!-- MainScreen -->
     <string name="main_recent_entries">Последние записи</string>
     <string name="main_add_entry">Добавить запись</string>
@@ -28,11 +38,6 @@
     <string name="settings_open_db">Открыть существующую базу данных</string>
     <string name="settings_show_folder">Показать папку базы данных</string>
 
-    <!-- About screen -->
-    <string name="about_title">О приложении</string>
-    <string name="about_version">Версия: %1$s</string>
-    <string name="about_copyright">© 2025 Ваше имя или компания. Все права защищены.</string>
-    <string name="about_license">Это приложение распространяется по лицензии MIT.</string>
 
 
     <!-- Entry Metadata -->
@@ -50,7 +55,10 @@
     <string name="error_entry_list_load">Не удалось загрузить последние записи</string>
     <string name="error_entry_list_search">Не удалось выполнить поиск записей</string>
 
-
+    <string name="error_only_digits">Введите цифры</string>
+    <string name="error_max_4_digits">Максимум 4 цифры</string>
+    <string name="error_year_must_be_4">Год должен быть ровно 4 Цифры</string>
+    <string name="invalid_yeaar">Год должен быть ровно 4 Цифры</string>
 
     <!-- Dropdown menu -->
     <string name="dropdown_add_new">Добавить новое…</string>
@@ -104,7 +112,7 @@
         <!-- Entry Details Screen -->
     <string name="show_image_sign">Изображения:</string>
     <string name="show_description_sign">Описание:</string>
-    <string name="show_date_sign">Дата:</string>
+    <string name="show_date_sign">Дата добавления:</string>
     <string name="show_year_sign">Год выпуска:</string>
     <string name="show_brand_sign">Производитель:</string>
     <string name="show_model_sign">Модель:</string>
@@ -138,10 +146,10 @@
 
     <string name="main_fallback_db_name">текущая.db</string>
 
-    <string name="label_title_brief">Краткий заголовок (≤50)</string>
+    <string name="label_title_brief">Краткий заголовок</string>
     <string name="error_title_empty">Заголовок не может быть пустым</string>
 
-    <string name="settings_db_merge">Объединить базу данных</string>
+    <string name="settings_db_merge">Загрузить/Объединить базу данных</string>
     <string name="settings_db_export">Экспортировать базу данных</string>
 
     <!-- DB -->
@@ -172,12 +180,12 @@
     <string name="main_entry_count">Всего записей:</string>
     <string name="main_image_count">Всего изображений</string>
     <string name="main_db_size">Размер базы данных</string>
-    <string name="main_images_folder_size">Размер папки с изображениями</string>
+    <string name="main_images_folder_size">Папка с изображениями</string>
 
     <!-- HELP MAIN SCREEN-->
     <string name="cd_help">Help</string>
     <string name="help_title_mainscreen">Для чего это приложение?</string>
-    <string name="help_information_mainscreen">Это простая база данных, для хранения информации о неисправностях автомобилей и любой техники, которую вы можете охарактеризовать параметрами:\n  Год выпуска->Производитель->\n  Модель->\n  Одна из систем модели->\n  Краткое описание неисправности->\n  Детальное описание + Фото.</string>
+    <string name="help_information_mainscreen">Это простая база данных, для хранения информации о неисправностях автомобилей и любой техники, которую вы можете охарактеризовать параметрами:\n  Год выпуска->\n  Производитель->\n  Модель->\n  Одна из систем модели->\n  Краткое описание неисправности->\n  Детальное описание + Фото.</string>
     <string name="help_dialog_close_mainscreen">Ясно!</string>
 
     <!-- HELP NEW ENTRY-->
@@ -189,5 +197,10 @@
     <string name="help_title_entryview">Подсказка!</string>
     <string name="help_information_entryview">Чтобы вернуться не к списку, а к записи, свернув изображение, просто кликните по изображению один раз ;)</string>
     <string name="help_dialog_close_entryview">Ok!</string>
+
+    <!-- HELP SETTINGS-->
+    <string name="help_title_settings">Важная информация!</string>
+    <string name="help_information_settings">База данных создается и удаляется автоматически при установке и удалении программы в защищенном хранилище. Если вы не экспортируете базу данных и удалите приложение - данные будут навсегда потеряны. База данных экспортируется в указанную вами папку в виде JSON файла и папки с изображениями. Импортируются только полностью уникальные записи.</string>
+    <string name="help_dialog_close_settings">Добро!</string>
 
 </resources>

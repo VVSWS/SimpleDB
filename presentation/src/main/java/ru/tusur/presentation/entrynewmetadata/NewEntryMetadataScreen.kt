@@ -85,6 +85,7 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     viewModel.addNewYear()
                 },
                 onDeleteItem = viewModel::deleteYear,
+                errorMessage = uiState.yearErrorMessage,
                 showAddNewOption = true,
                 placeholder = stringResource(R.string.hint_select_or_add_year)
             )

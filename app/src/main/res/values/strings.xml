@@ -26,11 +26,7 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
 
-    <!-- About -->
-    <string name="about_title">About</string>
-    <string name="about_version">v1.0.0 (Build 20251219)</string>
-    <string name="about_license">MIT License — For non-commercial use</string>
-    <string name="about_copyright">
-        © 2025, TUSSUR Student
-    </string>
+
+
+
 </resources>

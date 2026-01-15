@@ -9,8 +9,13 @@ import kotlinx.coroutines.launch
 import ru.tusur.domain.model.*
 import ru.tusur.domain.usecase.entry.CreateEntryUseCase
 import ru.tusur.domain.usecase.reference.*
+import ru.tusur.presentation.R
 import ru.tusur.presentation.shared.AppEvent
 import ru.tusur.presentation.shared.SharedAppEventsViewModel
+import ru.tusur.presentation.util.StringProvider
+
+
+
 
 class NewEntryMetadataViewModel(
     private val getYears: GetYearsUseCase,
@@ -26,7 +31,8 @@ class NewEntryMetadataViewModel(
     private val deleteModelUseCase: DeleteModelUseCase,
     private val deleteLocationUseCase: DeleteLocationUseCase,
     private val createEntryUseCase: CreateEntryUseCase,
-    private val sharedEvents: SharedAppEventsViewModel        // NEW
+    private val sharedEvents: SharedAppEventsViewModel,
+    private val stringProvider: StringProvider
 ) : ViewModel() {
 
     data class UiState(
@@ -46,7 +52,9 @@ class NewEntryMetadataViewModel(
         val newYearInput: String = "",
         val newBrandInput: String = "",
         val newModelInput: String = "",
-        val newLocationInput: String = ""
+        val newLocationInput: String = "",
+
+        val yearErrorMessage: String? = null
     ) {
         val isContinueEnabled: Boolean
             get() = selectedYear != null &&
@@ -78,9 +86,13 @@ class NewEntryMetadataViewModel(
     }
 
     fun onYearSelected(year: Year?) {
-        _uiState.value = _uiState.value.copy(selectedYear = year)
+        _uiState.value = _uiState.value.copy(
+            selectedYear = year,
+            yearErrorMessage = null
+        )
         reloadModels()
     }
+
 
     fun onBrandSelected(brand: Brand?) {
         _uiState.value = _uiState.value.copy(selectedBrand = brand)
@@ -111,9 +123,27 @@ class NewEntryMetadataViewModel(
         }
     }
 
-    fun onNewYearInputChanged(value: String) {
-        _uiState.value = _uiState.value.copy(newYearInput = value)
+    fun onNewYearInputChanged(input: String) {
+        val error = when {
+            input.any { !it.isDigit() } ->
+                stringProvider.get(R.string.error_only_digits)
+
+            input.length > 4 ->
+                stringProvider.get(R.string.error_max_4_digits)
+
+            else -> null
+        }
+
+
+        _uiState.value = _uiState.value.copy(
+            newYearInput = input,
+            yearErrorMessage = error
+        )
     }
+
+
+
+
 
     fun onNewBrandInputChanged(value: String) {
         _uiState.value = _uiState.value.copy(newBrandInput = value)
@@ -130,7 +160,21 @@ class NewEntryMetadataViewModel(
     fun addNewYear() {
         viewModelScope.launch {
             val input = _uiState.value.newYearInput
-            val yearValue = input.toIntOrNull() ?: return@launch
+
+            if (input.length != 4) {
+                _uiState.value = _uiState.value.copy(
+                    yearErrorMessage = stringProvider.get(R.string.error_year_must_be_4)
+                )
+                return@launch
+            }
+
+            val yearValue = input.toIntOrNull()
+            if (yearValue == null) {
+                _uiState.value = _uiState.value.copy(
+                    yearErrorMessage = stringProvider.get(R.string.invalid_yeaar)
+                )
+                return@launch
+            }
 
             val year = Year(yearValue)
             addYear(year)
@@ -140,10 +184,13 @@ class NewEntryMetadataViewModel(
             _uiState.value = _uiState.value.copy(
                 years = years,
                 selectedYear = year,
-                newYearInput = ""
+                newYearInput = "",
+                yearErrorMessage = null
             )
         }
     }
+
+
 
     fun addNewBrand() {
         viewModelScope.launch {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +24,12 @@ import kotlinx.coroutines.flow.collectLatest
 import ru.tusur.presentation.R
 import ru.tusur.core.ui.theme.ThemeMode
 import ru.tusur.presentation.mainscreen.MainViewModel
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +41,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val uiState by viewModel.state.collectAsState()
     val mainUiState by mainViewModel.uiState.collectAsState()
+    var showHelpDialog by remember { mutableStateOf(false) }
+
 
     // MERGE FOLDER PICKER
     val mergeFolderLauncher = rememberLauncherForActivityResult(
@@ -87,6 +96,16 @@ fun SettingsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.cd_back)
+                        )
+                    }
+                },
+
+                actions = {
+                    // Help icon
+                    IconButton(onClick = { showHelpDialog = true }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Help,
+                            contentDescription = stringResource(R.string.cd_help)
                         )
                     }
                 }
@@ -235,6 +254,24 @@ fun SettingsScreen(
                 )
             }
         }
+    }
+
+    // AlertDialog
+    if (showHelpDialog) {
+        AlertDialog(
+            onDismissRequest = { showHelpDialog = false },
+            title = {
+                Text(stringResource(R.string.help_title_settings))
+            },
+            text = {
+                Text(stringResource(R.string.help_information_settings))
+            },
+            confirmButton = {
+                TextButton(onClick = { showHelpDialog = false }) {
+                    Text(stringResource(R.string.help_dialog_close_settings))
+                }
+            }
+        )
     }
 }
 

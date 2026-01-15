@@ -4,6 +4,16 @@
     <!-- App -->
     <string name="app_name">CarFault</string>
 
+    <!-- About screen -->
+    <string name="about_title">Acerca de</string>
+    <string name="about_license">Este es software libre y de código abierto (FOSS), con licencia MIT. Puede usarlo libremente para cualquier propósito legal.</string>
+    <string name="about_copyright">© 2025, TUSUR</string>
+    <string name="about_version">Version: v1.0.0 (Build 20251219)</string>
+    <string name="contact_developer">Contactar al desarrollador: v7337337@gmail.com</string>
+    <string name="email_copied">La dirección se copió al portapapeles.</string>
+
+
+
     <!-- MainScreen -->
     <string name="main_recent_entries">Entradas Recientes</string>
     <string name="main_add_entry">Agregar Entrada</string>
@@ -29,17 +39,6 @@
     <string name="settings_open_db">Abrir Base de Datos Existente</string>
     <string name="settings_show_folder">Mostrar Carpeta de Base de Datos</string>
 
-    <!-- About screen -->
-    <string name="about_title">Acerca de</string>
-    <string name="about_version">Versión: %1$s</string>
-    <string name="about_copyright">
-    © 2025 Su nombre o empresa. Todos los derechos reservados.
-</string>
-    <string name="about_license">
-    Esta aplicación está licenciada bajo la licencia MIT.
-</string>
-
-
     <!-- Entry Metadata -->
     <string name="entry_year">Año</string>
     <string name="entry_model">Modelo</string>
@@ -55,7 +54,10 @@
     <string name="error_entry_list_load">No se pudieron cargar las entradas recientes</string>
     <string name="error_entry_list_search">No se pudieron buscar las entradas</string>
 
-
+    <string name="error_only_digits">Solo se permiten dígitos</string>
+    <string name="error_max_4_digits">Máximo 4 dígitos</string>
+    <string name="error_year_must_be_4">El año debe tener exactamente 4 dígitos</string>
+    <string name="invalid_year">Año no válido</string>
 
     <!-- Dropdown menu -->
     <string name="dropdown_add_new">Agregar nuevo…</string>
@@ -110,7 +112,7 @@
         <!-- Entry Details Screen -->
     <string name="show_image_sign">Imágenes:</string>
     <string name="show_description_sign">Descripción:</string>
-    <string name="show_date_sign">Fecha:</string>
+    <string name="show_date_sign">Fecha de adición:</string>
     <string name="show_year_sign">Año:</string>
     <string name="show_brand_sign">Marca:</string>
     <string name="show_model_sign">Modelo:</string>
@@ -144,11 +146,11 @@
 
     <string name="main_fallback_db_name">actual.db</string>
 
-     <string name="label_title_brief">Título breve (≤50)</string>
+     <string name="label_title_brief">Título breve</string>
     <string name="error_title_empty">El título no puede estar vacío</string>
 
 
-    <string name="settings_db_merge">Fusionar base de datos</string>
+    <string name="settings_db_merge">Importar/Fusionar base de datos</string>
     <string name="settings_db_export">Exportar base de datos</string>
 
     <!-- DB -->
@@ -181,7 +183,7 @@
     <string name="main_entry_count">Entradas</string>
     <string name="main_image_count">Imágenes</string>
     <string name="main_db_size">Tamaño de la base de datos</string>
-    <string name="main_images_folder_size">Tamaño de la carpeta de imágenes</string>
+    <string name="main_images_folder_size">Carpeta con imágenes</string>
 
     <!-- HELP MAIN SCREEN-->
     <string name="cd_help">Help</string>
@@ -199,5 +201,9 @@
     <string name="help_information_entryview">Para volver no a la lista, sino a la entrada, contrayendo la imagen, simplemente haga clic en la imagen una vez ;)</string>
     <string name="help_dialog_close_entryview">Ok!</string>
 
+    <!-- HELP SETTINGS-->
+    <string name="help_title_settings">¡Información importante!</string>
+    <string name="help_information_settings">La base de datos se crea y se elimina automáticamente al instalar y desinstalar la aplicación en un almacenamiento seguro. Si no exporta la base de datos pero desinstala la aplicación, los datos se perderán definitivamente. La base de datos se exporta a la carpeta que especifique como un archivo JSON y una carpeta con imágenes. Solo se importan los registros completamente únicos.</string>
+    <string name="help_dialog_close_settings">¡De acuerdo!</string>
 
 </resources>

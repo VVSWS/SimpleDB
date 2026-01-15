@@ -212,7 +212,9 @@ val appModule = module {
             deleteModelUseCase = get(),
             deleteLocationUseCase = get(),
             createEntryUseCase = get(),
-            sharedEvents = get()
+            sharedEvents = get(),
+            stringProvider = get()
+
         )
     }
 

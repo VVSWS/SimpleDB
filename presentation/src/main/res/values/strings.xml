@@ -3,6 +3,15 @@
     <!-- App -->
     <string name="app_name">CarFault</string>
 
+    <!-- About screen -->
+    <string name="about_title">About</string>
+    <string name="about_license">This is free and open-source software (FOSS), licensed under the MIT License. You may use it freely for any lawful purpose.</string>
+    <string name="about_copyright">© 2025, TUSUR</string>
+    <string name="about_version">Version: v1.0.0 (Build 20251219)</string>
+    <string name="contact_developer">Contact developer: v7337337@gmail.com</string>
+    <string name="email_copied">The address was copied to the clipboard.</string>
+
+
     <!-- MainScreen -->
     <string name="main_recent_entries">Recent Entries</string>
     <string name="main_add_entry">Add Entry</string>
@@ -26,17 +35,6 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
 
-    <!-- About screen -->
-    <string name="about_title">About</string>
-    <string name="about_version">Version: %1$s</string>
-    <string name="about_copyright">
-    © 2025 Your Name or Company. All rights reserved.
-</string>
-    <string name="about_license">
-    This app is licensed under the MIT License.
-</string>
-
-
     <!-- Entry Metadata -->
     <string name="entry_year">Year</string>
     <string name="entry_model">Model</string>
@@ -51,6 +49,14 @@
     <string name="error_description_empty">Description cannot be empty</string>
     <string name="error_entry_list_load">Failed to load recent entries</string>
     <string name="error_entry_list_search">Failed to search entries</string>
+
+    <string name="error_only_digits">Only digits allowed</string>
+    <string name="error_max_4_digits">Maximum 4 digits</string>
+    <string name="error_year_must_be_4">Year must be exactly 4 digits</string>
+    <string name="invalid_yeaar">Invalid year</string>
+
+
+
 
 
 
@@ -106,7 +112,7 @@
     <!-- Entry Details Screen -->
     <string name="show_image_sign">Images:</string>
     <string name="show_description_sign">Description:</string>
-    <string name="show_date_sign">Date:</string>
+    <string name="show_date_sign">Date added:</string>
     <string name="show_year_sign">Year:</string>
     <string name="show_brand_sign">Brand:</string>
     <string name="show_model_sign">Model:</string>
@@ -145,10 +151,10 @@
     <string name="main_fallback_db_name">current.db</string>
 
 
-    <string name="label_title_brief">Brief title (≤50)</string>
+    <string name="label_title_brief">Brief title</string>
     <string name="error_title_empty">Title cannot be empty</string>
 
-    <string name="settings_db_merge">Merge Database</string>
+    <string name="settings_db_merge">Import/Merge Database</string>
     <string name="settings_db_export">Export Database</string>
 
     <!-- DB -->
@@ -185,7 +191,7 @@
     <!-- HELP MAIN SCREEN-->
     <string name="cd_help">Help</string>
     <string name="help_title_mainscreen">What is this app for?</string>
-    <string name="help_information_mainscreen">This is a simple database for storing information about malfunctions of cars and any equipment that you can characterize by the parameters:\n  Year of manufacture->\n  Manufacturer->\n  Model->\n  One of the model`s systems->\n  Brief description of the malfunction->\n  Detailed description + Photo.</string>
+    <string name="help_information_mainscreen">This is a simple database for storing information about malfunctions of cars and any equipment that you can characterize by the parameters:\n  Year of manufacture->\n  Brand->\n  Model->\n  One of the model`s systems->\n  Brief description of the malfunction->\n  Detailed description + Photo.</string>
     <string name="help_dialog_close_mainscreen">Great!</string>
 
     <!-- HELP NEW ENTRY-->
@@ -198,6 +204,10 @@
     <string name="help_information_entryview">To return not to the list, but to the entry, by collapsing the image, just click on the image once ;)</string>
     <string name="help_dialog_close_entryview">Ok!</string>
 
+    <!-- HELP SETTINGS-->
+    <string name="help_title_settings">Important information!</string>
+    <string name="help_information_settings">The database is created and deleted automatically when you install and uninstall the app in a secure storage. If you don`t export the database and uninstall the app, the data will be lost forever. The database is exported to the folder you specify as a JSON file and a folder containing images. Only completely unique records are imported.</string>
+    <string name="help_dialog_close_settings">Understood!</string>
 
 
 
