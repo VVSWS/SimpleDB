@@ -93,17 +93,30 @@ class EditEntryDescriptionViewModel(
     fun removeImage(context: Context, path: String) {
         val current = _uiState.value.entry ?: return
 
-        // 1. Delete the actual file
-        ImageStorage.deleteImageFile(context, path)
+        viewModelScope.launch {
+            try {
+                // 1. Delete the actual file
+                ImageStorage.deleteImageFile(context, path)
 
-        // 2. Update UI state
-        _uiState.value = _uiState.value.copy(
-            entry = current.copy(
-                imageUris = current.imageUris - path
-            )
-        )
+                // 2. Create updated entry
+                val updatedEntry = current.copy(
+                    imageUris = current.imageUris - path
+                )
+
+                // 3. Persist immediately
+                updateEntry(updatedEntry)
+
+                // 4. Update UI state
+                _uiState.value = _uiState.value.copy(entry = updatedEntry)
+
+                // 5. Notify main screen (IMPORTANT)
+                sharedEvents.emit(AppEvent.EntryChanged)
+
+            } catch (e: Exception) {
+                // optional: handle error
+            }
+        }
     }
-
 
     // ---------------------------------------------------------
     // Save entry (update)
@@ -142,5 +155,4 @@ class EditEntryDescriptionViewModel(
     fun dismissSaveSuccess() {
         _uiState.value = _uiState.value.copy(showSaveSuccess = false)
     }
-
 }

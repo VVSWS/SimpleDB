@@ -106,7 +106,7 @@
     <!-- Entry Details Screen -->
     <string name="show_image_sign">Images:</string>
     <string name="show_description_sign">Description:</string>
-    <string name="show_date_sign">Date added:</string>
+    <string name="show_date_sign">Date of creation:</string>
     <string name="show_year_sign">Year:</string>
     <string name="show_brand_sign">Brand:</string>
     <string name="show_model_sign">Model:</string>

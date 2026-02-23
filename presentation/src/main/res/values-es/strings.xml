@@ -114,7 +114,7 @@
         <!-- Entry Details Screen -->
     <string name="show_image_sign">Imágenes:</string>
     <string name="show_description_sign">Descripción:</string>
-    <string name="show_date_sign">Fecha de adición:</string>
+    <string name="show_date_sign">Fecha de creación:</string>
     <string name="show_year_sign">Año:</string>
     <string name="show_brand_sign">Marca:</string>
     <string name="show_model_sign">Modelo:</string>

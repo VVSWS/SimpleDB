@@ -80,9 +80,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    //implementation(libs.androidx.datastore.preferences)
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-    //implementation("androidx.datastore:datastore-core:1.1.1")
+    implementation(libs.androidx.datastore.preferences)
     dependencies { coreLibraryDesugaring(libs.desugar.jdk.libs) }
 
 
@@ -110,9 +108,6 @@ dependencies {
     implementation(libs.androidx.activity.compose)
 
     implementation(libs.coil.compose)
-
-
-
 
     implementation(libs.androidx.navigation.compose)
 

@@ -114,7 +114,7 @@
         <!-- Entry Details Screen -->
     <string name="show_image_sign">Изображения:</string>
     <string name="show_description_sign">Описание:</string>
-    <string name="show_date_sign">Дата добавления:</string>
+    <string name="show_date_sign">Дата создания:</string>
     <string name="show_year_sign">Год выпуска:</string>
     <string name="show_brand_sign">Производитель:</string>
     <string name="show_model_sign">Модель:</string>

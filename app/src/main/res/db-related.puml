@@ -1,0 +1,215 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+' ============================================================
+' =============== DATABASE CORE ===============================
+' ============================================================
+
+package "Database" {
+
+  class AppDatabase {
+    +entryDao(): EntryDao
+    +entryImageDao(): EntryImageDao
+    +brandDao(): BrandDao
+    +modelDao(): ModelDao
+    +yearDao(): YearDao
+    +locationDao(): LocationDao
+  }
+
+  class DatabaseProvider {
+    +getDatabase(): AppDatabase
+    +getDatabaseFile(): File
+    +getImagesFolder(): File
+  }
+
+  Interface DatabaseMaintenanceRepository {
+    +vacuum()
+  }
+
+  class DatabaseMaintenanceRepositoryImpl {
+    -db: AppDatabase
+    +vacuum()
+  }
+
+  DatabaseMaintenanceRepositoryImpl ..|> DatabaseMaintenanceRepository
+  DatabaseMaintenanceRepositoryImpl --> AppDatabase
+  DatabaseProvider --> AppDatabase
+}
+
+' ============================================================
+' =============== DATA ENTITIES ===============================
+' ============================================================
+
+package "Entities" {
+
+  class EntryEntity {
+    +id: Long
+    +title: String
+    +description: String
+    +year: Int
+    +brand: String
+    +model: String
+    +location: String
+    +timestamp: Long
+  }
+
+  class EntryImageEntity {
+    +id: Long
+    +entryId: Long
+    +uri: String
+  }
+
+  class EntryImageEntity {
+    +id: Long
+    +entryId: Long
+    +uri: String
+  }
+
+  class BrandEntity {
+    +name: String
+  }
+
+  class ModelEntity {
+    +name: String
+    +brand: String
+    +year: Int
+  }
+
+  class YearEntity {
+   +value: Int
+  }
+  class LocationEntity {
+   +name: String
+  }
+}
+
+' ============================================================
+' =============== DAOs =======================================
+' ============================================================
+
+package "DAOs" {
+
+  class EntryDao {
+    +getAll(): List<EntryEntity>
+    +getById(id: Long): EntryEntity?
+    +insert(entity: EntryEntity): Long
+    +update(entity: EntryEntity)
+    +delete(entity: EntryEntity)
+    +count(): Int
+  }
+
+  class EntryImageDao {
+    +getImagesForEntry(id: Long): List<EntryImageEntity>
+    +insert(image: EntryImageEntity)
+    +delete(image: EntryImageEntity)
+  }
+
+  interface BrandDao {
+  }
+  interface ModelDao {
+  }
+  interface YearDao {
+  }
+  interface LocationDao {
+  }
+
+  EntryDao --> EntryEntity
+  EntryImageDao --> EntryImageEntity
+
+  YearDao --> YearEntity
+  BrandDao --> BrandEntity
+  ModelDao --> ModelEntity
+  LocationDao --> LocationEntity
+
+
+}
+
+' ============================================================
+' =============== REPOSITORIES ================================
+' ============================================================
+
+package "Repositories" {
+
+  interface FaultRepository {
+    +getEntryCount(): Int
+    +getEntriesWithImages(): List<EntryWithImages>
+    +resetDatabase()
+    +deleteImage(uri: String)
+  }
+
+  class DefaultFaultRepository {
+    -provider: DatabaseProvider
+    -mapper: EntryMapper
+
+    +getEntryCount(): Int
+    +getEntriesWithImages(): List<EntryWithImages>
+    +resetDatabase()
+    +deleteImage(uri: String)
+  }
+
+  DefaultFaultRepository ..|> FaultRepository
+  DefaultFaultRepository --> DatabaseProvider
+  DefaultFaultRepository --> EntryDao
+  DefaultFaultRepository --> EntryImageDao
+}
+
+' ============================================================
+' =============== EXPORT / IMPORT =============================
+' ============================================================
+
+package "Export / Import" {
+
+  class ExportDatabaseUseCase {
+    -provider: DatabaseProvider
+    -faultRepository: FaultRepository
+    +invoke(targetFolder: Uri)
+  }
+
+  class MergeJsonDatabaseUseCase {
+    -provider: DatabaseProvider
+    -faultRepository: FaultRepository
+    +invoke(sourceFolder: Uri)
+  }
+
+  class DatabaseInfo {
+    +filename: String?
+    +entryCount: Int
+    +dbSizeBytes: Long
+    +imageCount: Int
+    +imagesFolderSizeBytes: Long
+  }
+
+  class GetCurrentDatabaseInfoUseCase {
+    -provider: DatabaseProvider
+    -context: Context
+    +invoke(): DatabaseInfo
+  }
+
+  ExportDatabaseUseCase --> DatabaseProvider
+  ExportDatabaseUseCase --> FaultRepository
+
+  MergeJsonDatabaseUseCase --> DatabaseProvider
+  MergeJsonDatabaseUseCase --> FaultRepository
+
+  GetCurrentDatabaseInfoUseCase --> DatabaseProvider
+  GetCurrentDatabaseInfoUseCase --> DatabaseInfo : returns
+}
+
+' ============================================================
+' =============== MAPPERS ====================================
+' ============================================================
+
+package "Mappers" {
+  class EntryMapper {
+    +toDomain(entity: EntryEntity): FaultEntry
+    +toEntity(domain: FaultEntry): EntryEntity
+    +toEntryWithImages(...)
+  }
+
+  EntryMapper --> EntryEntity
+  EntryMapper --> EntryImageEntity
+}
+
+@enduml

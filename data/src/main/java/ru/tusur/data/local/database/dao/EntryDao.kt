@@ -9,12 +9,7 @@ import ru.tusur.data.local.entity.ModelEntity
 
 @Dao
 interface EntryDao {
-
-    // ---------------------------------------------------------
-    // LISTS
-    // ---------------------------------------------------------
-
-    @Transaction
+ @Transaction
     @Query("SELECT * FROM entries ORDER BY timestamp DESC")
     fun getAllEntries(): Flow<List<EntryWithRelations>>
 
@@ -23,10 +18,6 @@ interface EntryDao {
 
     @Query("SELECT * FROM entries")
     fun getAllSync(): List<EntryEntity>
-
-    // ---------------------------------------------------------
-    // SINGLE ENTRY
-    // ---------------------------------------------------------
 
     @Transaction
     @Query("SELECT * FROM entries WHERE id = :id")
@@ -38,10 +29,6 @@ interface EntryDao {
     @Transaction
     @Query("SELECT * FROM entries WHERE id = :id")
     suspend fun getEntryWithRecording(id: Long): EntryWithImages
-
-    // ---------------------------------------------------------
-    // SEARCH
-    // ---------------------------------------------------------
 
     @Query("""
         SELECT * FROM entries
@@ -58,10 +45,6 @@ interface EntryDao {
         location: String?
     ): List<EntryEntity>
 
-    // ---------------------------------------------------------
-    // CRUD
-    // ---------------------------------------------------------
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEntry(entry: EntryEntity): Long
 
@@ -77,17 +60,10 @@ interface EntryDao {
     @Query("SELECT id FROM entries")
     suspend fun getAllIds(): List<Long>
 
-    // ---------------------------------------------------------
-    // IMAGES (joined)
-    // ---------------------------------------------------------
-
     @Transaction
     @Query("SELECT * FROM entries ORDER BY timestamp DESC")
     suspend fun getAllEntriesWithImages(): List<EntryWithImages>
 
-    // ---------------------------------------------------------
-    // MODEL LOOKUP (composite key)
-    // ---------------------------------------------------------
 
     @Query("""
         SELECT * FROM models

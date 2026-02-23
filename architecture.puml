@@ -1,0 +1,6 @@
+﻿@startuml
+!theme mars
+@startuml
+!theme mars
+title CarFault Architecture
+@enduml

@@ -1,0 +1,111 @@
+@startuml
+
+start
+
+:App Launch;
+:Load database info;
+:Initialize SharedAppEventsViewModel;
+
+if (Database valid?) then (yes)
+  :Show Main Screen;
+else (no)
+  :Show error or fallback screen;
+  stop
+endif
+
+repeat
+  :Display DB stats and actions;
+
+  if (User selects "View Entries") then (yes)
+    :Load recent entries;
+    :Show entry list;
+
+    if (User selects entry) then (yes)
+      :Load EntryWithRecording;
+      :Show details;
+
+      if (User edits description) then (yes)
+        :Load entry;
+        :User edits description;
+        :User adds/removes images;
+
+        if (User saves) then (yes)
+          :UpdateEntryUseCase;
+          :Emit EntryChanged;
+        endif
+      endif
+
+      if (User deletes entry) then (yes)
+        :DeleteEntryUseCase;
+        :Emit EntryChanged;
+      endif
+    endif
+
+  else (no)
+    if (User selects "Search") then (yes)
+      :Load filters;
+      :User selects filters;
+      :Build SearchQuery;
+      :SearchEntriesUseCase;
+      :Show results;
+
+      if (User selects entry) then (yes)
+        :Load EntryWithRecording;
+        :Show details;
+      endif
+
+    else (no)
+      if (User selects "Create New Entry") then (yes)
+        :Load reference data;
+        :User selects metadata;
+        :User enters title;
+
+        if (User adds new reference data) then (yes)
+          :AddYear/Brand/Model/Location;
+          :Reload lists;
+        endif
+
+        :CreateEntryUseCase;
+        :Load entry;
+        :User edits description;
+
+        if (User saves) then (yes)
+          :UpdateEntryUseCase;
+          :Emit EntryChanged;
+        endif
+
+      else (no)
+        if (User selects "Settings") then (yes)
+          :Load preferences;
+
+          if (User exports DB) then (yes)
+            :ExportDatabaseUseCase;
+            :Show export progress;
+          endif
+
+          if (User merges DB) then (yes)
+            :MergeJsonDatabaseUseCase;
+            :Show merge progress;
+            :Emit DatabaseMerged;
+          endif
+
+          if (User changes theme) then (yes)
+            :Save theme to DataStore;
+          endif
+
+        else (no)
+          if (User selects "About") then (yes)
+            :Show version info;
+          else (no)
+            break
+          endif
+        endif
+      endif
+    endif
+  endif
+
+repeat while (User stays on Main Screen?)
+
+stop
+
+@enduml

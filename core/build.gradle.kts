@@ -53,7 +53,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
 
-    // Compose (только базовые зависимости — остальное в :app)
+    // Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)

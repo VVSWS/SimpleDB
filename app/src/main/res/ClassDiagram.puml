@@ -1,0 +1,1138 @@
+@startuml
+left to right direction
+
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultTextAlignment left
+
+' ============================================================
+' =============== DOMAIN: MODEL ===============================
+' ============================================================
+
+package "ru.tusur.domain.model" {
+
+  class Brand {
+    +name: String
+    +toString(): String
+  }
+
+  class Model {
+    +name: String
+    +brand: Brand
+    +year: Year
+    +toString(): String
+  }
+
+  class Location {
+    +name: String
+    +toString(): String
+  }
+
+  class Year {
+    +value: Int
+    +toString(): String
+  }
+
+  class FaultEntry {
+    +id: Long = 0L
+    +year: Year?
+    +brand: Brand?
+    +model: Model?
+    +location: Location?
+    +title: String = ""
+    +description: String = ""
+    +timestamp: Long = 0L
+    +imageUris: List<String> = emptyList()
+  }
+
+  class EntryWithImages {
+    +entry: FaultEntry
+    +imageUris: List<String>
+  }
+
+  class EntryWithRecording {
+    +id: Long
+    +title: String
+    +year: Year?
+    +brand: Brand?
+    +model: Model?
+    +location: Location?
+    +timestamp: Long
+    +description: String?
+    +imageUris: List<String> = emptyList()
+  }
+
+  class SearchFilter {
+    +year: Int? = null
+    +brand: String? = null
+    +model: String? = null
+    +location: String? = null
+  }
+
+  class SearchQuery {
+    +year: Int?
+    +brand: String?
+    +model: String?
+    +location: String?
+    +isEmpty: Boolean
+  }
+}
+
+' ============================================================
+' =============== DOMAIN: REPOSITORY ==========================
+' ============================================================
+
+package "ru.tusur.domain.repository" {
+
+  interface FaultRepository {
+
+    +getAllEntries(): Flow<List<FaultEntry>>
+    +getEntryById(id: Long): FaultEntry?
+    +getRecentEntries(limit: Int = 5): List<FaultEntry>
+
+    +searchEntries(
+      year: Int? = null,
+      brand: String? = null,
+      model: String? = null,
+      location: String? = null
+    ): List<FaultEntry>
+
+    +createEntry(entry: FaultEntry): Long
+    +updateEntry(entry: FaultEntry)
+    +deleteEntry(entry: FaultEntry)
+    +getEntryCount(): Int
+
+    +addImageToEntry(entryId: Long, uri: String)
+    +removeImageFromEntry(entryId: Long, uri: String)
+    +deleteImage(uri: String)
+
+    +getEntriesWithImages(): List<EntryWithImages>
+    +getEntryWithRecording(id: Long): EntryWithRecording
+
+    +resetDatabase()
+  }
+
+  interface ReferenceDataRepository {
+
+    +getYears(): Flow<List<Year>>
+    +addYear(year: Year): Result<Unit>
+    +deleteYear(year: Year)
+
+    +getBrands(): Flow<List<Brand>>
+    +addBrand(brand: Brand): Result<Unit>
+    +deleteBrand(brand: Brand)
+
+    +getModels(): Flow<List<Model>>
+    +getModelsForBrandAndYear(brand: Brand, year: Year): Flow<List<Model>>
+    +addModel(model: Model): Result<Unit>
+    +deleteModel(model: Model)
+
+    +getLocations(): Flow<List<Location>>
+    +addLocation(location: Location): Result<Unit>
+    +deleteLocation(location: Location)
+  }
+
+  interface DatabaseMaintenanceRepository {
+    +vacuum()
+  }
+
+  interface DatabaseValidator {
+    +validateDatabase(dbFile: File): ValidationResult
+  }
+
+  class ValidationResult
+  class Success
+  class Error {
+    +message: String
+  }
+
+  ValidationResult <|-- Success
+  ValidationResult <|-- Error
+
+}
+
+' ============================================================
+' =============== DOMAIN: USE CASES ===========================
+' ============================================================
+
+package "ru.tusur.domain.usecase" {
+
+  class GetEntriesUseCase {
+    -repository: FaultRepository
+    +invoke(): Flow<List<FaultEntry>>
+  }
+
+  class GetBrandsUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(): Flow<List<Brand>>
+  }
+
+  package database {
+    class DatabaseExportProgress
+
+    class Started {
+      +totalBytes: Long
+    }
+
+    class Progress {
+      +writtenBytes: Long
+      +totalBytes: Long
+    }
+
+    class Finished
+    class Error {
+      +message: String
+    }
+
+    DatabaseExportProgress <|-- Started
+    DatabaseExportProgress <|-- Progress
+    DatabaseExportProgress <|-- Finished
+    DatabaseExportProgress <|-- Error
+  }
+}
+
+' ============================================================
+' =============== RELATIONSHIPS ===============================
+' ============================================================
+
+Model --> Brand
+Model --> Year
+FaultEntry --> Year
+FaultEntry --> Brand
+FaultEntry --> Model
+FaultEntry --> Location
+EntryWithImages --> FaultEntry
+EntryWithRecording --> Year
+EntryWithRecording --> Brand
+EntryWithRecording --> Model
+EntryWithRecording --> Location
+
+FaultRepository --> FaultEntry
+FaultRepository --> EntryWithImages
+FaultRepository --> EntryWithRecording
+
+ReferenceDataRepository --> Brand
+ReferenceDataRepository --> Model
+ReferenceDataRepository --> Year
+ReferenceDataRepository --> Location
+
+GetEntriesUseCase --> FaultRepository
+GetBrandsUseCase --> ReferenceDataRepository
+' ============================================================
+' =============== DATA: ROOM ENTITIES =========================
+' ============================================================
+
+package "ru.tusur.data.local.entity" {
+
+  class BrandEntity {
+    +name: String
+  }
+
+  class ModelEntity {
+    +name: String
+    +brandName: String
+    +yearValue: Int
+  }
+
+  class LocationEntity {
+    +name: String
+  }
+
+  class YearEntity {
+    +value: Int
+  }
+
+  class EntryEntity {
+    +id: Long = 0
+    +year: Int?
+    +brand: String?
+    +modelName: String?
+    +modelBrand: String?
+    +modelYear: Int?
+    +location: String?
+    +title: String = ""
+    +description: String = ""
+    +timestamp: Long = 0
+  }
+
+  class EntryImageEntity {
+    +id: Long = 0
+    +entryId: Long
+    +uri: String
+  }
+
+  class EntryWithImages_Room {
+    +entry: EntryEntity
+    +images: List<EntryImageEntity>
+  }
+
+  class EntryWithRelations {
+    +entry: EntryEntity
+    +year: YearEntity?
+    +brand: BrandEntity?
+    +location: LocationEntity?
+  }
+}
+
+' ============================================================
+' =============== DATA: DAOs =================================
+' ============================================================
+
+package "ru.tusur.data.local.database.dao" {
+
+  interface BrandDao {
+    +insertBrand(entity: BrandEntity): Long
+    +insertIfMissing(entity: BrandEntity)
+    +deleteBrand(entity: BrandEntity)
+    +getAllBrands(): Flow<List<BrandEntity>>
+  }
+
+  interface ModelDao {
+    +insertModel(entity: ModelEntity): Long
+    +insertIfMissing(entity: ModelEntity)
+    +deleteModel(entity: ModelEntity)
+    +getModelsForBrandAndYear(brandName: String, yearValue: Int): Flow<List<ModelEntity>>
+    +getAllModels(): Flow<List<ModelEntity>>
+  }
+
+  interface LocationDao {
+    +insertLocation(entity: LocationEntity): Long
+    +insertIfMissing(entity: LocationEntity)
+    +deleteLocation(entity: LocationEntity)
+    +getAllLocations(): Flow<List<LocationEntity>>
+  }
+
+  interface YearDao {
+    +insertYear(entity: YearEntity): Long
+    +insertIfMissing(entity: YearEntity)
+    +deleteYear(entity: YearEntity)
+    +getAllYears(): Flow<List<YearEntity>>
+  }
+
+  interface EntryDao {
+    +getAllEntries(): Flow<List<EntryWithRelations>>
+    +getRecentEntries(): List<EntryEntity>
+    +getAllSync(): List<EntryEntity>
+    +getEntryById(id: Long): EntryWithImages_Room?
+    +getById(id: Long): EntryEntity?
+    +getEntryWithRecording(id: Long): EntryWithImages_Room
+    +searchEntries(year: Int?, brand: String?, modelName: String?, location: String?): List<EntryEntity>
+    +insertEntry(entry: EntryEntity): Long
+    +updateEntry(entry: EntryEntity)
+    +deleteEntry(entry: EntryEntity)
+    +getEntryCount(): Int
+    +getAllIds(): List<Long>
+    +getAllEntriesWithImages(): List<EntryWithImages_Room>
+    +getModelForEntry(modelName: String?, modelBrand: String?, modelYear: Int?): ModelEntity?
+    +deleteEntryById(id: Long)
+    +deleteAllEntries()
+  }
+
+  interface EntryImageDao {
+    +getImagesForEntry(entryId: Long): List<EntryImageEntity>
+    +insertImage(image: EntryImageEntity)
+    +insertImages(images: List<EntryImageEntity>)
+    +deleteImagesForEntry(entryId: Long)
+    +deleteImage(entryId: Long, uri: String)
+    +deleteImageByUri(uri: String)
+    +deleteAllImages()
+  }
+}
+
+' ============================================================
+' =============== RELATIONSHIPS (ROOM) ========================
+' ============================================================
+
+EntryWithImages_Room --> EntryEntity
+EntryWithImages_Room --> EntryImageEntity
+
+EntryWithRelations --> EntryEntity
+EntryWithRelations --> YearEntity
+EntryWithRelations --> BrandEntity
+EntryWithRelations --> LocationEntity
+
+EntryImageEntity --> EntryEntity : "entryId FK"
+
+BrandDao --> BrandEntity
+ModelDao --> ModelEntity
+LocationDao --> LocationEntity
+YearDao --> YearEntity
+
+EntryDao --> EntryEntity
+EntryDao --> EntryWithRelations
+EntryDao --> EntryWithImages_Room
+EntryDao --> EntryImageEntity
+EntryDao --> ModelEntity
+
+EntryImageDao --> EntryImageEntity
+' ============================================================
+' =============== DATA: DATABASE PROVIDER =====================
+' ============================================================
+
+package "ru.tusur.data.local" {
+
+  class DatabaseProvider {
+    +getCurrentDatabase(): AppDatabase
+  }
+
+  class DatabaseValidatorImpl {
+    -context: Context
+    +validateDatabase(dbFile: File): DatabaseValidator.ValidationResult
+  }
+}
+
+package "ru.tusur.data.local.database" {
+
+  class AppDatabase {
+    +brandDao(): BrandDao
+    +modelDao(): ModelDao
+    +locationDao(): LocationDao
+    +yearDao(): YearDao
+    +entryDao(): EntryDao
+    +entryImageDao(): EntryImageDao
+    +openHelper: SupportSQLiteOpenHelper
+  }
+}
+
+' ============================================================
+' =============== DATA: MAPPERS ===============================
+' ============================================================
+
+package "ru.tusur.data.mapper" {
+
+  class ReferenceDataMapper {
+    +toDomain(entity: BrandEntity): Brand
+    +toDomain(entity: ModelEntity): Model
+    +toDomain(entity: YearEntity): Year
+    +toDomain(entity: LocationEntity): Location
+
+    +toEntity(model: Brand): BrandEntity
+    +toEntity(model: Model): ModelEntity
+    +toEntity(model: Year): YearEntity
+    +toEntity(model: Location): LocationEntity
+  }
+
+  class EntryMapper {
+    +toDomain(entity: EntryEntity): FaultEntry
+    +toEntity(entry: FaultEntry): EntryEntity
+
+    +fromRelations(rel: EntryWithRelations, model: ModelEntity?): FaultEntry
+    +fromImages(rel: EntryWithImages_Room, model: ModelEntity?): FaultEntry
+
+    +toEntryWithImages(rel: EntryWithImages_Room, model: ModelEntity?): EntryWithImages
+    +toRecording(entryWithImages: EntryWithImages, model: ModelEntity?): EntryWithRecording
+  }
+}
+
+' ============================================================
+' =============== DATA: BACKUP / EXPORT / IMPORT ==============
+' ============================================================
+
+package "ru.tusur.data.backup" {
+
+  class ExportDatabaseUseCase {
+    -provider: DatabaseProvider
+    -context: Context
+    +invoke(folderUri: Uri, onProgress: (DatabaseExportProgress) -> Unit): Result<Unit>
+  }
+
+  class ExportImagesUseCase {
+    -context: Context
+    -provider: DatabaseProvider
+    +invoke(folderUri: Uri): Result<Int>
+  }
+
+  class ImportJsonDatabaseUseCase {
+    -provider: DatabaseProvider
+    -mapper: EntryMapper
+    +invoke(folderUri: Uri): Result<Int>
+  }
+
+  class MergeJsonDatabaseUseCase {
+    -provider: DatabaseProvider
+    -mapper: EntryMapper
+    +invoke(folderUri: Uri, onStep: (Int, Int) -> Unit): Result<Int>
+  }
+}
+
+' ============================================================
+' =============== RELATIONSHIPS ===============================
+' ============================================================
+
+DatabaseProvider --> AppDatabase
+
+DatabaseValidatorImpl ..|> DatabaseValidator
+
+AppDatabase --> BrandDao
+AppDatabase --> ModelDao
+AppDatabase --> LocationDao
+AppDatabase --> YearDao
+AppDatabase --> EntryDao
+AppDatabase --> EntryImageDao
+
+ReferenceDataMapper --> BrandEntity
+ReferenceDataMapper --> ModelEntity
+ReferenceDataMapper --> YearEntity
+ReferenceDataMapper --> LocationEntity
+ReferenceDataMapper --> Brand
+ReferenceDataMapper --> Model
+ReferenceDataMapper --> Year
+ReferenceDataMapper --> Location
+
+EntryMapper --> EntryEntity
+EntryMapper --> FaultEntry
+EntryMapper --> EntryWithRelations
+EntryMapper --> EntryWithImages_Room
+EntryMapper --> EntryWithImages
+EntryMapper --> EntryWithRecording
+EntryMapper --> ModelEntity
+
+ExportDatabaseUseCase --> DatabaseProvider
+ExportDatabaseUseCase --> DatabaseExportProgress
+
+ExportImagesUseCase --> DatabaseProvider
+
+ImportJsonDatabaseUseCase --> DatabaseProvider
+ImportJsonDatabaseUseCase --> EntryMapper
+
+MergeJsonDatabaseUseCase --> DatabaseProvider
+MergeJsonDatabaseUseCase --> EntryMapper
+' ============================================================
+' =============== DATA: REPOSITORY IMPLEMENTATIONS ============
+' ============================================================
+
+package "ru.tusur.data.repository" {
+
+  class DefaultFaultRepository {
+    -appContext: Context
+    -provider: DatabaseProvider
+    -mapper: EntryMapper
+
+    +getAllEntries(): Flow<List<FaultEntry>>
+    +getEntryById(id: Long): FaultEntry?
+    +getRecentEntries(limit: Int): List<FaultEntry>
+    +searchEntries(year: Int?, brand: String?, model: String?, location: String?): List<FaultEntry>
+
+    +createEntry(entry: FaultEntry): Long
+    +updateEntry(entry: FaultEntry)
+    +deleteEntry(entry: FaultEntry)
+    +getEntryCount(): Int
+
+    +addImageToEntry(entryId: Long, uri: String)
+    +removeImageFromEntry(entryId: Long, uri: String)
+    +deleteImage(uri: String)
+
+    +getEntriesWithImages(): List<EntryWithImages>
+    +getEntryWithRecording(id: Long): EntryWithRecording
+
+    +resetDatabase()
+  }
+
+  class DefaultReferenceDataRepository {
+    -provider: DatabaseProvider
+    -mapper: ReferenceDataMapper
+
+    +getYears(): Flow<List<Year>>
+    +addYear(year: Year): Result<Unit>
+    +deleteYear(year: Year)
+
+    +getBrands(): Flow<List<Brand>>
+    +addBrand(brand: Brand): Result<Unit>
+    +deleteBrand(brand: Brand)
+
+    +getModels(): Flow<List<Model>>
+    +getModelsForBrandAndYear(brand: Brand, year: Year): Flow<List<Model>>
+    +addModel(model: Model): Result<Unit>
+    +deleteModel(model: Model)
+
+    +getLocations(): Flow<List<Location>>
+    +addLocation(location: Location): Result<Unit>
+    +deleteLocation(location: Location)
+  }
+
+  class DatabaseMaintenanceRepositoryImpl {
+    -db: AppDatabase
+    +vacuum()
+  }
+}
+
+' ============================================================
+' =============== RELATIONSHIPS ===============================
+' ============================================================
+
+DefaultFaultRepository ..|> FaultRepository
+DefaultReferenceDataRepository ..|> ReferenceDataRepository
+DatabaseMaintenanceRepositoryImpl ..|> DatabaseMaintenanceRepository
+
+DefaultFaultRepository --> DatabaseProvider
+DefaultFaultRepository --> EntryMapper
+DefaultFaultRepository --> EntryDao
+DefaultFaultRepository --> EntryImageDao
+DefaultFaultRepository --> EntryEntity
+DefaultFaultRepository --> EntryImageEntity
+DefaultFaultRepository --> EntryWithRelations
+DefaultFaultRepository --> EntryWithImages_Room
+DefaultFaultRepository --> EntryWithImages
+DefaultFaultRepository --> EntryWithRecording
+DefaultFaultRepository --> ModelEntity
+
+DefaultReferenceDataRepository --> DatabaseProvider
+DefaultReferenceDataRepository --> ReferenceDataMapper
+DefaultReferenceDataRepository --> YearDao
+DefaultReferenceDataRepository --> BrandDao
+DefaultReferenceDataRepository --> ModelDao
+DefaultReferenceDataRepository --> LocationDao
+DefaultReferenceDataRepository --> YearEntity
+DefaultReferenceDataRepository --> BrandEntity
+DefaultReferenceDataRepository --> ModelEntity
+DefaultReferenceDataRepository --> LocationEntity
+
+DatabaseMaintenanceRepositoryImpl --> AppDatabase
+' ============================================================
+' =============== PRESENTATION: VIEWMODELS ====================
+' ============================================================
+
+package "ru.tusur.presentation.viewmodel" {
+
+  ' ---------------------- MainViewModel ----------------------
+  class MainViewModel {
+    -getCurrentDbInfo: GetCurrentDatabaseInfoUseCase
+    -dbMaintenanceRepository: DatabaseMaintenanceRepository
+    -faultRepository: FaultRepository
+    -sharedEvents: SharedAppEventsViewModel
+
+    -_uiState: MutableStateFlow<MainUiState>
+    +uiState: StateFlow<MainUiState>
+
+    +resetDatabase()
+    -refreshDbInfo()
+    -observeEvents()
+  }
+
+  class MainUiState {
+    +dbName: String = ""
+    +entryCount: Int = 0
+    +dbSizeBytes: Long = 0
+    +imageCount: Int = 0
+    +imagesFolderSizeBytes: Long = 0
+    +resetCompleted: Boolean = false
+  }
+
+  ' ---------------------- EntryListViewModel ----------------------
+  class EntryListViewModel {
+    -getRecentEntriesUseCase: GetRecentEntriesUseCase
+    -searchEntriesUseCase: SearchEntriesUseCase
+    -getEntryByIdUseCase: GetEntryByIdUseCase
+    -deleteEntryUseCase: DeleteEntryUseCase
+    -sharedEvents: SharedAppEventsViewModel
+
+    -_uiState: MutableStateFlow<UiState>
+    +uiState: StateFlow<UiState>
+
+    +loadRecentEntries()
+    +searchEntries(filter: SearchFilter)
+    +deleteEntry(entry: FaultEntry)
+  }
+
+  class EntryListViewModel_UiState {
+    +entries: List<FaultEntry> = emptyList()
+    +isLoading: Boolean = false
+    +error: EntryListError?
+  }
+
+  ' ---------------------- EntrySearchViewModel ----------------------
+  class EntrySearchViewModel {
+    -getYears: GetYearsUseCase
+    -getBrands: GetBrandsUseCase
+    -getModelsForBrandAndYear: GetModelsForBrandAndYearUseCase
+    -getLocations: GetLocationsUseCase
+
+    -_uiState: MutableStateFlow<UiState>
+    +uiState: StateFlow<UiState>
+
+    +onYearSelected(year: Year?)
+    +onBrandSelected(brand: Brand?)
+    +onModelSelected(model: Model?)
+    +onLocationSelected(location: Location?)
+    +buildSearchQuery(): SearchQuery
+  }
+
+  class EntrySearchViewModel_UiState {
+    +years: List<Year>
+    +brands: List<Brand>
+    +models: List<Model>
+    +locations: List<Location>
+
+    +selectedYear: Year?
+    +selectedBrand: Brand?
+    +selectedModel: Model?
+    +selectedLocation: Location?
+  }
+
+  ' ---------------------- EditEntryDescriptionViewModel ----------------------
+  class EditEntryDescriptionViewModel {
+    -id: Long
+    -getEntryById: GetEntryByIdUseCase
+    -createEntry: CreateEntryUseCase
+    -updateEntry: UpdateEntryUseCase
+    -deleteEntryUseCase: DeleteEntryUseCase
+    -sharedEvents: SharedAppEventsViewModel
+
+    -_uiState: MutableStateFlow<UiState>
+    +uiState: StateFlow<UiState>
+
+    +onDescriptionChanged(description: String)
+    +onImagesSelected(context: Context, uris: List<Uri>)
+    +removeImage(context: Context, path: String)
+    +saveEntry()
+    +consumeSaveCompleted()
+    +dismissSaveSuccess()
+  }
+
+  class EditEntryDescriptionViewModel_UiState {
+    +entry: FaultEntry?
+    +isLoading: Boolean
+    +isSaving: Boolean
+    +saveCompleted: Boolean
+    +descriptionError: DescriptionError?
+    +showSaveSuccess: Boolean
+    +isValid: Boolean
+  }
+
+  ' ---------------------- NewEntryMetadataViewModel ----------------------
+  class NewEntryMetadataViewModel {
+    -getYears: GetYearsUseCase
+    -getBrands: GetBrandsUseCase
+    -getModelsForBrandAndYear: GetModelsForBrandAndYearUseCase
+    -getLocations: GetLocationsUseCase
+    -addYear: AddYearUseCase
+    -addBrand: AddBrandUseCase
+    -addModel: AddModelUseCase
+    -addLocation: AddLocationUseCase
+    -deleteYearUseCase: DeleteYearUseCase
+    -deleteBrandUseCase: DeleteBrandUseCase
+    -deleteModelUseCase: DeleteModelUseCase
+    -deleteLocationUseCase: DeleteLocationUseCase
+    -createEntryUseCase: CreateEntryUseCase
+    -sharedEvents: SharedAppEventsViewModel
+    -stringProvider: StringProvider
+
+    -_uiState: MutableStateFlow<UiState>
+    +uiState: StateFlow<UiState>
+
+    +onYearSelected(year: Year?)
+    +onBrandSelected(brand: Brand?)
+    +onModelSelected(model: Model?)
+    +onLocationSelected(location: Location?)
+    +onTitleChanged(text: String)
+
+    +onNewYearInputChanged(input: String)
+    +onNewBrandInputChanged(value: String)
+    +onNewModelInputChanged(value: String)
+    +onNewLocationInputChanged(value: String)
+
+    +addNewYear()
+    +addNewBrand()
+    +addNewModel()
+    +addNewLocation()
+
+    +deleteYear(year: Year)
+    +deleteBrand(brand: Brand)
+    +deleteModel(model: Model)
+    +deleteLocation(location: Location)
+
+    +createEntry(onCreated: (Long) -> Unit)
+  }
+
+  class NewEntryMetadataViewModel_UiState {
+    +years: List<Year>
+    +brands: List<Brand>
+    +models: List<Model>
+    +locations: List<Location>
+
+    +selectedYear: Year?
+    +selectedBrand: Brand?
+    +selectedModel: Model?
+    +selectedLocation: Location?
+
+    +title: String
+    +entryId: Long?
+
+    +newYearInput: String
+    +newBrandInput: String
+    +newModelInput: String
+    +newLocationInput: String
+
+    +yearErrorMessage: String?
+    +isContinueEnabled: Boolean
+  }
+
+  ' ---------------------- RecordingViewViewModel ----------------------
+  class RecordingViewViewModel {
+    -repository: FaultRepository
+    -getEntryByIdUseCase: GetEntryByIdUseCase
+    -deleteEntryUseCase: DeleteEntryUseCase
+    -sharedEvents: SharedAppEventsViewModel
+    -entryId: Long
+
+    -_state: MutableStateFlow<RecordingViewUiState>
+    +state: StateFlow<RecordingViewUiState>
+
+    +refresh()
+    +deleteImage(uri: String)
+    +updateDescription(newDescription: String)
+    +deleteEntry()
+  }
+
+  class RecordingViewUiState {
+    +isLoading: Boolean
+    +entry: EntryWithRecording?
+    +error: String?
+    +isDeleted: Boolean
+  }
+
+  ' ---------------------- SettingsViewModel ----------------------
+  class SettingsViewModel {
+    -dataStore: DataStore<Preferences>
+    -mergeDbUseCase: MergeJsonDatabaseUseCase
+    -exportDbUseCase: ExportDatabaseUseCase
+    -strings: StringProvider
+    -sharedEvents: SharedAppEventsViewModel
+
+    -_state: MutableStateFlow<SettingsState>
+    +state: StateFlow<SettingsState>
+
+    -_events: MutableSharedFlow<SettingsEvent>
+    +events: SharedFlow<SettingsEvent>
+
+    +setTheme(theme: ThemeMode)
+    +mergeDatabase(folderUri: Uri)
+    +exportDatabaseToFolder(folderUri: Uri)
+  }
+
+  class SettingsState {
+    +theme: ThemeMode
+    +mergeProgress: Float?
+    +mergeTotalSteps: Int?
+    +exportProgress: Float?
+    +exportTotalBytes: Long?
+    +message: String?
+  }
+
+  interface SettingsEvent
+
+  ' ---------------------- SharedAppEventsViewModel ----------------------
+  class SharedAppEventsViewModel {
+    -_events: MutableSharedFlow<AppEvent>
+    +events: SharedFlow<AppEvent>
+    +emit(event: AppEvent)
+  }
+
+  interface AppEvent
+  class DatabaseCreated
+  class DatabaseMerged
+  class EntryChanged
+
+  AppEvent <|-- DatabaseCreated
+  AppEvent <|-- DatabaseMerged
+  AppEvent <|-- EntryChanged
+
+  ' ---------------------- AboutViewModel ----------------------
+  class AboutViewModel {
+    +version: String
+  }
+}
+
+' ============================================================
+' =============== RELATIONSHIPS ===============================
+' ============================================================
+
+MainViewModel --> GetCurrentDatabaseInfoUseCase
+MainViewModel --> DatabaseMaintenanceRepository
+MainViewModel --> FaultRepository
+MainViewModel --> SharedAppEventsViewModel
+
+EntryListViewModel --> GetRecentEntriesUseCase
+EntryListViewModel --> SearchEntriesUseCase
+EntryListViewModel --> GetEntryByIdUseCase
+EntryListViewModel --> DeleteEntryUseCase
+EntryListViewModel --> SharedAppEventsViewModel
+
+EntrySearchViewModel --> GetYearsUseCase
+EntrySearchViewModel --> GetBrandsUseCase
+EntrySearchViewModel --> GetModelsForBrandAndYearUseCase
+EntrySearchViewModel --> GetLocationsUseCase
+
+EditEntryDescriptionViewModel --> GetEntryByIdUseCase
+EditEntryDescriptionViewModel --> CreateEntryUseCase
+EditEntryDescriptionViewModel --> UpdateEntryUseCase
+EditEntryDescriptionViewModel --> DeleteEntryUseCase
+EditEntryDescriptionViewModel --> SharedAppEventsViewModel
+
+NewEntryMetadataViewModel --> GetYearsUseCase
+NewEntryMetadataViewModel --> GetBrandsUseCase
+NewEntryMetadataViewModel --> GetModelsForBrandAndYearUseCase
+NewEntryMetadataViewModel --> GetLocationsUseCase
+NewEntryMetadataViewModel --> AddYearUseCase
+NewEntryMetadataViewModel --> AddBrandUseCase
+NewEntryMetadataViewModel --> AddModelUseCase
+NewEntryMetadataViewModel --> AddLocationUseCase
+NewEntryMetadataViewModel --> DeleteYearUseCase
+NewEntryMetadataViewModel --> DeleteBrandUseCase
+NewEntryMetadataViewModel --> DeleteModelUseCase
+NewEntryMetadataViewModel --> DeleteLocationUseCase
+NewEntryMetadataViewModel --> CreateEntryUseCase
+NewEntryMetadataViewModel --> SharedAppEventsViewModel
+NewEntryMetadataViewModel --> StringProvider
+
+RecordingViewViewModel --> FaultRepository
+RecordingViewViewModel --> GetEntryByIdUseCase
+RecordingViewViewModel --> DeleteEntryUseCase
+RecordingViewViewModel --> SharedAppEventsViewModel
+
+SettingsViewModel --> DataStore
+SettingsViewModel --> MergeJsonDatabaseUseCase
+SettingsViewModel --> ExportDatabaseUseCase
+SettingsViewModel --> StringProvider
+SettingsViewModel --> SharedAppEventsViewModel
+
+SharedAppEventsViewModel --> AppEvent
+' ============================================================
+' =============== DOMAIN: USE CASES (FULL SET) ================
+' ============================================================
+
+package "ru.tusur.domain.usecase" {
+
+  ' ---------------------- Entry CRUD ----------------------
+  class CreateEntryUseCase {
+    -repository: FaultRepository
+    +invoke(entry: FaultEntry): Long
+  }
+
+  class UpdateEntryUseCase {
+    -repository: FaultRepository
+    +invoke(entry: FaultEntry)
+  }
+
+  class DeleteEntryUseCase {
+    -repository: FaultRepository
+    +invoke(entry: FaultEntry)
+  }
+
+  class GetEntryByIdUseCase {
+    -repository: FaultRepository
+    +invoke(id: Long): FaultEntry?
+  }
+
+  class GetRecentEntriesUseCase {
+    -repository: FaultRepository
+    +invoke(limit: Int = 5): List<FaultEntry>
+  }
+
+  class SearchEntriesUseCase {
+    -repository: FaultRepository
+    +invoke(year: Int?, brand: String?, model: String?, location: String?): List<FaultEntry>
+  }
+
+  ' ---------------------- Reference Data ----------------------
+  class GetYearsUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(): Flow<List<Year>>
+  }
+
+  class AddYearUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(year: Year): Result<Unit>
+  }
+
+  class DeleteYearUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(year: Year)
+  }
+
+  class GetBrandsUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(): Flow<List<Brand>>
+  }
+
+  class AddBrandUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(brand: Brand): Result<Unit>
+  }
+
+  class DeleteBrandUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(brand: Brand)
+  }
+
+  class GetModelsUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(): Flow<List<Model>>
+  }
+
+  class GetModelsForBrandAndYearUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(brand: Brand, year: Year): Flow<List<Model>>
+  }
+
+  class AddModelUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(model: Model): Result<Unit>
+  }
+
+  class DeleteModelUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(model: Model)
+  }
+
+  class GetLocationsUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(): Flow<List<Location>>
+  }
+
+  class AddLocationUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(location: Location): Result<Unit>
+  }
+
+  class DeleteLocationUseCase {
+    -repository: ReferenceDataRepository
+    +invoke(location: Location)
+  }
+
+  ' ---------------------- Recording ----------------------
+  class GetEntryWithRecordingUseCase {
+    -repository: FaultRepository
+    +invoke(id: Long): EntryWithRecording
+  }
+
+  ' ---------------------- Database Info ----------------------
+  class GetCurrentDatabaseInfoUseCase {
+    -provider: DatabaseProvider
+    -context: Context
+    +invoke(): DatabaseInfo
+  }
+
+  class DatabaseInfo {
+    +filename: String?
+    +entryCount: Int
+    +dbSizeBytes: Long
+    +imageCount: Int
+    +imagesFolderSizeBytes: Long
+  }
+}
+
+' ============================================================
+' =============== RELATIONSHIPS ===============================
+' ============================================================
+
+CreateEntryUseCase --> FaultRepository
+UpdateEntryUseCase --> FaultRepository
+DeleteEntryUseCase --> FaultRepository
+GetEntryByIdUseCase --> FaultRepository
+GetRecentEntriesUseCase --> FaultRepository
+SearchEntriesUseCase --> FaultRepository
+GetEntryWithRecordingUseCase --> FaultRepository
+
+GetYearsUseCase --> ReferenceDataRepository
+AddYearUseCase --> ReferenceDataRepository
+DeleteYearUseCase --> ReferenceDataRepository
+
+GetBrandsUseCase --> ReferenceDataRepository
+AddBrandUseCase --> ReferenceDataRepository
+DeleteBrandUseCase --> ReferenceDataRepository
+
+GetModelsUseCase --> ReferenceDataRepository
+GetModelsForBrandAndYearUseCase --> ReferenceDataRepository
+AddModelUseCase --> ReferenceDataRepository
+DeleteModelUseCase --> ReferenceDataRepository
+
+GetLocationsUseCase --> ReferenceDataRepository
+AddLocationUseCase --> ReferenceDataRepository
+DeleteLocationUseCase --> ReferenceDataRepository
+
+GetCurrentDatabaseInfoUseCase --> DatabaseProvider
+' ============================================================
+' =============== FINAL CROSS‑LAYER RELATIONSHIPS ============
+' ============================================================
+
+' ---------- Domain Models <-> Data Entities ----------
+BrandEntity --> Brand
+ModelEntity --> Model
+YearEntity --> Year
+LocationEntity --> Location
+
+EntryEntity --> FaultEntry : "mapped via EntryMapper"
+EntryImageEntity --> FaultEntry : "imageUris"
+
+' ---------- Mappers ----------
+EntryMapper --> FaultEntry
+EntryMapper --> EntryEntity
+EntryMapper --> EntryWithImages
+EntryMapper --> EntryWithRecording
+
+ReferenceDataMapper --> Brand
+ReferenceDataMapper --> Model
+ReferenceDataMapper --> Year
+ReferenceDataMapper --> Location
+
+' ---------- Repositories <-> DAOs ----------
+DefaultFaultRepository --> EntryDao
+DefaultFaultRepository --> EntryImageDao
+
+DefaultReferenceDataRepository --> BrandDao
+DefaultReferenceDataRepository --> ModelDao
+DefaultReferenceDataRepository --> YearDao
+DefaultReferenceDataRepository --> LocationDao
+
+' ---------- ViewModels <-> UseCases ----------
+MainViewModel --> GetCurrentDatabaseInfoUseCase
+MainViewModel --> DatabaseMaintenanceRepository
+MainViewModel --> FaultRepository
+
+EntryListViewModel --> GetRecentEntriesUseCase
+EntryListViewModel --> SearchEntriesUseCase
+EntryListViewModel --> GetEntryByIdUseCase
+EntryListViewModel --> DeleteEntryUseCase
+
+EntrySearchViewModel --> GetYearsUseCase
+EntrySearchViewModel --> GetBrandsUseCase
+EntrySearchViewModel --> GetModelsForBrandAndYearUseCase
+EntrySearchViewModel --> GetLocationsUseCase
+
+EditEntryDescriptionViewModel --> GetEntryByIdUseCase
+EditEntryDescriptionViewModel --> UpdateEntryUseCase
+EditEntryDescriptionViewModel --> DeleteEntryUseCase
+
+NewEntryMetadataViewModel --> AddYearUseCase
+NewEntryMetadataViewModel --> AddBrandUseCase
+NewEntryMetadataViewModel --> AddModelUseCase
+NewEntryMetadataViewModel --> AddLocationUseCase
+NewEntryMetadataViewModel --> DeleteYearUseCase
+NewEntryMetadataViewModel --> DeleteBrandUseCase
+NewEntryMetadataViewModel --> DeleteModelUseCase
+NewEntryMetadataViewModel --> DeleteLocationUseCase
+NewEntryMetadataViewModel --> CreateEntryUseCase
+
+RecordingViewViewModel --> FaultRepository
+RecordingViewViewModel --> GetEntryByIdUseCase
+RecordingViewViewModel --> DeleteEntryUseCase
+
+SettingsViewModel --> MergeJsonDatabaseUseCase
+SettingsViewModel --> ExportDatabaseUseCase
+
+' ---------- Shared Events ----------
+SharedAppEventsViewModel --> AppEvent
+MainViewModel --> SharedAppEventsViewModel
+EntryListViewModel --> SharedAppEventsViewModel
+EditEntryDescriptionViewModel --> SharedAppEventsViewModel
+NewEntryMetadataViewModel --> SharedAppEventsViewModel
+RecordingViewViewModel --> SharedAppEventsViewModel
+SettingsViewModel --> SharedAppEventsViewModel
+
+' ============================================================
+' =============== END OF DIAGRAM ==============================
+' ============================================================
+
+@enduml
