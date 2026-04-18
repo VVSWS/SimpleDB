@@ -24,15 +24,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
-
-
+// ---------------------------------------------------------
+// Главный экран приложения (меню)
+// ---------------------------------------------------------
+// Отображает карточку с информацией о текущей базе данных
+// Содержит кнопки навигации:
+// - Последние записи
+// - Добавить новую запись
+// - Поиск записей
+// - Настройки
+// - О приложении
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) {
+    // Внедрение ViewModel с привязкой к backStackEntry (правильная область видимости)
     val viewModel: MainViewModel = koinViewModel(viewModelStoreOwner = backStackEntry)
     val uiState by viewModel.uiState.collectAsState()
     var showHelpDialog by remember { mutableStateOf(false) }
 
+    // ---------------------------------------------------------
+    // Структура экрана: TopBar + контент
+    // ---------------------------------------------------------
     Scaffold(
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
@@ -46,6 +58,7 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                     )
                 },
                 actions = {
+                    // Кнопка настроек
                     IconButton(onClick = { navController.navigate("settings") }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
@@ -53,7 +66,7 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                         )
                     }
 
-                    // Help icon
+                    // Кнопка помощи (справка)
                     IconButton(onClick = { showHelpDialog = true }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Help,
@@ -61,6 +74,7 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                         )
                     }
 
+                    // Кнопка "О приложении"
                     IconButton(onClick = { navController.navigate("about") }) {
                         Icon(
                             imageVector = Icons.Default.Info,
@@ -72,6 +86,9 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
         }
     ) { padding ->
 
+        // ---------------------------------------------------------
+        // Вертикальный список с кнопками меню
+        // ---------------------------------------------------------
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
@@ -79,12 +96,13 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
+            // Карточка с информацией о базе данных
             item {
                 DatabaseInfoCard(uiState)
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
+            // Кнопка "Последние записи"
             item {
                 Button(
                     onClick = { navController.navigate("recent_entries") },
@@ -96,6 +114,7 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                 }
             }
 
+            // Кнопка "Добавить запись"
             item {
                 Button(
                     onClick = { navController.navigate("new_metadata") },
@@ -107,6 +126,7 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                 }
             }
 
+            // Кнопка "Поиск записей"
             item {
                 Button(
                     onClick = { navController.navigate("search") },
@@ -118,13 +138,16 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
                 }
             }
 
+            // Отступ снизу
             item {
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
 
-    // AlertDialog
+    // ---------------------------------------------------------
+    // Диалог справки (информация о функциональности главного экрана)
+    // ---------------------------------------------------------
     if (showHelpDialog) {
         AlertDialog(
             onDismissRequest = { showHelpDialog = false },
@@ -143,6 +166,9 @@ fun MainScreen(navController: NavController, backStackEntry: NavBackStackEntry) 
     }
 }
 
+// ---------------------------------------------------------
+// Карточка с информацией о текущей базе данных
+// ---------------------------------------------------------
 @Composable
 private fun DatabaseInfoCard(uiState: MainUiState) {
     ElevatedCard(
@@ -150,7 +176,7 @@ private fun DatabaseInfoCard(uiState: MainUiState) {
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-
+            // Заголовок карточки
             Text(
                 text = stringResource(R.string.main_db_info),
                 style = MaterialTheme.typography.titleMedium,
@@ -159,6 +185,7 @@ private fun DatabaseInfoCard(uiState: MainUiState) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Строки с информацией о БД
             InfoRow(label = stringResource(R.string.main_db_name), value = uiState.dbName)
             InfoRow(label = stringResource(R.string.main_entry_count), value = uiState.entryCount.toString())
             InfoRow(label = stringResource(R.string.main_db_size), value = uiState.dbSizeBytes.toReadableSize())
@@ -168,6 +195,9 @@ private fun DatabaseInfoCard(uiState: MainUiState) {
     }
 }
 
+// ---------------------------------------------------------
+// Строка с парой "название : значение" в две колонки
+// ---------------------------------------------------------
 @Composable
 private fun InfoRow(label: String, value: String) {
     Row(
@@ -181,14 +211,20 @@ private fun InfoRow(label: String, value: String) {
     }
 }
 
+// ---------------------------------------------------------
+// Функция-расширение для форматирования размера в байтах
+// ---------------------------------------------------------
+// Преобразует Long (байты) в человеко-читаемый формат:
+// - < 1 KB для маленьких значений
+// - X KB для килобайт
+// - X.XX MB для мегабайт
 @SuppressLint("DefaultLocale")
 private fun Long.toReadableSize(): String {
     if (this <= 0) return "0 B"
 
     return when {
-        this < 1024 -> "< 1 KB"
-        this < 1024 * 1024 -> "${this / 1024} KB"
-        else -> String.format("%.2f MB", this / (1024f * 1024f))
+        this < 1024 -> "< 1 KB"                                    // Меньше 1 КБ
+        this < 1024 * 1024 -> "${this / 1024} KB"                 // От 1 КБ до 1 МБ
+        else -> String.format("%.2f MB", this / (1024f * 1024f))  // Больше 1 МБ
     }
 }
-

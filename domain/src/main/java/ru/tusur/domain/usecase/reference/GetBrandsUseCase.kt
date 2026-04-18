@@ -2,8 +2,18 @@ package ru.tusur.domain.usecase.reference
 
 import ru.tusur.domain.repository.ReferenceDataRepository
 
+// ---------------------------------------------------------
+// UseCase для получения списка всех марок автомобилей
+// ---------------------------------------------------------
+// Инкапсулирует бизнес-логику получения справочника марок
+// Возвращает реактивный поток (Flow), который автоматически обновляется
+// при изменениях в справочнике марок
 class GetBrandsUseCase(
-    private val repository: ReferenceDataRepository
+    private val repository: ReferenceDataRepository   // Репозиторий для работы со справочниками
 ) {
+    // ---------------------------------------------------------
+    // Оператор invoke - выполнение получения списка марок
+    // ---------------------------------------------------------
+    // Возвращает: Flow<List<Brand>> - реактивный поток со списком всех марок
     operator fun invoke() = repository.getBrands()
 }

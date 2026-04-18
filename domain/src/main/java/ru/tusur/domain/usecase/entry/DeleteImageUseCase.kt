@@ -2,9 +2,19 @@ package ru.tusur.domain.usecase.entry
 
 import ru.tusur.domain.repository.FaultRepository
 
+// ---------------------------------------------------------
+// UseCase для удаления изображения по URI
+// ---------------------------------------------------------
+// Инкапсулирует бизнес-логику удаления изображения
+// Вызывает соответствующий метод репозитория
+// Удаляет физический файл изображения с диска и все связи с записями в БД
 class DeleteImageUseCase(
-    private val repository: FaultRepository
+    private val repository: FaultRepository   // Репозиторий для работы с записями и изображениями
 ) {
+    // ---------------------------------------------------------
+    // Оператор invoke - выполнение удаления изображения
+    // ---------------------------------------------------------
+    // path: URI изображения (может быть content://, file:// или относительный путь)
     suspend operator fun invoke(path: String) {
         repository.deleteImage(path)
     }

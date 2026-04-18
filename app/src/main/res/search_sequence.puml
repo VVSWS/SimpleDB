@@ -1,0 +1,25 @@
+@startuml
+title EntrySearchScreen - Поиск записей
+
+actor User as User
+participant "EntrySearchScreen" as UI
+participant "SharedSearchViewModel" as VM
+participant "SearchEntriesUseCase" as UC
+participant "DefaultFaultRepository" as REPO
+participant "EntryDao" as DAO
+participant "AppDatabase" as DB
+
+User -> UI: вводит текст/меняет фильтр
+UI -> VM: onQueryChanged(text) / onFilterChanged(SearchFilter)
+VM -> VM: combine(query, filter) → SearchQuery
+VM -> UC: invoke(searchQuery)
+UC -> REPO: searchEntries(query)
+REPO -> DAO: searchBySymptomsAndParams(query)
+DAO -> DB: SELECT ... WHERE symptoms LIKE ?\nOR brand LIKE ? ...
+DB --> DAO: Flow<List<EntryWithRelations>>
+DAO --> REPO: реактивный поток
+REPO --> UC: Flow<List>
+UC --> VM: emit State.Searching → State.Results(matches)
+VM --> UI: render filtered List
+
+@enduml

@@ -1,0 +1,44 @@
+@startuml
+title NewEntryMetadataScreen - Загрузка метаданных для новой записи
+
+actor User as User
+participant "NewEntryMetadataScreen" as UI
+participant "NewEntryMetadataViewModel" as VM
+participant "GetBrandsUseCase /\nGetModelsForBrandAndYearUseCase" as UC
+participant "DefaultReferenceDataRepository" as REPO
+participant "BrandDao / ModelDao / YearDao" as DAO
+participant "AppDatabase" as DB
+
+User -> UI: открывает экран
+UI -> VM: onScreenInit()
+VM -> UC: invoke()
+UC -> REPO: getBrands()
+REPO -> DAO: queryAllBrands()
+DAO -> DB: SELECT * FROM brands
+DB --> DAO: List<BrandEntity>
+DAO --> REPO: List<Brand>
+REPO --> UC: Result.Success
+UC --> VM: updateState(brandsList)
+VM --> UI: render EditableDropdownSelector(brands)
+
+User -> UI: выбирает бренд
+UI -> VM: onSelectBrand(selected)
+
+User -> UI: выбирает год
+UI -> VM: onSelectYear(selected)
+
+VM -> UC: getModels(brandId, yearId)
+UC -> REPO: getModels(brandId, yearId)
+REPO -> DAO: queryModelsByBrandAndYear(brandId, yearId)
+DAO -> DB: SELECT * FROM models\nWHERE brand_id = ? AND year_id = ?
+DB --> DAO: List<ModelEntity>
+DAO --> REPO: List<Model>
+REPO --> UC: Result.Success(modelsList)
+UC --> VM: modelsList
+VM --> UI: update Models dropdown
+
+User -> UI: нажимает "Далее"
+UI -> VM: onSubmitMetadata()
+VM -> VM: validate & navigateTo EditEntryDescriptionScreen
+
+@enduml

@@ -1,0 +1,103 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+hide empty members
+
+' Вертикальное расположение
+left to right direction
+
+' Определение пакетов (Модулей)
+package "Presentation Layer\n(:presentation)" as PL {
+    [UI Screens] as UI
+    [ViewModels] as VM
+    [Navigation] as Nav
+    [Common Components] as Comp
+    [Shared State] as Shared
+
+    note right of UI : MainScreen, EntryList,\nNewEntry, Settings...
+    note right of VM : MainVM, EntryListVM,\nSettingsVM...
+    note right of Comp : EditableDropdown,\nZoomableImage...
+}
+
+package "Domain Layer\n(:domain)" as DL {
+    [Use Cases] as UC
+    [Domain Models] as DM
+    [Repository Interfaces] as RI
+
+    note right of UC : GetEntries,\nCreateEntry,\nSearchEntries...
+    note right of DM : FaultEntry, Brand,\nModel, Location...
+    note right of RI : FaultRepository,\nReferenceDataRepo...
+}
+
+package "Data Layer\n(:data)" as DTL {
+    [Repository Impl] as RImpl
+    [Local Data Source] as LDS
+    [Backup & Restore] as BR
+    [File Storage] as FS
+
+    note right of LDS : Room Database\n(AppDatabase, DAOs)
+    note right of BR : Export/Import JSON,\nVacuum DB
+    note right of FS : ImageStorage\n(Save/Delete files)
+}
+
+package "Core Module\n(:core)" as CM {
+    [Theme Manager] as Theme
+    [String Provider] as SP
+    [Utils] as Utils
+}
+
+package "Android Framework / Libs" as AFL {
+    [Jetpack Compose] as JC
+    [Koin DI] as Koin
+    [Room Library] as RoomLib
+    [DataStore] as DS
+    [Coroutines] as Cor
+}
+
+' Вертикальные связи между слоями
+PL -[#blue]down-> DL : "зависит от"
+DL -[#blue]down-> DTL : "зависит от"
+
+' Связи внутри Presentation (вертикально)
+UI -[#green]down-> VM : "наблюдает (StateFlow)"
+VM -[#green]down-> Nav : "вызывает навигацию"
+UI -[#green]down-> Comp : "использует"
+VM -[#green]down-> Shared : "отправляет/получает события"
+
+' Связи Presentation -> Domain
+VM -[#orange]down-> UC : "вызывает UseCase"
+UC -[#orange]down-> DM : "возвращает/принимает"
+
+' Связи Domain -> Data (Инверсия зависимостей)
+RI <..[#red]down.. RImpl : "реализует"
+UC -[#red]down-> RI : "зависит от (интерфейс)"
+
+' Связи внутри Data
+RImpl -[#purple]down-> LDS : "вызывает DAO"
+RImpl -[#purple]down-> FS : "управляет файлами"
+RImpl -[#purple]down-> BR : "выполняет бэкапы"
+LDS -[#purple]down-> RoomLib : "расширяет"
+BR -[#purple]down-> LDS : "читает/записывает"
+
+' Связи с Core и Framework
+VM -[#gray]down-> SP : "получает локализованные строки"
+UC -[#gray]down-> SP : "опциональные сообщения валидации"
+UI -[#gray]down-> Theme : "применяет стили"
+RImpl -[#gray]down-> DS : "сохраняет настройки"
+UC -[#gray]down-> Cor : "асинхронный контекст"
+
+' Инъекции зависимостей (Koin)
+Koin ..[#brown]down.> UI : "внедряет ViewModels"
+Koin ..[#brown]down.> UC : "предоставляет UseCase"
+Koin ..[#brown]down.> RImpl : "предоставляет Repositories"
+
+' Внешние зависимости
+package "External" as EXT {
+    [Android OS] as Android
+}
+
+EXT -[#black]down-> JC : "отображает UI"
+EXT -[#black]down-> RoomLib : "движок SQLite"
+EXT -[#black]down-> DS : "SharedPreferences/Файлы"
+
+@enduml

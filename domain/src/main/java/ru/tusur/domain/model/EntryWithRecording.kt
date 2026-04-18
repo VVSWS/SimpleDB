@@ -1,14 +1,19 @@
 package ru.tusur.domain.model
 
+// ---------------------------------------------------------
+// Доменная модель для экрана записи
+// ---------------------------------------------------------
+// Содержит все необходимые данные для воспроизведения записи неисправности
+// Оптимизирована для использования в плеере: содержит только нужные поля
+// Не включает методы для редактирования, только для отображения
 data class EntryWithRecording(
-    val id: Long,
-    val title: String,
-    val year: Year?,
-    val brand: Brand?,
-    val model: Model?,
-    val location: Location?,
-    val timestamp: Long,
-    val description: String?,
-    val imageUris: List<String> = emptyList()
+    val id: Long,                      // Уникальный идентификатор записи
+    val title: String,                 // Заголовок неисправности
+    val year: Year?,                   // Год выпуска техники (может отсутствовать)
+    val brand: Brand?,                 // Марка автомобиля (может отсутствовать)
+    val model: Model?,                 // Модель автомобиля (может отсутствовать)
+    val location: Location?,           // Местоположение неисправности (может отсутствовать)
+    val timestamp: Long,               // Временная метка создания записи
+    val description: String?,          // Подробное описание проблемы (может отсутствовать)
+    val imageUris: List<String> = emptyList()  // Список URI связанных изображений
 )
-

@@ -31,6 +31,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
+// ---------------------------------------------------------
+// Экран настроек приложения
+// ---------------------------------------------------------
+// Позволяет пользователю:
+// - Выбрать тему оформления (системная, светлая, тёмная)
+// - Выполнить слияние базы данных из резервной копии
+// - Экспортировать текущую базу данных в выбранную папку
+// - Сбросить все данные (удалить записи и изображения)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -43,22 +51,27 @@ fun SettingsScreen(
     val mainUiState by mainViewModel.uiState.collectAsState()
     var showHelpDialog by remember { mutableStateOf(false) }
 
-
-    // MERGE FOLDER PICKER
+    // ---------------------------------------------------------
+    // Лаунчер для выбора папки слияния (OpenDocumentTree)
+    // ---------------------------------------------------------
     val mergeFolderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
         uri?.let { viewModel.mergeDatabase(it) }
     }
 
-    // EXPORT FOLDER PICKER
+    // ---------------------------------------------------------
+    // Лаунчер для выбора папки экспорта (OpenDocumentTree)
+    // ---------------------------------------------------------
     val exportFolderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
         uri?.let { viewModel.exportDatabaseToFolder(it) }
     }
 
-    // SETTINGS EVENTS
+    // ---------------------------------------------------------
+    // Обработка событий настроек (пока пустая, зарезервирована)
+    // ---------------------------------------------------------
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
@@ -68,7 +81,9 @@ fun SettingsScreen(
         }
     }
 
-    // RESET SUCCESS TOAST
+    // ---------------------------------------------------------
+    // Уведомление об успешном сбросе базы данных
+    // ---------------------------------------------------------
     LaunchedEffect(mainUiState.resetCompleted) {
         if (mainUiState.resetCompleted) {
             Toast.makeText(
@@ -79,6 +94,9 @@ fun SettingsScreen(
         }
     }
 
+    // ---------------------------------------------------------
+    // Структура экрана: TopBar + контент
+    // ---------------------------------------------------------
     Scaffold(
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
@@ -92,6 +110,7 @@ fun SettingsScreen(
                     )
                 },
                 navigationIcon = {
+                    // Кнопка возврата
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -99,9 +118,8 @@ fun SettingsScreen(
                         )
                     }
                 },
-
                 actions = {
-                    // Help icon
+                    // Кнопка помощи (справка)
                     IconButton(onClick = { showHelpDialog = true }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Help,
@@ -113,6 +131,9 @@ fun SettingsScreen(
         }
     ) { padding ->
 
+        // ---------------------------------------------------------
+        // Основной контент с прокруткой
+        // ---------------------------------------------------------
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -121,25 +142,30 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // THEME SECTION
+            // ---------------------------------------------------------
+            // СЕКЦИЯ: НАСТРОЙКИ ТЕМЫ
+            // ---------------------------------------------------------
             Text(
                 text = stringResource(R.string.settings_theme),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
+            // Системная тема (следует за настройками ОС)
             ThemeRadioButton(
                 label = stringResource(R.string.settings_theme_system),
                 selected = uiState.theme == ThemeMode.SYSTEM,
                 onClick = { viewModel.setTheme(ThemeMode.SYSTEM) }
             )
 
+            // Светлая тема (принудительно)
             ThemeRadioButton(
                 label = stringResource(R.string.settings_theme_light),
                 selected = uiState.theme == ThemeMode.LIGHT,
                 onClick = { viewModel.setTheme(ThemeMode.LIGHT) }
             )
 
+            // Тёмная тема (принудительно)
             ThemeRadioButton(
                 label = stringResource(R.string.settings_theme_dark),
                 selected = uiState.theme == ThemeMode.DARK,
@@ -148,14 +174,18 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // DATABASE SECTION
+            // ---------------------------------------------------------
+            // СЕКЦИЯ: УПРАВЛЕНИЕ БАЗОЙ ДАННЫХ
+            // ---------------------------------------------------------
             Text(
                 text = stringResource(R.string.settings_db),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            // MERGE DB
+            // ---------------------------------------------------------
+            // КНОПКА СЛИЯНИЯ БАЗЫ ДАННЫХ
+            // ---------------------------------------------------------
             Button(
                 onClick = { mergeFolderLauncher.launch(null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -164,6 +194,7 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings_db_merge))
             }
 
+            // Индикатор прогресса слияния
             uiState.mergeProgress?.let { progress ->
                 Spacer(modifier = Modifier.height(16.dp))
                 LinearProgressIndicator(
@@ -178,7 +209,9 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // EXPORT DB
+            // ---------------------------------------------------------
+            // КНОПКА ЭКСПОРТА БАЗЫ ДАННЫХ
+            // ---------------------------------------------------------
             Button(
                 onClick = { exportFolderLauncher.launch(null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -187,6 +220,7 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings_db_export))
             }
 
+            // Индикатор прогресса экспорта
             uiState.exportProgress?.let { progress ->
                 Spacer(modifier = Modifier.height(16.dp))
                 LinearProgressIndicator(
@@ -201,7 +235,9 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // RESET DATABASE BUTTON + CONFIRMATION DIALOG
+            // ---------------------------------------------------------
+            // КНОПКА СБРОСА БАЗЫ ДАННЫХ (С ПОДТВЕРЖДЕНИЕМ)
+            // ---------------------------------------------------------
             var showResetDialog by remember { mutableStateOf(false) }
 
             Button(
@@ -216,6 +252,7 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings_db_reset))
             }
 
+            // Диалог подтверждения сброса
             if (showResetDialog) {
                 AlertDialog(
                     onDismissRequest = { showResetDialog = false },
@@ -245,7 +282,9 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // MESSAGE
+            // ---------------------------------------------------------
+            // СООБЩЕНИЯ (информационные или об ошибках)
+            // ---------------------------------------------------------
             uiState.message?.let { msg ->
                 Text(
                     text = msg,
@@ -256,7 +295,9 @@ fun SettingsScreen(
         }
     }
 
-    // AlertDialog
+    // ---------------------------------------------------------
+    // Диалог справки (информация о функциональности экрана настроек)
+    // ---------------------------------------------------------
     if (showHelpDialog) {
         AlertDialog(
             onDismissRequest = { showHelpDialog = false },
@@ -275,17 +316,20 @@ fun SettingsScreen(
     }
 }
 
+// ---------------------------------------------------------
+// Компонент выбора темы (радиокнопка с текстом)
+// ---------------------------------------------------------
 @Composable
 private fun ThemeRadioButton(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
+    label: String,      // Текст метки
+    selected: Boolean,  // Выбран ли данный вариант
+    onClick: () -> Unit // Обработчик нажатия
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable { onClick() }  // Вся строка кликабельна
             .padding(vertical = 4.dp)
     ) {
         RadioButton(

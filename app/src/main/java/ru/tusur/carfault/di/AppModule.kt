@@ -41,39 +41,74 @@ import ru.tusur.presentation.util.AndroidStringProvider
 import ru.tusur.presentation.util.StringProvider
 import ru.tusur.data.repository.DatabaseMaintenanceRepositoryImpl
 
-
+// ---------------------------------------------------------
+// Расширение Context для доступа к DataStore настроек
+// ---------------------------------------------------------
+// Создание или получение экземпляра DataStore с именем "settings"
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
+// ---------------------------------------------------------
+// Главный DI-модуль приложения (Koin)
+// ---------------------------------------------------------
+// Определение всех зависимостей: репозитории, use cases, ViewModel
 val appModule = module {
 
-    // Shared ViewModels
+    // ---------------------------------------------------------
+    // Shared ViewModels (общие между экранами)
+    // ---------------------------------------------------------
+    // ViewModel для общего состояния поиска
     single { SharedSearchViewModel() }
+    // ViewModel для глобальных событий приложения
     single { SharedAppEventsViewModel() }
 
-    // Core helpers
+    // ---------------------------------------------------------
+    // Core helpers (вспомогательные утилиты)
+    // ---------------------------------------------------------
+    // Утилиты для работы с файлами (синглтон)
     single { FileHelper }
+    // Валидатор целостности базы данных Room
     single<DatabaseValidator> { RoomDatabaseValidator() }
+    // DataStore для хранения настроек пользователя
     single<DataStore<Preferences>> { androidContext().dataStore }
+    // Провайдер строковых ресурсов (поддержка локализации)
     single<StringProvider> { AndroidStringProvider(androidContext()) }
 
-    // Database provider
+    // ---------------------------------------------------------
+    // Database provider (провайдер базы данных)
+    // ---------------------------------------------------------
+    // Управление подключением к БД и версионированием
     single {
         DatabaseProvider(androidContext())
     }
 
+    // ---------------------------------------------------------
+    // Текущий экземпляр AppDatabase
+    // ---------------------------------------------------------
+    // Получение актуальной базы данных через провайдера
     single<AppDatabase> {
         get<DatabaseProvider>().getCurrentDatabase()
     }
 
+    // ---------------------------------------------------------
+    // Репозиторий для обслуживания базы данных
+    // ---------------------------------------------------------
+    // Операции по созданию, резервному копированию и восстановлению БД
     single<DatabaseMaintenanceRepository> {
         DatabaseMaintenanceRepositoryImpl(db = get())
     }
 
-    // Mappers
+    // ---------------------------------------------------------
+    // Mappers (преобразователи данных)
+    // ---------------------------------------------------------
+    // Преобразование EntryEntity ↔ EntryDomain
     single { EntryMapper() }
+    // Преобразование справочных данных (марки, модели, года, локации)
     single { ReferenceDataMapper() }
 
-    // Repositories
+    // ---------------------------------------------------------
+    // Repositories (репозитории)
+    // ---------------------------------------------------------
+    // Репозиторий для работы с записями о неисправностях
     single<FaultRepository> {
         DefaultFaultRepository(
             appContext = androidContext(),
@@ -82,6 +117,7 @@ val appModule = module {
         )
     }
 
+    // Репозиторий для работы со справочными данными
     single<ReferenceDataRepository> {
         DefaultReferenceDataRepository(
             provider = get(),
@@ -89,7 +125,10 @@ val appModule = module {
         )
     }
 
-    // Use Cases — Database / Backup
+    // ---------------------------------------------------------
+    // Use Cases — Database / Backup (работа с БД и резервное копирование)
+    // ---------------------------------------------------------
+    // Создание новой базы данных
     single {
         CreateDatabaseUseCaseImpl(
             context = androidContext(),
@@ -97,6 +136,7 @@ val appModule = module {
         )
     }
 
+    // Слияние JSON-базы с текущей
     single {
         MergeJsonDatabaseUseCase(
             context = androidContext(),
@@ -105,6 +145,7 @@ val appModule = module {
         )
     }
 
+    // Экспорт базы данных в JSON
     single {
         ExportDatabaseUseCase(
             context = androidContext(),
@@ -112,6 +153,7 @@ val appModule = module {
         )
     }
 
+    // Импорт базы данных из JSON
     single {
         ImportJsonDatabaseUseCase(
             context = androidContext(),
@@ -120,9 +162,13 @@ val appModule = module {
         )
     }
 
+    // Экспорт изображений в ZIP-архив
     single { ExportImagesUseCase(get()) }
 
-    // NEW snapshot-based DB info use case
+    // ---------------------------------------------------------
+    // Получение информации о текущей БД (снапшот)
+    // ---------------------------------------------------------
+    // Информация о версии, количестве записей и размере БД
     single {
         GetCurrentDatabaseInfoUseCase(
             context = androidContext(),
@@ -131,35 +177,62 @@ val appModule = module {
         )
     }
 
-    // Use Cases — Entry
+    // ---------------------------------------------------------
+    // Use Cases — Entry (работа с записями)
+    // ---------------------------------------------------------
+    // Получение всех записей
     factory { GetEntriesUseCase(get()) }
+    // Получение записи по ID
     factory { GetEntryByIdUseCase(get()) }
+    // Создание новой записи
     factory { CreateEntryUseCase(get()) }
+    // Обновление существующей записи
     factory { UpdateEntryUseCase(get()) }
+    // Удаление записи
     factory { DeleteEntryUseCase(get()) }
+    // Получение последних записей
     factory { GetRecentEntriesUseCase(get()) }
+    // Поиск записей по критериям
     factory { SearchEntriesUseCase(get()) }
+    // Получение моделей для конкретной марки и года
     factory { GetModelsForBrandAndYearUseCase(get()) }
 
-    // Use Cases — Reference Data
+    // ---------------------------------------------------------
+    // Use Cases — Reference Data (справочные данные)
+    // ---------------------------------------------------------
+    // Получение списка годов
     factory { GetYearsUseCase(get()) }
+    // Добавление нового года
     factory { AddYearUseCase(get()) }
+    // Добавление новой модели
     factory { AddModelUseCase(get()) }
+    // Получение списка марок
     factory { GetBrandsUseCase(get()) }
+    // Добавление новой марки
     factory { AddBrandUseCase(get()) }
+    // Получение списка локаций
     factory { GetLocationsUseCase(get()) }
+    // Добавление новой локации
     factory { AddLocationUseCase(get()) }
 
+    // ---------------------------------------------------------
+    // Use Cases — Delete (удаление справочных данных)
+    // ---------------------------------------------------------
+    // Удаление марки
     factory { DeleteBrandUseCase(get()) }
+    // Удаление модели
     factory { DeleteModelUseCase(get()) }
+    // Удаление локации
     factory { DeleteLocationUseCase(get()) }
+    // Удаление года
     factory { DeleteYearUseCase(get()) }
+    // Удаление изображения
     factory { DeleteImageUseCase(get()) }
 
-
-
-
-    // ViewModels
+    // ---------------------------------------------------------
+    // ViewModels (модели представления для экранов)
+    // ---------------------------------------------------------
+    // Главный экран приложения
     viewModel {
         MainViewModel(
             getCurrentDbInfo = get(),
@@ -169,7 +242,7 @@ val appModule = module {
         )
     }
 
-
+    // Экран со списком записей
     viewModel {
         EntryListViewModel(
             getRecentEntriesUseCase = get(),
@@ -180,7 +253,7 @@ val appModule = module {
         )
     }
 
-
+    // Экран поиска записей
     viewModel {
         EntrySearchViewModel(
             getYears = get(),
@@ -190,6 +263,7 @@ val appModule = module {
         )
     }
 
+    // Экран создания новой записи (выбор метаданных)
     viewModel {
         NewEntryMetadataViewModel(
             getYears = get(),
@@ -207,10 +281,10 @@ val appModule = module {
             createEntryUseCase = get(),
             sharedEvents = get(),
             stringProvider = get()
-
         )
     }
 
+    // Экран редактирования описания записи
     viewModel { (id: Long) ->
         EditEntryDescriptionViewModel(
             id = id,
@@ -222,6 +296,7 @@ val appModule = module {
         )
     }
 
+    // Экран просмотра аудиозаписи
     viewModel { (id: Long) ->
         RecordingViewViewModel(
             repository = get(),
@@ -232,6 +307,7 @@ val appModule = module {
         )
     }
 
+    // Экран настроек приложения
     viewModel {
         SettingsViewModel(
             dataStore = get(),
@@ -242,5 +318,6 @@ val appModule = module {
         )
     }
 
+    // Экран "О приложении"
     viewModel { AboutViewModel() }
 }

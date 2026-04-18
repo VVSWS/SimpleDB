@@ -3,27 +3,52 @@ package ru.tusur.data.local.entity
 import androidx.room.Embedded
 import androidx.room.Relation
 
-/**
- * Room relation:
- * EntryEntity + linked dictionary entities (Year, Brand, Location).
- *
- * Used for list/search screens where images are not required.
- */
+// ---------------------------------------------------------
+// POJO-класс для связи "Запись + связанные справочники"
+// ---------------------------------------------------------
+// Используется Room для выполнения транзакционных запросов
+// Объединяет одну запись со справочными данными (год, марка, локация)
+// Изображения не загружаются - это экономит ресурсы на экранах списка и поиска
 data class EntryWithRelations(
-    @Embedded val entry: EntryEntity,
 
+    // ---------------------------------------------------------
+    // Встраиваемая запись о неисправности
+    // ---------------------------------------------------------
+    // @Embedded означает, что поля EntryEntity будут развёрнуты
+    // в результирующем наборе запросов
+    @Embedded
+    val entry: EntryEntity,
+
+    // ---------------------------------------------------------
+    // Связь со справочником годов
+    // ---------------------------------------------------------
+    // parentColumn = "year" - поле в EntryEntity (числовое значение года)
+    // entityColumn = "value" - поле в YearEntity (числовое значение года)
+    // Загружает полный объект YearEntity, соответствующий году записи
     @Relation(
         parentColumn = "year",
         entityColumn = "value"
     )
     val year: YearEntity?,
 
+    // ---------------------------------------------------------
+    // Связь со справочником марок
+    // ---------------------------------------------------------
+    // parentColumn = "brand" - поле в EntryEntity (название марки)
+    // entityColumn = "name" - поле в BrandEntity (название марки)
+    // Загружает полный объект BrandEntity, соответствующий марке записи
     @Relation(
         parentColumn = "brand",
         entityColumn = "name"
     )
     val brand: BrandEntity?,
 
+    // ---------------------------------------------------------
+    // Связь со справочником местоположений
+    // ---------------------------------------------------------
+    // parentColumn = "location" - поле в EntryEntity (название локации)
+    // entityColumn = "name" - поле в LocationEntity (название локации)
+    // Загружает полный объект LocationEntity, соответствующий локации записи
     @Relation(
         parentColumn = "location",
         entityColumn = "name"

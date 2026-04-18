@@ -1,0 +1,66 @@
+@startuml DatabaseProvider_StateDiagram
+title Состояния DatabaseProvider
+skinparam state {
+  BackgroundColor<<initial>> LightGreen
+  BackgroundColor<<final>> LightCoral
+  BackgroundColor<<active>> LightBlue
+}
+
+[*] --> Uninitialized : Приложение запущено
+
+state Uninitialized {
+  [*] --> WaitingForInit
+  note right: currentDatabase = null\ncurrentDbFile = null
+}
+
+Uninitialized --> Initializing : initializeDatabase()
+
+state Initializing <<active>> {
+  [*] --> CheckingFile : FileHelper.getActiveDatabaseFile()
+  CheckingFile --> CreatingFromExisting : dbFile.exists() == true
+  CheckingFile --> CreatingFresh : dbFile.exists() == false
+
+  CreatingFromExisting --> Building : .createFromFile(dbFile)
+  CreatingFresh --> Building : .fallbackToDestructiveMigration()
+
+  Building --> Built : .build()
+  note right: Room.databaseBuilder()\nсоздает экземпляр AppDatabase
+}
+
+Initializing --> Initialized : Успешное создание
+Initializing --> ErrorState : Ошибка при создании (IOException, миграция)
+
+state Initialized <<active>> {
+  [*] --> Ready
+  Ready --> InUse : getCurrentDatabase()\nвызывается DAO/Repository
+
+  note right: currentDatabase != null\nБаза готова к операциям:\n• insert/update/delete\n• Flow-наблюдатели активны
+}
+
+Initialized --> Resetting : resetDatabase()
+
+state Resetting {
+  [*] --> Closing : currentDatabase?.close()
+  Closing --> Clearing : currentDatabase = null
+}
+
+Resetting --> Uninitialized : Сброс завершён
+
+ErrorState --> Initializing : retry() или повторный запуск
+ErrorState --> [*] : Критическая ошибка
+
+state ErrorState <<final>> {
+  note right: IllegalStateException\nили другая ошибка инициализации
+}
+
+Initialized --> [*] : Приложение завершено
+
+' Переходы для наглядности
+note bottom of Initialized
+  В этом состоянии доступны:
+  • entryDao().insertEntry()
+  • Flow<List<EntryWithRelations>>
+  • Транзакции @Transaction
+end note
+
+@enduml

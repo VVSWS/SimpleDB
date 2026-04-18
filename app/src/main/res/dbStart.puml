@@ -1,0 +1,52 @@
+@startuml
+skinparam sequenceMessageAlign center
+autonumber
+
+actor "Пользователь" as User
+participant "Application.kt" as App
+participant "Koin DI Container" as DI
+participant "DataModule.kt" as DataModule
+participant "AppDatabase.kt\n(Room)" as DB
+participant "SQLiteOpenHelper" as SQLite
+participant "DatabaseMaintenanceRepository" as Repo
+participant "GetCurrentDatabaseInfoUseCase" as UC
+participant "MainViewModel.kt" as VM
+participant "MainScreen.kt (UI)" as UI
+
+User -> App: Запуск приложения (onCreate)
+App -> DI: startKoin { modules(DataModule, DomainModule, ...) }
+DI -> DataModule: Запрос зависимости AppDatabase
+DataModule -> DB: Room.databaseBuilder(context, AppDatabase::class.java, "app.db")\n.build()
+note right: Файл БД НЕ создаётся.\nФормируется только конфигурация.\nDB возвращается как ленивый синглтон.
+DB --> DataModule: Экземпляр AppDatabase (закрыт)
+DataModule --> DI: Регистрация в графе зависимостей
+DI --> App: Контейнер инициализирован
+App --> UI: Отображение MainScreen
+
+User -> UI: Открытие главного экрана
+UI -> VM: Инициализация MainViewModel (koinViewModel)
+VM -> VM: init { refreshDbInfo(); observeEvents() }
+VM -> UC: getCurrentDbInfo()
+UC -> Repo: invoke()
+Repo -> DB: Вызов DAO-метода\n(первое обращение к базе)
+DB -> SQLite: getWritableDatabase()
+SQLite -> SQLite: Проверка существования файла app.db
+
+alt Файл БД отсутствует (первый запуск)
+    SQLite -> SQLite: Создание файла .db в filesDir
+    SQLite -> DB: Вызов RoomDatabase.Callback().onCreate()
+    DB -> DB: Выполнение SQL-скриптов схемы\n(@Database(entities = {...}))\nСоздание таблиц, индексов, триггеров
+    DB --> SQLite: Схема применена
+else Файл БД существует
+    SQLite -> SQLite: Открытие существующей БД
+    SQLite -> SQLite: Проверка версии (Migration/Validation)
+end
+
+SQLite --> DB: Соединение установлено
+DB --> Repo: Результат DAO-запроса (Cursor/Flow)
+Repo --> UC: DatabaseInfo(domain)
+UC --> VM: Возврат данных в корутине
+VM -> VM: _uiState.update { copy(...) }
+VM --> UI: StateFlow.emit() → collectAsState()
+UI --> User: Отображение карточки статистики БД\n(размер, кол-во записей, фото)
+@enduml

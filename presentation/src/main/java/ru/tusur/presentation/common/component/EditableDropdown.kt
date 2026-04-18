@@ -12,28 +12,39 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ru.tusur.presentation.R
 
+// ---------------------------------------------------------
+// Редактируемый выпадающий список (Dropdown)
+// ---------------------------------------------------------
+// Поддерживает:
+// - Выбор элемента из списка
+// - Добавление нового элемента (через диалог)
+// - Удаление элемента (опционально)
+// - Отображение ошибки
+// - Опцию "Ничего не выбрано"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> EditableDropdown(
-    items: List<T>,
-    selectedItem: T?,
-    itemToString: (T) -> String,
-    onItemSelected: (T?) -> Unit,
-    onAddNewItem: (String) -> Unit,
-    onDeleteItem: ((T) -> Unit)? = null,
-    errorMessage: String? = null,
-    showAddNewOption: Boolean = true,
-    placeholder: String? = null,
+    items: List<T>,                         // Список доступных элементов
+    selectedItem: T?,                       // Выбранный элемент (может быть null)
+    itemToString: (T) -> String,            // Функция преобразования элемента в строку
+    onItemSelected: (T?) -> Unit,           // Callback при выборе элемента
+    onAddNewItem: (String) -> Unit,         // Callback при добавлении нового элемента
+    onDeleteItem: ((T) -> Unit)? = null,    // Callback при удалении (опционально)
+    errorMessage: String? = null,           // Сообщение об ошибке
+    showAddNewOption: Boolean = true,       // Показывать опцию "Добавить новый"
+    placeholder: String? = null,            // Плейсхолдер (текст по умолчанию)
     modifier: Modifier = Modifier
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    var showAddDialog by remember { mutableStateOf(false) }
-    var newItemText by remember { mutableStateOf("") }
-
-    var pendingDeleteItem by remember { mutableStateOf<T?>(null) }
+    // Состояния UI
+    var expanded by remember { mutableStateOf(false) }          // Раскрыт ли список
+    var showAddDialog by remember { mutableStateOf(false) }     // Показывать диалог добавления
+    var newItemText by remember { mutableStateOf("") }          // Текст нового элемента
+    var pendingDeleteItem by remember { mutableStateOf<T?>(null) }  // Элемент для удаления
 
     Column(modifier = modifier) {
-
+        // ---------------------------------------------------------
+        // Основной выпадающий список
+        // ---------------------------------------------------------
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
@@ -43,6 +54,7 @@ fun <T> EditableDropdown(
                 onExpandedChange = { expanded = !expanded },
                 modifier = Modifier.fillMaxWidth(0.9f)
             ) {
+                // Поле ввода (только для чтения, отображает выбранное значение)
                 OutlinedTextField(
                     value = selectedItem?.let { itemToString(it) }
                         ?: placeholder.orEmpty(),
@@ -67,10 +79,12 @@ fun <T> EditableDropdown(
                     enabled = false
                 )
 
+                // Меню выпадающего списка
                 ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
+                    // Опция "Добавить новый"
                     if (showAddNewOption) {
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.dropdown_add_new)) },
@@ -81,6 +95,7 @@ fun <T> EditableDropdown(
                         )
                     }
 
+                    // Опция "Ничего не выбрано"
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.dropdown_none)) },
                         onClick = {
@@ -89,10 +104,12 @@ fun <T> EditableDropdown(
                         }
                     )
 
+                    // Элементы списка
                     items.forEach { item ->
                         DropdownMenuItem(
                             text = { Text(itemToString(item)) },
                             trailingIcon = {
+                                // Кнопка удаления (если разрешено)
                                 if (onDeleteItem != null) {
                                     IconButton(onClick = {
                                         pendingDeleteItem = item
@@ -115,6 +132,9 @@ fun <T> EditableDropdown(
             }
         }
 
+        // ---------------------------------------------------------
+        // Отображение сообщения об ошибке
+        // ---------------------------------------------------------
         if (errorMessage != null) {
             Spacer(Modifier.height(4.dp))
             Text(
@@ -124,6 +144,9 @@ fun <T> EditableDropdown(
             )
         }
 
+        // ---------------------------------------------------------
+        // Диалог добавления нового элемента
+        // ---------------------------------------------------------
         if (showAddDialog) {
             AlertDialog(
                 onDismissRequest = { showAddDialog = false },
@@ -156,6 +179,9 @@ fun <T> EditableDropdown(
             )
         }
 
+        // ---------------------------------------------------------
+        // Диалог подтверждения удаления элемента
+        // ---------------------------------------------------------
         if (pendingDeleteItem != null) {
             AlertDialog(
                 onDismissRequest = { pendingDeleteItem = null },

@@ -20,28 +20,46 @@ import ru.tusur.presentation.R
 import ru.tusur.presentation.util.StringProvider
 import ru.tusur.presentation.shared.SharedAppEventsViewModel
 
+// ---------------------------------------------------------
+// ViewModel для экрана настроек
+// ---------------------------------------------------------
+// Управляет:
+// - Настройками темы (сохранение в DataStore)
+// - Слиянием базы данных из резервной копии
+// - Экспортом базы данных в выбранную папку
+// - Отображением прогресса длительных операций
 class SettingsViewModel(
-    private val dataStore: DataStore<Preferences>,
-    private val mergeDbUseCase: MergeJsonDatabaseUseCase,
-    private val exportDbUseCase: ExportDatabaseUseCase,
-    private val strings: StringProvider,
-    private val sharedEvents: SharedAppEventsViewModel
-)
- : ViewModel() {
+    private val dataStore: DataStore<Preferences>,        // Хранилище настроек (тема)
+    private val mergeDbUseCase: MergeJsonDatabaseUseCase, // UseCase для слияния БД
+    private val exportDbUseCase: ExportDatabaseUseCase,   // UseCase для экспорта БД
+    private val strings: StringProvider,                  // Провайдер строковых ресурсов
+    private val sharedEvents: SharedAppEventsViewModel    // Общие события для уведомлений
+) : ViewModel() {
 
+    // ---------------------------------------------------------
+    // Состояние экрана настроек
+    // ---------------------------------------------------------
     private val _state = MutableStateFlow(SettingsState())
     val state: StateFlow<SettingsState> = _state
 
+    // ---------------------------------------------------------
+    // События экрана настроек
+    // ---------------------------------------------------------
     private val _events = MutableSharedFlow<SettingsEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<SettingsEvent> = _events
 
+    // ---------------------------------------------------------
+    // Инициализация: подписка на изменения темы
+    // ---------------------------------------------------------
     init {
         observeTheme()
     }
 
     // ---------------------------------------------------------
-    // THEME
+    // НАСТРОЙКИ ТЕМЫ
     // ---------------------------------------------------------
+
+    // Подписка на изменения темы из DataStore
     private fun observeTheme() {
         viewModelScope.launch {
             dataStore.data
@@ -56,21 +74,25 @@ class SettingsViewModel(
         }
     }
 
+    // Установка новой темы (сохранение в DataStore)
     fun setTheme(theme: ThemeMode) {
         viewModelScope.launch {
+            // Сохранение в DataStore
             dataStore.edit { prefs ->
                 prefs[KEY_THEME] = theme.value.toString()
             }
+            // Обновление состояния
             _state.update { it.copy(theme = theme) }
         }
     }
 
     // ---------------------------------------------------------
-    // MERGE DATABASE WITH PROGRESS
+    // СЛИЯНИЕ БАЗЫ ДАННЫХ С ОТОБРАЖЕНИЕМ ПРОГРЕССА
     // ---------------------------------------------------------
     fun mergeDatabase(folderUri: Uri) {
         viewModelScope.launch {
             try {
+                // Сброс индикатора прогресса
                 _state.update {
                     it.copy(
                         mergeProgress = 0f,
@@ -78,8 +100,10 @@ class SettingsViewModel(
                     )
                 }
 
+                // Выполнение слияния в фоновом потоке
                 val result = withContext(Dispatchers.IO) {
                     mergeDbUseCase(folderUri) { step, total ->
+                        // Обновление прогресса в UI
                         _state.update {
                             it.copy(
                                 mergeProgress = step.toFloat() / total.toFloat(),
@@ -89,6 +113,7 @@ class SettingsViewModel(
                     }
                 }
 
+                // Скрытие индикатора прогресса
                 _state.update {
                     it.copy(
                         mergeProgress = null,
@@ -96,11 +121,13 @@ class SettingsViewModel(
                     )
                 }
 
+                // Обработка результата
                 if (result.isSuccess) {
                     val count = result.getOrNull() ?: 0
                     _state.update {
                         it.copy(message = strings.get(R.string.db_merged, count))
                     }
+                    // Уведомление главного экрана об изменении данных
                     sharedEvents.emit(AppEvent.DatabaseMerged)
                 } else {
                     _state.update {
@@ -114,6 +141,7 @@ class SettingsViewModel(
                 }
 
             } catch (e: Exception) {
+                // Обработка ошибки
                 _state.update {
                     it.copy(
                         mergeProgress = null,
@@ -126,16 +154,18 @@ class SettingsViewModel(
     }
 
     // ---------------------------------------------------------
-    // EXPORT DATABASE WITH PROGRESS
+    // ЭКСПОРТ БАЗЫ ДАННЫХ С ОТОБРАЖЕНИЕМ ПРОГРЕССА
     // ---------------------------------------------------------
     fun exportDatabaseToFolder(folderUri: Uri) {
         viewModelScope.launch {
             try {
+                // Выполнение экспорта в фоновом потоке с отслеживанием прогресса
                 val result = withContext(Dispatchers.IO) {
                     exportDbUseCase(
                         folderUri,
                         onProgress = { progress ->
                             when (progress) {
+                                // Экспорт начат: известен общий размер
                                 is DatabaseExportProgress.Started -> {
                                     _state.update {
                                         it.copy(
@@ -145,6 +175,7 @@ class SettingsViewModel(
                                     }
                                 }
 
+                                // Промежуточный прогресс: обновление процента
                                 is DatabaseExportProgress.Progress -> {
                                     val percent = if (progress.totalBytes > 0) {
                                         progress.writtenBytes.toFloat() /
@@ -154,10 +185,12 @@ class SettingsViewModel(
                                     _state.update { it.copy(exportProgress = percent) }
                                 }
 
+                                // Экспорт завершён
                                 is DatabaseExportProgress.Finished -> {
                                     _state.update { it.copy(exportProgress = 1f) }
                                 }
 
+                                // Ошибка при экспорте
                                 is DatabaseExportProgress.Error -> {
                                     _state.update {
                                         it.copy(
@@ -173,6 +206,7 @@ class SettingsViewModel(
                     )
                 }
 
+                // Скрытие индикатора прогресса
                 _state.update {
                     it.copy(
                         exportProgress = null,
@@ -180,6 +214,7 @@ class SettingsViewModel(
                     )
                 }
 
+                // Обработка результата
                 if (result.isSuccess) {
                     _state.update {
                         it.copy(message = strings.get(R.string.settings_db_export_success))
@@ -196,6 +231,7 @@ class SettingsViewModel(
                 }
 
             } catch (e: Exception) {
+                // Обработка ошибки
                 _state.update {
                     it.copy(
                         exportProgress = null,
@@ -211,6 +247,7 @@ class SettingsViewModel(
     }
 
     companion object {
+        // Ключ для сохранения выбранной темы в DataStore
         private val KEY_THEME = stringPreferencesKey("theme")
     }
 }

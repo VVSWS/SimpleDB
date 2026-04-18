@@ -1,0 +1,47 @@
+@startuml
+title SettingsScreen / EditableDropdown - Управление выпадающими списками
+
+actor User as User
+participant "SettingsScreen /\nEditableDropdown" as UI
+participant "SettingsViewModel /\nShared Reference VM" as VM
+participant "AddBrandUseCase /\nDeleteModelUseCase /\nAddLocationUseCase" as UC
+participant "DefaultReferenceDataRepository" as REPO
+participant "BrandDao / ModelDao /\nLocationDao" as DAO
+participant "AppDatabase" as DB
+
+== Добавление элемента ==
+
+User -> UI: вводит название и нажимает "Добавить"
+UI -> VM: onAddItemRequested(newItemName)
+VM -> UC: invoke(name)
+UC -> UC: validateNotEmptyAndUnique()
+
+alt Duplicate/Invalid
+    UC --> VM: emit ValidationFailure
+    VM --> UI: show inline error
+else Valid
+    UC -> REPO: addItem(newEntity)
+    REPO -> DAO: insertItem(entity)
+    DAO -> DB: INSERT INTO brands/models/locations
+    DB --> DAO: newId
+    DAO --> REPO: success
+    REPO --> UC: Result.Success
+    UC --> VM: emit ItemAdded
+    VM --> UI: update dropdown list
+end
+
+== Удаление элемента ==
+
+User -> UI: выбирает элемент для удаления
+UI -> VM: onDeleteItemRequested(id)
+VM -> UC: invoke(id)
+UC -> REPO: deleteItem(id)
+REPO -> DAO: deleteItem(id)
+DAO -> DB: DELETE FROM table WHERE id=?
+DB --> DAO: rowsDeleted
+DAO --> REPO: success
+REPO --> UC: Result.Success
+UC --> VM: emit ItemDeleted
+VM --> UI: remove item from UI
+
+@enduml

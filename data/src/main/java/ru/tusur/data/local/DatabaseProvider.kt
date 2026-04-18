@@ -6,54 +6,86 @@ import ru.tusur.core.util.FileHelper
 import ru.tusur.data.local.database.AppDatabase
 import java.io.File
 
+// ---------------------------------------------------------
+// Провайдер базы данных Room
+// ---------------------------------------------------------
+// Управляет созданием, загрузкой и переключением экземпляров базы данных
+// Позволяет динамически переключаться между разными файлами БД
+// Реализует ленивую инициализацию и потокобезопасное хранение
 class DatabaseProvider(
-    private val context: Context
+    private val context: Context   // Контекст приложения для доступа к файловой системе
 ) {
 
+    // ---------------------------------------------------------
+    // Потокобезопасное хранение текущего экземпляра БД
+    // ---------------------------------------------------------
+    // @Volatile гарантирует видимость изменений между потоками
     @Volatile
     private var currentDatabase: AppDatabase? = null
 
+    // Текущий файл базы данных (путь к активной БД)
     private var currentDbFile: File? = null
 
+    // ---------------------------------------------------------
+    // Инициализация базы данных
+    // ---------------------------------------------------------
+    // Создаёт или загружает базу данных из активного файла
+    // Вызывается при старте приложения или при переключении БД
     fun initializeDatabase() {
+        // Получение пути к активному файлу базы данных (обычно BD_active.db)
         val dbFile = FileHelper.getActiveDatabaseFile(context)
         currentDbFile = dbFile
 
+        // ---------------------------------------------------------
+        // Создание билдера Room в зависимости от существования файла
+        // ---------------------------------------------------------
         currentDatabase = if (dbFile.exists()) {
-            // If there is an existing DB file, load from it
+            // Если файл БД существует - загружаем из него
             Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
-                "SimpleDB.db"
+                "SimpleDB.db"           // Временное имя для Room (реальный файл будет заменён)
             )
-
-                .createFromFile(dbFile)
-                .fallbackToDestructiveMigration(true)
+                .createFromFile(dbFile)              // Загрузка данных из существующего файла
+                .fallbackToDestructiveMigration(true) // При ошибке миграции - удалить и создать заново
                 .build()
         } else {
-            // If no file yet, create a fresh Room DB at this location
+            // Если файла нет - создаём новую пустую БД
             Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
-                "SimpleDB.db" // ← FIXED HERE
+                "SimpleDB.db"           // Временное имя для Room
             )
                 .fallbackToDestructiveMigration(true)
                 .build()
         }
     }
 
+    // ---------------------------------------------------------
+    // Сброс текущего экземпляра базы данных
+    // ---------------------------------------------------------
+    // Закрывает текущее соединение и очищает ссылку
+    // Используется при переключении между разными БД
     fun resetDatabase() {
+        // Закрытие соединения с БД (освобождение ресурсов)
         currentDatabase?.close()
+        // Очистка ссылки на экземпляр
         currentDatabase = null
     }
 
+    // ---------------------------------------------------------
+    // Получение текущего экземпляра базы данных
+    // ---------------------------------------------------------
+    // Возвращает инициализированный экземпляр AppDatabase
+    // Если инициализация ещё не выполнена - выполняет её автоматически
+    @Synchronized
     fun getCurrentDatabase(): AppDatabase {
-        // Lazy safety: if someone calls without init, initialize now
+        // Ленивая инициализация: если БД ещё не создана - создаём сейчас
         if (currentDatabase == null) {
             initializeDatabase()
         }
+        // Возврат экземпляра (не может быть null после инициализации)
         return currentDatabase
             ?: throw IllegalStateException("Database initialization failed")
     }
-
 }

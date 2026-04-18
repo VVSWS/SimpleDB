@@ -3,35 +3,55 @@ package ru.tusur.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-/**
- * Room entity representing a fault entry.
- *
- * This schema remains stable because:
- * - Dictionary values (year, brand, model, location) are stored as simple fields
- *   and resolved through relations in EntryWithRelations / EntryWithImages.
- * - Backup/export/import rely on these fields.
- * - Dynamic DB architecture does not change the schema, only how DB instances are selected.
- */
+// ---------------------------------------------------------
+// Сущность Room для таблицы записей о неисправностях
+// ---------------------------------------------------------
+// Хранит основную информацию о дефекте или поломке техники
+// Схема стабильна и не меняется при переключении между экземплярами БД
+// Справочные данные (год, марка, модель, локация) хранятся как простые поля
+// Связи разрешаются через POJO-классы EntryWithRelations и EntryWithImages
 @Entity(tableName = "entries")
 data class EntryEntity(
 
+    // ---------------------------------------------------------
+    // Первичный ключ с автогенерацией
+    // ---------------------------------------------------------
+    // ID автоматически увеличивается при вставке новой записи
+    // Значение по умолчанию 0 означает, что ID будет сгенерирован БД
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
-    // Dictionary references
+    // ---------------------------------------------------------
+    // Справочные данные (денормализованные поля)
+    // ---------------------------------------------------------
+    // Год выпуска техники (ссылка на YearEntity)
     val year: Int? = null,
+
+    // Марка производителя (ссылка на BrandEntity)
     val brand: String? = null,
 
+    // Название модели (часть составного ключа модели)
     val modelName: String? = null,
+    // Марка, к которой принадлежит модель (для валидации)
     val modelBrand: String? = null,
+    // Год, к которому принадлежит модель (для валидации)
     val modelYear: Int? = null,
 
+    // Местоположение, где произошла неисправность (ссылка на LocationEntity)
     val location: String? = null,
 
-    // Entry content
+    // ---------------------------------------------------------
+    // Содержимое записи
+    // ---------------------------------------------------------
+    // Заголовок/краткое описание проблемы
     val title: String = "",
+
+    // Подробное описание неисправности
     val description: String = "",
 
-    // Metadata
+    // ---------------------------------------------------------
+    // Метаданные
+    // ---------------------------------------------------------
+    // Временная метка создания записи (Unix timestamp в секундах)
     val timestamp: Long = 0
 )

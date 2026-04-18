@@ -19,6 +19,16 @@ import ru.tusur.domain.model.toFilter
 import ru.tusur.presentation.R
 import ru.tusur.presentation.common.component.EditableDropdownSelector
 
+// ---------------------------------------------------------
+// Экран расширенного поиска записей
+// ---------------------------------------------------------
+// Позволяет пользователю задать фильтры для поиска записей:
+// - год выпуска
+// - марка автомобиля
+// - модель автомобиля
+// - местоположение
+// После нажатия кнопки поиска сохраняет фильтры в SharedSearchViewModel
+// и переходит на экран списка результатов поиска
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntrySearchScreen(
@@ -29,6 +39,9 @@ fun EntrySearchScreen(
     val uiState by viewModel.uiState.collectAsState()
     val sharedSearchViewModel: SharedSearchViewModel = koinViewModel()
 
+    // ---------------------------------------------------------
+    // Структура экрана: TopBar + контент
+    // ---------------------------------------------------------
     Scaffold(
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
@@ -41,6 +54,7 @@ fun EntrySearchScreen(
                     )
                 },
                 navigationIcon = {
+                    // Кнопка возврата на предыдущий экран
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -52,6 +66,9 @@ fun EntrySearchScreen(
         }
     ) { padding ->
 
+        // ---------------------------------------------------------
+        // Основной контент с прокруткой
+        // ---------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -60,22 +77,26 @@ fun EntrySearchScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // YEAR
+            // ---------------------------------------------------------
+            // Выбор года (только для чтения, без добавления новых)
+            // ---------------------------------------------------------
             EditableDropdownSelector(
                 items = uiState.years,
                 selectedItem = uiState.selectedYear,
                 itemToString = { it.toString() },
                 onItemSelected = { viewModel.onYearSelected(it) },
-                onAddNewItem = {},
-                onDeleteItem = null,
+                onAddNewItem = {},           // Добавление новых значений отключено
+                onDeleteItem = null,          // Удаление отключено
                 errorMessage = null,
-                showAddNewOption = false,
+                showAddNewOption = false,     // Не показывать опцию "Добавить новое"
                 placeholder = stringResource(R.string.hint_select_year)
             )
 
             Spacer(Modifier.height(12.dp))
 
-            // BRAND
+            // ---------------------------------------------------------
+            // Выбор марки (только для чтения)
+            // ---------------------------------------------------------
             EditableDropdownSelector(
                 items = uiState.brands,
                 selectedItem = uiState.selectedBrand,
@@ -90,7 +111,9 @@ fun EntrySearchScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            // MODEL
+            // ---------------------------------------------------------
+            // Выбор модели (только для чтения)
+            // ---------------------------------------------------------
             EditableDropdownSelector(
                 items = uiState.models,
                 selectedItem = uiState.selectedModel,
@@ -105,7 +128,9 @@ fun EntrySearchScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            // LOCATION
+            // ---------------------------------------------------------
+            // Выбор местоположения (только для чтения)
+            // ---------------------------------------------------------
             EditableDropdownSelector(
                 items = uiState.locations,
                 selectedItem = uiState.selectedLocation,
@@ -120,10 +145,19 @@ fun EntrySearchScreen(
 
             Spacer(Modifier.height(24.dp))
 
+            // ---------------------------------------------------------
+            // Кнопка выполнения поиска
+            // ---------------------------------------------------------
             Button(
                 onClick = {
+                    // Построение запроса из выбранных фильтров
                     val query = viewModel.buildSearchQuery()
+
+                    // Сохранение фильтров в SharedSearchViewModel (общее состояние)
                     sharedSearchViewModel.updateFilter(query.toFilter())
+
+                    // Навигация на экран списка результатов поиска
+                    // launchSingleTop = true предотвращает создание дублирующихся экземпляров
                     navController.navigate("search_entries") { launchSingleTop = true }
                 },
                 modifier = Modifier.fillMaxWidth()

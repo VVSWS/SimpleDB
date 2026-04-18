@@ -21,7 +21,11 @@ import androidx.navigation.NavController
 import ru.tusur.presentation.R
 import androidx.compose.foundation.layout.navigationBarsPadding
 
-
+// ---------------------------------------------------------
+// Экран "О приложении"
+// ---------------------------------------------------------
+// Отображает информацию о приложении: название, версию, копирайт, лицензию
+// Содержит кнопку для связи с разработчиком (копирование email в буфер обмена)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(navController: NavController) {
@@ -29,9 +33,17 @@ fun AboutScreen(navController: NavController) {
     val context = LocalContext.current
     val toastMessage = stringResource(R.string.email_copied)
 
+    // ---------------------------------------------------------
+    // Структура Scaffold: TopBar + BottomBar + Content
+    // ---------------------------------------------------------
     Scaffold(
+        // Отступы от системных окон (только сверху)
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
+
+        // ---------------------------------------------------------
+        // Верхняя панель с заголовком и кнопкой назад
+        // ---------------------------------------------------------
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -42,6 +54,7 @@ fun AboutScreen(navController: NavController) {
                     )
                 },
                 navigationIcon = {
+                    // Кнопка возврата на предыдущий экран
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -51,32 +64,35 @@ fun AboutScreen(navController: NavController) {
                 }
             )
         },
+
+        // ---------------------------------------------------------
+        // Нижняя панель с кнопкой связи с разработчиком
+        // ---------------------------------------------------------
         bottomBar = {
-            // Bottom bar with contact developer button
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-                    .navigationBarsPadding(),
+                    .navigationBarsPadding(),  // Отступ от навигационной панели системы
                 contentAlignment = Alignment.Center
             ) {
                 TextButton(
                     onClick = {
                         val email = "v7337337@gmail.com"
-                        // Copy to clipboard
+
+                        // Копирование email в системный буфер обмена
                         val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
                                 as android.content.ClipboardManager
 
                         val clip = android.content.ClipData.newPlainText("email", email)
                         clipboard.setPrimaryClip(clip)
 
+                        // Показ уведомления об успешном копировании
                         Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
-
                     }
                 ) {
                     Text(
-                        modifier = Modifier
-                            .fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         text = stringResource(R.string.contact_developer),
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.End
@@ -86,24 +102,33 @@ fun AboutScreen(navController: NavController) {
         }
     ) { padding ->
 
+        // ---------------------------------------------------------
+        // Основной контент с прокруткой
+        // ---------------------------------------------------------
         Box(
             modifier = Modifier
-                .padding(padding)
+                .padding(padding)  // Учёт отступов от Scaffold
                 .fillMaxSize()
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState()),  // Вертикальная прокрутка
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // ---------------------------------------------------------
+                // Название приложения
+                // ---------------------------------------------------------
                 Text(
                     text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
 
+                // ---------------------------------------------------------
+                // Версия приложения
+                // ---------------------------------------------------------
                 Text(
                     text = stringResource(R.string.about_version),
                     style = MaterialTheme.typography.titleMedium,
@@ -112,6 +137,9 @@ fun AboutScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // ---------------------------------------------------------
+                // Информация об авторских правах
+                // ---------------------------------------------------------
                 Text(
                     text = stringResource(R.string.about_copyright),
                     textAlign = TextAlign.Center,
@@ -120,6 +148,9 @@ fun AboutScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // ---------------------------------------------------------
+                // Информация о лицензии
+                // ---------------------------------------------------------
                 Text(
                     text = stringResource(R.string.about_license),
                     textAlign = TextAlign.Center,

@@ -26,35 +26,47 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Delete
 
+// ---------------------------------------------------------
+// Экран редактирования описания записи
+// ---------------------------------------------------------
+// Позволяет изменять описание неисправности и управлять изображениями
+// Поддерживает: добавление новых изображений, удаление существующих, сохранение изменений
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditEntryDescriptionScreen(
     navController: NavController,
-    entryId: Long
+    entryId: Long                          // ID редактируемой записи (передаётся из навигации)
 ) {
-    // Inject ViewModel with ID parameter
+    // ---------------------------------------------------------
+    // Внедрение ViewModel с передачей ID записи через параметры Koin
+    // ---------------------------------------------------------
     val viewModel: EditEntryDescriptionViewModel =
         koinInject(parameters = { parametersOf(entryId) })
 
     val uiState by viewModel.uiState.collectAsState()
     val context = navController.context
 
-
-    // Image picker
+    // ---------------------------------------------------------
+    // Лаунчер для выбора нескольких изображений из галереи
+    // ---------------------------------------------------------
     val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetMultipleContents()
+        contract = ActivityResultContracts.GetMultipleContents()  // Выбор нескольких файлов
     ) { uris ->
         if (uris.isNotEmpty()) {
             viewModel.onImagesSelected(navController.context, uris)
         }
     }
 
+    // ---------------------------------------------------------
+    // Структура экрана: TopBar + контент
+    // ---------------------------------------------------------
     Scaffold(
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.edit_description_title)) },
+                // Кнопка назад
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -63,9 +75,10 @@ fun EditEntryDescriptionScreen(
                         )
                     }
                 },
+                // Кнопка добавления изображения
                 actions = {
                     IconButton(onClick = {
-                        imagePickerLauncher.launch("image/*")
+                        imagePickerLauncher.launch("image/*")  // Запуск выбора изображений
                     }) {
                         Icon(
                             Icons.Filled.AddAPhoto,
@@ -79,6 +92,9 @@ fun EditEntryDescriptionScreen(
 
         val entry = uiState.entry
 
+        // ---------------------------------------------------------
+        // Отображение прогресса загрузки записи
+        // ---------------------------------------------------------
         if (entry == null) {
             Box(
                 modifier = Modifier
@@ -91,25 +107,33 @@ fun EditEntryDescriptionScreen(
             return@Scaffold
         }
 
+        // ---------------------------------------------------------
+        // Основной контент с прокруткой
+        // ---------------------------------------------------------
         Column(
             modifier = Modifier
                 .padding(padding)
-                .imePadding()
+                .imePadding()                    // Учёт открытой клавиатуры
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // DESCRIPTION FIELD
+            // ---------------------------------------------------------
+            // Поле ввода описания
+            // ---------------------------------------------------------
             OutlinedTextField(
                 value = entry.description,
                 onValueChange = viewModel::onDescriptionChanged,
                 label = { Text(stringResource(R.string.label_description)) },
                 modifier = Modifier.fillMaxWidth(),
-                isError = uiState.descriptionError != null
+                isError = uiState.descriptionError != null  // Подсветка ошибки
             )
 
+            // ---------------------------------------------------------
+            // Отображение ошибки валидации описания
+            // ---------------------------------------------------------
             uiState.descriptionError?.let { error ->
                 val message = when (error) {
                     DescriptionError.Empty -> stringResource(R.string.error_description_empty)
@@ -121,7 +145,9 @@ fun EditEntryDescriptionScreen(
                 )
             }
 
-            // IMAGE PREVIEW
+            // ---------------------------------------------------------
+            // Галерея изображений (горизонтальный список)
+            // ---------------------------------------------------------
             if (entry.imageUris.isNotEmpty()) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -129,19 +155,22 @@ fun EditEntryDescriptionScreen(
                 ) {
                     items(
                         items = entry.imageUris,
-                        key = { uri -> uri }   // IMPORTANT: stable key
+                        key = { uri -> uri }   // Стабильный ключ для правильного обновления
                     ) { uri ->
 
                         var showDeleteDialog by remember { mutableStateOf(false) }
 
                         Box {
+                            // Миниатюра изображения
                             ImageThumbnail(
                                 uri = uri,
                                 modifier = Modifier.size(120.dp),
-                                onClick = { /* optional */ }
+                                onClick = { /* Опционально: просмотр в полном размере */ }
                             )
 
-                            // Delete button with red background
+                            // ---------------------------------------------------------
+                            // Кнопка удаления изображения (красный круг)
+                            // ---------------------------------------------------------
                             IconButton(
                                 onClick = { showDeleteDialog = true },
                                 modifier = Modifier
@@ -159,7 +188,9 @@ fun EditEntryDescriptionScreen(
                                 )
                             }
 
-                            // Confirmation dialog
+                            // ---------------------------------------------------------
+                            // Диалог подтверждения удаления изображения
+                            // ---------------------------------------------------------
                             if (showDeleteDialog) {
                                 AlertDialog(
                                     onDismissRequest = { showDeleteDialog = false },
@@ -184,22 +215,25 @@ fun EditEntryDescriptionScreen(
                             }
                         }
                     }
-
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // SAVE BUTTON
+            // ---------------------------------------------------------
+            // Кнопка сохранения
+            // ---------------------------------------------------------
             Button(
                 onClick = { viewModel.saveEntry() },
-                enabled = uiState.isValid,
+                enabled = uiState.isValid,  // Блокировка, если описание пустое
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.button_save))
             }
 
-            // CANCEL BUTTON
+            // ---------------------------------------------------------
+            // Кнопка отмены (возврат без сохранения)
+            // ---------------------------------------------------------
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier.fillMaxWidth(),
@@ -209,7 +243,9 @@ fun EditEntryDescriptionScreen(
             }
         }
 
-        // SUCCESS POP-UP
+        // ---------------------------------------------------------
+        // Диалог успешного сохранения
+        // ---------------------------------------------------------
         if (uiState.showSaveSuccess) {
             AlertDialog(
                 onDismissRequest = { viewModel.dismissSaveSuccess() },
@@ -218,7 +254,7 @@ fun EditEntryDescriptionScreen(
                     TextButton(
                         onClick = {
                             viewModel.dismissSaveSuccess()
-                            navController.popBackStack()
+                            navController.popBackStack()  // Возврат на предыдущий экран
                         }
                     ) {
                         Text(stringResource(R.string.entry_saved_confirm))
@@ -226,6 +262,5 @@ fun EditEntryDescriptionScreen(
                 }
             )
         }
-
     }
 }

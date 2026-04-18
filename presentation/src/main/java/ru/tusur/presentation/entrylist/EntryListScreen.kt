@@ -28,11 +28,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 
+// ---------------------------------------------------------
+// Экран списка записей о неисправностях
+// ---------------------------------------------------------
+// Поддерживает два режима: последние записи (recent) и результаты поиска (search)
+// Отображает список карточек с заголовком, метаданными и кнопкой удаления
+// Включает кастомную вертикальную полосу прокрутки
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryListScreen(
     navController: NavController,
-    isSearchMode: Boolean = false,
+    isSearchMode: Boolean = false,                      // Режим: поиск или последние записи
     viewModel: EntryListViewModel = koinViewModel(),
     sharedSearchViewModel: SharedSearchViewModel = koinViewModel()
 ) {
@@ -40,23 +46,29 @@ fun EntryListScreen(
     val filter by sharedSearchViewModel.filter.collectAsState()
     val listState = rememberLazyListState()
 
-    // Load data depending on mode
+    // ---------------------------------------------------------
+    // Загрузка данных в зависимости от режима
+    // ---------------------------------------------------------
     LaunchedEffect(isSearchMode, filter) {
         if (isSearchMode) {
-            viewModel.searchEntries(filter)
+            viewModel.searchEntries(filter)   // Режим поиска
         } else {
-            viewModel.loadRecentEntries()
+            viewModel.loadRecentEntries()      // Режим последних записей
         }
     }
 
+    // Заголовок экрана
     val title = if (isSearchMode)
         stringResource(R.string.entry_list_search_results)
     else
         stringResource(R.string.entry_list_recent)
 
+    // Состояние для диалога удаления
     var entryToDelete by remember { mutableStateOf<FaultEntry?>(null) }
 
-    // Delete confirmation dialog
+    // ---------------------------------------------------------
+    // Диалог подтверждения удаления
+    // ---------------------------------------------------------
     if (entryToDelete != null) {
         ConfirmDeleteDialog(
             itemName = entryToDelete!!.title.ifBlank {
@@ -70,10 +82,13 @@ fun EntryListScreen(
         )
     }
 
+    // ---------------------------------------------------------
+    // Структура экрана: TopBar + контент
+    // ---------------------------------------------------------
     Scaffold(
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
-            contentWindowInsets = WindowInsets(0, 0, 0, 60),
+        contentWindowInsets = WindowInsets(0, 0, 0, 60),  // Кастомные отступы
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -103,11 +118,12 @@ fun EntryListScreen(
                     start = padding.calculateStartPadding(LayoutDirection.Ltr),
                     end = padding.calculateEndPadding(LayoutDirection.Ltr)
                 )
-
                 .padding(horizontal = 4.dp)
         ) {
 
-            // Loading indicator
+            // ---------------------------------------------------------
+            // Индикатор загрузки
+            // ---------------------------------------------------------
             if (uiState.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -118,7 +134,9 @@ fun EntryListScreen(
                 return@Column
             }
 
-            // Error message
+            // ---------------------------------------------------------
+            // Сообщение об ошибке
+            // ---------------------------------------------------------
             uiState.error?.let { error ->
                 val message = when (error) {
                     EntryListError.LoadFailed -> stringResource(R.string.error_entry_list_load)
@@ -133,17 +151,18 @@ fun EntryListScreen(
                 )
             }
 
-            // Entries list
-
-
+            // ---------------------------------------------------------
+            // Список записей с кастомной полосой прокрутки
+            // ---------------------------------------------------------
             Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .padding(horizontal = 16.dp)
             ) {
-
-                // LIST
+                // ---------------------------------------------------------
+                // Основной LazyColumn с записями
+                // ---------------------------------------------------------
                 LazyColumn(
                     state = listState,
                     modifier = Modifier
@@ -161,10 +180,12 @@ fun EntryListScreen(
                     }
                 }
 
-                // SPACE between list and scrollbar
+                // Отступ между списком и скроллбаром
                 Spacer(modifier = Modifier.width(6.dp))
 
-                // SCROLLBAR
+                // ---------------------------------------------------------
+                // Кастомная вертикальная полоса прокрутки
+                // ---------------------------------------------------------
                 LazyColumnScrollbar(
                     state = listState,
                     modifier = Modifier
@@ -176,6 +197,9 @@ fun EntryListScreen(
     }
 }
 
+// ---------------------------------------------------------
+// Компонент отдельной записи в списке (карточка)
+// ---------------------------------------------------------
 @Composable
 fun EntryListItem(
     entry: FaultEntry,
@@ -192,10 +216,11 @@ fun EntryListItem(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-
-            // Left side: title + metadata
+            // ---------------------------------------------------------
+            // Левая часть: заголовок + метаданные
+            // ---------------------------------------------------------
             Column(modifier = Modifier.weight(1f)) {
-
+                // Сбор метаданных в строку с разделителем " • "
                 val meta = listOfNotNull(
                     entry.year?.value?.toString(),
                     entry.brand?.name,
@@ -203,11 +228,13 @@ fun EntryListItem(
                     entry.location?.name
                 ).joinToString(" • ")
 
+                // Заголовок записи (или плейсхолдер)
                 Text(
-                    text = entry.title ?: stringResource(R.string.entry_list_no_title),
+                    text = entry.title.ifBlank { stringResource(R.string.entry_list_no_title) },
                     style = MaterialTheme.typography.titleMedium
                 )
 
+                // Метаданные (если не пустые)
                 if (meta.isNotBlank()) {
                     Spacer(Modifier.height(4.dp))
                     Text(
@@ -218,7 +245,9 @@ fun EntryListItem(
                 }
             }
 
-            // Right side: delete icon
+            // ---------------------------------------------------------
+            // Правая часть: иконка удаления
+            // ---------------------------------------------------------
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Default.Delete,
@@ -229,12 +258,15 @@ fun EntryListItem(
     }
 }
 
+// ---------------------------------------------------------
+// Кастомный вертикальный скроллбар для LazyColumn
+// ---------------------------------------------------------
 @Composable
 private fun LazyColumnScrollbar(
     state: LazyListState,
     modifier: Modifier = Modifier,
-    thickness: Dp = 4.dp,
-    color: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+    thickness: Dp = 4.dp,                    // Толщина полосы прокрутки
+    color: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)  // Цвет ползунка
 ) {
     val layoutInfo = state.layoutInfo
     val totalItems = layoutInfo.totalItemsCount
@@ -243,8 +275,10 @@ private fun LazyColumnScrollbar(
     val firstVisible = state.firstVisibleItemIndex
     val visibleItems = layoutInfo.visibleItemsInfo.size
 
+    // Если видимы все элементы - скроллбар не нужен
     if (totalItems == 0 || visibleItems >= totalItems) return
 
+    // Расчёт позиции ползунка на основе индекса первого видимого элемента
     val fraction = remember(firstVisible, totalItems) {
         firstVisible.toFloat() / (totalItems - visibleItems).coerceAtLeast(1)
     }
@@ -254,13 +288,13 @@ private fun LazyColumnScrollbar(
             .width(thickness)
             .fillMaxHeight()
             .drawBehind {
-                // Track
+                // Фон трека (дорожки прокрутки)
                 drawRoundRect(
                     color = color.copy(alpha = 0.15f),
                     cornerRadius = CornerRadius(size.width / 2)
                 )
 
-                // Thumb
+                // Ползунок
                 val thumbHeight = size.height * (visibleItems.toFloat() / totalItems)
                 val thumbTop = (size.height - thumbHeight) * fraction
 

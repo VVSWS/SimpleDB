@@ -2,8 +2,18 @@ package ru.tusur.domain.usecase.reference
 
 import ru.tusur.domain.repository.ReferenceDataRepository
 
+// ---------------------------------------------------------
+// UseCase для получения списка всех местоположений
+// ---------------------------------------------------------
+// Инкапсулирует бизнес-логику получения справочника локаций
+// Возвращает реактивный поток (Flow), который автоматически обновляется
+// при изменениях в справочнике местоположений
 class GetLocationsUseCase(
-    private val repository: ReferenceDataRepository
+    private val repository: ReferenceDataRepository   // Репозиторий для работы со справочниками
 ) {
+    // ---------------------------------------------------------
+    // Оператор invoke - выполнение получения списка локаций
+    // ---------------------------------------------------------
+    // Возвращает: Flow<List<Location>> - реактивный поток со списком всех местоположений
     operator fun invoke() = repository.getLocations()
 }

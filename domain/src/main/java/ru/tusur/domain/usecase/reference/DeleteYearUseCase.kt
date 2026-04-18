@@ -3,8 +3,19 @@ package ru.tusur.domain.usecase.reference
 import ru.tusur.domain.model.Year
 import ru.tusur.domain.repository.ReferenceDataRepository
 
+// ---------------------------------------------------------
+// UseCase для удаления года выпуска из справочника
+// ---------------------------------------------------------
+// Инкапсулирует бизнес-логику удаления года
+// Вызывает соответствующий метод репозитория
+// ВНИМАНИЕ: удаление года может повлиять на существующие записи,
+// если они ссылаются на этот год (зависит от настроек внешних ключей в БД)
 class DeleteYearUseCase(
-    private val repository: ReferenceDataRepository
+    private val repository: ReferenceDataRepository   // Репозиторий для работы со справочниками
 ) {
+    // ---------------------------------------------------------
+    // Оператор invoke - выполнение удаления года
+    // ---------------------------------------------------------
+    // year: доменная модель года для удаления
     suspend operator fun invoke(year: Year) = repository.deleteYear(year)
 }

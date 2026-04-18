@@ -2,16 +2,31 @@ package ru.tusur.presentation.settings
 
 import ru.tusur.core.ui.theme.ThemeMode
 
+// ---------------------------------------------------------
+// UI состояние экрана настроек
+// ---------------------------------------------------------
+// Хранит все данные, влияющие на отображение экрана настроек
+// Используется в SettingsViewModel и SettingsScreen
 data class SettingsState(
-    val theme: ThemeMode = ThemeMode.SYSTEM,
-    val message: String? = null,
+    // ---------------------------------------------------------
+    // НАСТРОЙКИ ТЕМЫ
+    // ---------------------------------------------------------
+    val theme: ThemeMode = ThemeMode.SYSTEM,   // Текущий режим темы (системная/светлая/тёмная)
 
-    // MERGE PROGRESS
-    val mergeProgress: Float? = null,        // null = hidden
-    val mergeTotalSteps: Int? = null,
+    // ---------------------------------------------------------
+    // СООБЩЕНИЯ
+    // ---------------------------------------------------------
+    val message: String? = null,               // Информационное сообщение или текст ошибки
 
-    // EXPORT PROGRESS
-    val exportProgress: Float? = null,       // null = hidden
-    val exportTotalBytes: Long? = null
+    // ---------------------------------------------------------
+    // ПРОГРЕСС СЛИЯНИЯ БАЗЫ ДАННЫХ
+    // ---------------------------------------------------------
+    val mergeProgress: Float? = null,          // Прогресс слияния (0.0 - 1.0), null = скрыть индикатор
+    val mergeTotalSteps: Int? = null,          // Общее количество шагов (записей) для слияния
+
+    // ---------------------------------------------------------
+    // ПРОГРЕСС ЭКСПОРТА БАЗЫ ДАННЫХ
+    // ---------------------------------------------------------
+    val exportProgress: Float? = null,         // Прогресс экспорта (0.0 - 1.0), null = скрыть индикатор
+    val exportTotalBytes: Long? = null         // Общий размер данных для экспорта в байтах
 )
- 

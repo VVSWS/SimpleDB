@@ -1,0 +1,35 @@
+@startuml
+title SettingsScreen - Импорт базы данных из JSON
+
+actor User as User
+participant "SettingsScreen" as UI
+participant "SettingsViewModel" as VM
+participant "ImportJsonDatabaseUseCase /\nMergeJsonDatabaseUseCase" as UC
+participant "DatabaseMaintenanceRepositoryImpl" as REPO
+participant "EntryExportMapper" as MAPPER
+participant "EntryDao / Reference DAOs" as DAO
+participant "AppDatabase" as DB
+
+User -> UI: выбирает файл для импорта
+UI -> VM: onImportBackupClicked(uri)
+VM -> UC: invoke(uri)
+UC -> UC: parseJsonFile()
+UC -> REPO: validateStructure()
+
+alt Invalid Format
+    UC --> VM: emit ImportError
+    VM --> UI: show Error Banner
+else Valid Format
+    UC -> MAPPER: jsonToDomainList()
+    MAPPER --> UC: List<FaultEntry>
+    UC -> REPO: mergeWithExistingData(entries)
+    REPO -> DAO: insertOrIgnoreBatch(entries)
+    DAO -> DB: INSERT OR REPLACE ...
+    DB --> DAO: rowsAffected
+    DAO --> REPO: mergeSuccess
+    REPO --> UC: Result.Success
+    UC --> VM: emit ImportCompleted
+    VM --> UI: show StatusBanner & refresh UI
+end
+
+@enduml

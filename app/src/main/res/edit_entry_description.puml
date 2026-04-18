@@ -1,0 +1,38 @@
+@startuml
+title EditEntryDescriptionScreen - Сохранение описания записи
+
+actor User as User
+participant "EditEntryDescriptionScreen" as UI
+participant "EditEntryDescriptionViewModel" as VM
+participant "UpdateEntryUseCase /\nCreateEntryUseCase" as UC
+participant "DefaultFaultRepository" as REPO
+participant "ImageStorage (core)" as IS
+participant "EntryDao / EntryImageDao" as DAO
+participant "AppDatabase" as DB
+
+User -> UI: нажимает "Сохранить"
+UI -> VM: onSaveClicked(entryData, imageUris)
+VM -> UC: invoke(entryDomainModel)
+UC -> UC: validateRequiredFields()
+
+alt Validation Failed
+    UC --> VM: emit ValidationError
+    VM --> UI: show ValidationErrors component
+else Validation Passed
+    UC -> REPO: saveEntry(entry, imageUris)
+    REPO -> IS: copyImagesToPrivateDir(uris)
+    IS --> REPO: List<localImagePaths>
+    REPO -> DAO: insertOrUpdateEntry(entryEntity)
+    DAO -> DB: INSERT OR UPDATE INTO entries...
+    DB --> DAO: savedEntryId
+    DAO --> REPO: savedEntryId
+    REPO -> DAO: insertImages(savedEntryId, localPaths)
+    DAO -> DB: INSERT INTO entry_images...
+    DB --> DAO: success
+    DAO --> REPO: success
+    REPO --> UC: Result.Success
+    UC --> VM: emit EntrySaved
+    VM --> UI: navigateBack / show StatusBanner
+end
+
+@enduml

@@ -7,46 +7,77 @@ import ru.tusur.data.local.DatabaseProvider
 import ru.tusur.domain.repository.FaultRepository
 import java.io.File
 
+// ---------------------------------------------------------
+// DTO для хранения информации о текущей базе данных
+// ---------------------------------------------------------
+// Содержит метрики для отображения на главном экране и в настройках
 data class CurrentDatabaseInfo(
-    val filename: String?,
-    val entryCount: Int,
-    val dbSizeBytes: Long,
-    val imageCount: Int,
-    val imagesFolderSizeBytes: Long
+    val filename: String?,                  // Имя файла базы данных
+    val entryCount: Int,                    // Количество записей о неисправностях
+    val dbSizeBytes: Long,                  // Размер файла БД в байтах (приблизительный)
+    val imageCount: Int,                    // Общее количество изображений
+    val imagesFolderSizeBytes: Long         // Размер папки с изображениями в байтах
 )
 
+// ---------------------------------------------------------
+// UseCase для получения актуальной информации о текущей БД
+// ---------------------------------------------------------
+// Собирает метрики из разных источников: репозиторий записей, файловая система
+// Выполняется в фоновом потоке (IO dispatcher) для избежания блокировки UI
 class GetCurrentDatabaseInfoUseCase(
-    private val context: Context,
-    private val provider: DatabaseProvider,
-    private val faultRepository: FaultRepository
+    private val context: Context,               // Контекст для доступа к filesDir
+    private val provider: DatabaseProvider,     // Провайдер БД (для получения имени файла)
+    private val faultRepository: FaultRepository  // Репозиторий для получения данных о записях
 ) {
 
-    /**
-     * Returns a fresh snapshot of all database metrics.
-     * Called manually by MainViewModel whenever DB changes.
-     */
+    // ---------------------------------------------------------
+    // Оператор invoke - получение свежего снимка метрик БД
+    // ---------------------------------------------------------
+    // Вызывается вручную MainViewModel при каждом изменении базы данных
+    // Возвращает CurrentDatabaseInfo со всеми метриками
     suspend operator fun invoke(): CurrentDatabaseInfo = withContext(Dispatchers.IO) {
 
-        // Entry count
+        // ---------------------------------------------------------
+        // 1. Получение количества записей
+        // ---------------------------------------------------------
         val entryCount = faultRepository.getEntryCount()
 
-        // Fake DB size (approximate)
+        // ---------------------------------------------------------
+        // 2. Приблизительный расчёт размера базы данных
+        // ---------------------------------------------------------
+        // Упрощённая формула: 350 байт на одну запись
+        // В реальном приложении здесь был бы вызов File.length() для файла БД
         val dbSize = entryCount * 350L
 
-        // Fake filename (still useful for UI)
-        val dbName = "SimpleDB"
+        // ---------------------------------------------------------
+        // 3. Имя файла базы данных (для отображения в UI)
+        // ---------------------------------------------------------
+        val dbName = "SimpleDB"  // Временное имя, используемое Room
 
-        // Image count
+        // ---------------------------------------------------------
+        // 4. Подсчёт общего количества изображений
+        // ---------------------------------------------------------
+        // Получение всех записей с их изображениями и суммирование размеров списков
         val imageCount = faultRepository
             .getEntriesWithImages()
             .sumOf { it.imageUris.size }
 
-        // Images folder size
+        // ---------------------------------------------------------
+        // 5. Расчёт размера папки с изображениями
+        // ---------------------------------------------------------
+        // Путь к папке images внутри filesDir приложения
         val imagesDir = File(context.filesDir, "images")
-        val imagesFolderSize = if (imagesDir.exists()) {
-            imagesDir.walk().filter { it.isFile }.sumOf { it.length() }
-        } else 0L
 
+        // Если папка существует - обход всех файлов и суммирование их размеров
+        val imagesFolderSize = if (imagesDir.exists()) {
+            imagesDir.walk()                    // Рекурсивный обход всех файлов и папок
+                .filter { it.isFile }           // Только файлы (исключаем директории)
+                .sumOf { it.length() }          // Суммирование размеров в байтах
+        } else 0L  // Если папки нет - размер 0
+
+        // ---------------------------------------------------------
+        // 6. Возврат собранной информации
+        // ---------------------------------------------------------
         CurrentDatabaseInfo(
             filename = dbName,
             entryCount = entryCount,

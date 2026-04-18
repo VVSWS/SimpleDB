@@ -12,37 +12,48 @@ import ru.tusur.domain.repository.FaultRepository
 import ru.tusur.presentation.shared.AppEvent
 import ru.tusur.presentation.shared.SharedAppEventsViewModel
 
-
+// ---------------------------------------------------------
+// UI состояние главного экрана
+// ---------------------------------------------------------
 data class MainUiState(
-    val dbName: String = "",
-    val entryCount: Int = 0,
-    val dbSizeBytes: Long = 0,
-    val imageCount: Int = 0,
-    val imagesFolderSizeBytes: Long = 0,
-    val resetCompleted: Boolean = false
+    val dbName: String = "",                    // Имя текущей базы данных
+    val entryCount: Int = 0,                    // Количество записей о неисправностях
+    val dbSizeBytes: Long = 0,                  // Размер файла БД в байтах
+    val imageCount: Int = 0,                    // Общее количество изображений
+    val imagesFolderSizeBytes: Long = 0,        // Размер папки с изображениями
+    val resetCompleted: Boolean = false         // Флаг завершения сброса БД
 )
 
+// ---------------------------------------------------------
+// ViewModel для главного экрана
+// ---------------------------------------------------------
+// Управляет отображением информации о текущей базе данных
+// Обрабатывает сброс базы данных (удаление всех записей и изображений)
+// Реагирует на глобальные события (создание/слияние БД, изменение записей)
 class MainViewModel(
-    private val getCurrentDbInfo: GetCurrentDatabaseInfoUseCase,
-    private val dbMaintenanceRepository: DatabaseMaintenanceRepository,
-    private val faultRepository: FaultRepository,
-    private val sharedEvents: SharedAppEventsViewModel
+    private val getCurrentDbInfo: GetCurrentDatabaseInfoUseCase,  // UseCase для получения информации о БД
+    private val dbMaintenanceRepository: DatabaseMaintenanceRepository,  // Репозиторий для обслуживания БД
+    private val faultRepository: FaultRepository,                 // Репозиторий для работы с записями
+    private val sharedEvents: SharedAppEventsViewModel           // Общие события для уведомлений
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState = _uiState.asStateFlow()
 
+    // ---------------------------------------------------------
+    // Инициализация: загрузка информации о БД и подписка на события
+    // ---------------------------------------------------------
     init {
         refreshDbInfo()
         observeEvents()
     }
 
-    /**
-     * Fetch a fresh snapshot of DB info.
-     */
+    // ---------------------------------------------------------
+    // Получение свежего снимка информации о базе данных
+    // ---------------------------------------------------------
     private fun refreshDbInfo() {
         viewModelScope.launch {
-            val info = getCurrentDbInfo()
+            val info = getCurrentDbInfo()  // Получение метрик БД
             _uiState.update {
                 it.copy(
                     dbName = info.filename ?: "",
@@ -55,48 +66,61 @@ class MainViewModel(
         }
     }
 
-    /**
-     * React to global app events and refresh DB info.
-     */
+    // ---------------------------------------------------------
+    // Реакция на глобальные события приложения
+    // ---------------------------------------------------------
     private fun observeEvents() {
         viewModelScope.launch {
             sharedEvents.events.collect { event ->
                 when (event) {
+                    // При создании новой БД, слиянии БД или изменении записей - обновить информацию
                     is AppEvent.DatabaseCreated,
                     is AppEvent.DatabaseMerged,
                     is AppEvent.EntryChanged -> refreshDbInfo()
-                    else -> {}
+                    else -> {}  // Остальные события игнорируются
                 }
             }
         }
     }
 
-
+    // ---------------------------------------------------------
+    // Сброс базы данных (удаление всех записей и изображений)
+    // ---------------------------------------------------------
     fun resetDatabase() {
         viewModelScope.launch {
             try {
-                // 1. Delete all entries + delete all image files (your existing implementation)
+                // ---------------------------------------------------------
+                // 1. Удаление всех записей и физических файлов изображений
+                // ---------------------------------------------------------
                 faultRepository.resetDatabase()
 
-
-                // 2. Shrink the database file
+                // ---------------------------------------------------------
+                // 2. Оптимизация файла базы данных (VACUUM)
+                // ---------------------------------------------------------
+                // VACUUM перестраивает БД, освобождая неиспользуемое пространство
+                // После массового удаления данных размер файла должен уменьшиться
                 dbMaintenanceRepository.vacuum()
 
-
-                // 3. Notify other screens
+                // ---------------------------------------------------------
+                // 3. Уведомление других экранов об изменении данных
+                // ---------------------------------------------------------
                 sharedEvents.emit(AppEvent.EntryChanged)
 
-                // 4. Update UI state
+                // ---------------------------------------------------------
+                // 4. Обновление UI состояния (показать, что сброс завершён)
+                // ---------------------------------------------------------
                 _uiState.update { it.copy(resetCompleted = true) }
 
-                // 5. Refresh DB info card (size will shrink after VACUUM)
+                // ---------------------------------------------------------
+                // 5. Обновление карточки информации о БД
+                // ---------------------------------------------------------
+                // Размер файла должен уменьшиться после VACUUM
                 refreshDbInfo()
 
             } catch (e: Exception) {
+                // Логирование ошибки (в реальном приложении можно использовать Timber или Logcat)
                 println("Reset failed: ${e.message}")
-
             }
         }
     }
-
 }

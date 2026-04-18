@@ -1,0 +1,28 @@
+@startuml
+title EntryListScreen - Загрузка списка записей
+
+actor User as User
+participant "EntryListScreen" as UI
+participant "EntryListViewModel" as VM
+participant "GetEntriesUseCase /\nGetRecentEntriesUseCase" as UC
+participant "DefaultFaultRepository" as REPO
+participant "EntryDao" as DAO
+participant "AppDatabase" as DB
+
+User -> UI: открывает экран
+UI -> VM: onScreenVisible()
+VM -> UC: invoke(filter=RECENT)
+UC -> REPO: getEntries(filter)
+REPO -> DAO: queryRecentEntries()
+DAO -> DB: SELECT * FROM entries\nORDER BY date DESC LIMIT N
+DB --> DAO: List<EntryWithRelations>
+DAO --> REPO: Flow<List>
+REPO --> UC: Flow<List<EntryWithRecording>>
+UC --> VM: emit State.Loading → State.Success(entries)
+VM --> UI: render EntryList(items)
+
+alt Empty Result
+    VM --> UI: show EntryListError()
+end
+
+@enduml

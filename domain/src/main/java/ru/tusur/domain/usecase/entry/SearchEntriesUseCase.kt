@@ -2,9 +2,23 @@ package ru.tusur.domain.usecase.entry
 
 import ru.tusur.domain.repository.FaultRepository
 
+// ---------------------------------------------------------
+// UseCase для поиска записей о неисправностях по фильтрам
+// ---------------------------------------------------------
+// Инкапсулирует бизнес-логику поиска записей
+// Все параметры опциональны (null означает "не фильтровать по этому критерию")
+// Возвращает список записей, соответствующих всем указанным фильтрам
 class SearchEntriesUseCase(
-    private val repository: FaultRepository
+    private val repository: FaultRepository   // Репозиторий для работы с записями
 ) {
+    // ---------------------------------------------------------
+    // Оператор invoke - выполнение поиска записей
+    // ---------------------------------------------------------
+    // year: год выпуска (фильтр по году)
+    // brand: марка автомобиля (фильтр по марке)
+    // model: модель автомобиля (фильтр по модели)
+    // location: местоположение (фильтр по локации)
+    // Возвращает: List<FaultEntry> - список записей, соответствующих фильтрам
     suspend operator fun invoke(
         year: Int?,
         brand: String?,
@@ -12,4 +26,3 @@ class SearchEntriesUseCase(
         location: String?
     ) = repository.searchEntries(year, brand, model, location)
 }
-

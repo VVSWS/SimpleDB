@@ -10,12 +10,24 @@ import ru.tusur.domain.repository.FaultRepository
 import ru.tusur.domain.repository.ReferenceDataRepository
 import java.io.File
 
+// ---------------------------------------------------------
+// UseCase для слияния экспортированной базы данных с текущей
+// ---------------------------------------------------------
+// Импортирует все записи из JSON-файла и изображений из выбранной папки
+// Добавляет новые записи, не удаляя существующие (слияние, а не замена)
+// Отслеживает прогресс через callback
 class MergeJsonDatabaseUseCase(
-    private val context: Context,
-    private val faultRepository: FaultRepository,
-    private val referenceRepository: ReferenceDataRepository
+    private val context: Context,                         // Контекст для доступа к filesDir
+    private val faultRepository: FaultRepository,         // Репозиторий для записей
+    private val referenceRepository: ReferenceDataRepository  // Репозиторий для справочников
 ) {
 
+    // ---------------------------------------------------------
+    // Оператор invoke - запуск слияния
+    // ---------------------------------------------------------
+    // folderUri: URI папки с экспортированными данными (JSON + images/)
+    // onProgress: Callback для прогресса (текущий шаг, всего шагов)
+    // Возвращает Result<Int> - количество слитых записей или ошибку
     suspend operator fun invoke(
         folderUri: Uri,
         onProgress: (step: Int, totalSteps: Int) -> Unit = { _, _ -> }
@@ -23,18 +35,20 @@ class MergeJsonDatabaseUseCase(
         return try {
             val resolver = context.contentResolver
 
-            // Convert tree URI → directory document URI
+            // ---------------------------------------------------------
+            // Преобразование URI дерева в URI директории
+            // ---------------------------------------------------------
             val rootDocId = DocumentsContract.getTreeDocumentId(folderUri)
             val rootDirUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, rootDocId)
 
             // ---------------------------------------------------------
-            // 1. Locate JSON file
+            // 1. Поиск JSON-файла в корневой директории
             // ---------------------------------------------------------
             val jsonUri = findJsonFile(resolver, rootDirUri)
                 ?: return Result.failure(Exception("JSON backup file not found"))
 
             // ---------------------------------------------------------
-            // 2. Read JSON
+            // 2. Чтение и десериализация JSON
             // ---------------------------------------------------------
             val jsonString = resolver.openInputStream(jsonUri)
                 ?.use { it.readBytes().decodeToString() }
@@ -43,28 +57,36 @@ class MergeJsonDatabaseUseCase(
             val export = Json.decodeFromString<ExportDatabase>(jsonString)
 
             // ---------------------------------------------------------
-            // 3. Locate images folder
+            // 3. Поиск папки с изображениями
             // ---------------------------------------------------------
             val imagesFolderUri = findImagesFolder(resolver, rootDirUri)
                 ?: return Result.failure(Exception("Images folder not found"))
 
-            val totalSteps = export.entries.size
-            var mergedCount = 0
+            // ---------------------------------------------------------
+            // 4. Подготовка к слиянию записей
+            // ---------------------------------------------------------
+            val totalSteps = export.entries.size  // Общее количество записей для импорта
+            var mergedCount = 0                    // Счётчик успешно импортированных записей
 
             // ---------------------------------------------------------
-            // 4. Merge entries
+            // 5. Обработка каждой записи из экспорта
             // ---------------------------------------------------------
             export.entries.forEachIndexed { index, dto ->
 
+                // Отправка прогресса (текущая запись / всего)
                 onProgress(index, totalSteps)
 
-                // Validate required fields
+                // ---------------------------------------------------------
+                // Валидация обязательных полей DTO
+                // ---------------------------------------------------------
                 val brandName = dto.brand ?: error("Backup entry missing brand")
                 val locationName = dto.location ?: error("Backup entry missing location")
                 val modelName = dto.modelName ?: error("Backup entry missing modelName")
                 val yearValue = dto.year ?: error("Backup entry missing year")
 
-                // Convert to domain models
+                // ---------------------------------------------------------
+                // Преобразование в доменные объекты
+                // ---------------------------------------------------------
                 val brand = Brand(brandName)
                 val location = Location(locationName)
                 val year = Year(yearValue)
@@ -74,17 +96,19 @@ class MergeJsonDatabaseUseCase(
                     year = year
                 )
 
-                // Insert dictionary values
+                // ---------------------------------------------------------
+                // Вставка справочных данных (игнорирование дубликатов)
+                // ---------------------------------------------------------
                 referenceRepository.addBrand(brand)
                 referenceRepository.addLocation(location)
                 referenceRepository.addYear(year)
                 referenceRepository.addModel(model)
 
                 // ---------------------------------------------------------
-                // Create FaultEntry (domain model)
+                // Создание записи о неисправности
                 // ---------------------------------------------------------
                 val newEntry = FaultEntry(
-                    id = 0, // auto-generate
+                    id = 0,                              // 0 = автогенерация ID
                     timestamp = dto.timestamp,
                     year = year,
                     brand = brand,
@@ -92,32 +116,35 @@ class MergeJsonDatabaseUseCase(
                     location = location,
                     title = dto.title,
                     description = dto.description,
-                    imageUris = emptyList()
+                    imageUris = emptyList()              // Изображения добавим позже
                 )
 
-                // Insert entry
+                // Вставка записи в БД
                 val newEntryId = faultRepository.createEntry(newEntry)
 
                 // ---------------------------------------------------------
-                // 5. Copy images
+                // 6. Копирование изображений для записи
                 // ---------------------------------------------------------
                 val newImageUris = copyImagesForEntry(
                     context = context,
                     resolver = resolver,
                     imagesFolderUri = imagesFolderUri,
-                    oldEntryId = dto.id,
-                    newEntryId = newEntryId,
+                    oldEntryId = dto.id,          // ID из экспортированной БД
+                    newEntryId = newEntryId,      // Новый ID в текущей БД
                     imageNames = dto.images
                 )
 
-                // Attach images to entry
+                // Привязка скопированных изображений к записи
                 newImageUris.forEach { uri ->
                     faultRepository.addImageToEntry(newEntryId, uri)
                 }
 
-                mergedCount++
+                mergedCount++  // Увеличение счётчика успешно импортированных записей
             }
 
+            // ---------------------------------------------------------
+            // Завершение слияния
+            // ---------------------------------------------------------
             onProgress(totalSteps, totalSteps)
             Result.success(mergedCount)
 
@@ -127,9 +154,12 @@ class MergeJsonDatabaseUseCase(
     }
 
     // ------------------------------------------------------------
-    // Helpers (unchanged)
+    // Вспомогательные методы
     // ------------------------------------------------------------
 
+    // ---------------------------------------------------------
+    // Поиск JSON-файла в корневой директории
+    // ---------------------------------------------------------
     private fun findJsonFile(resolver: android.content.ContentResolver, dirUri: Uri): Uri? {
         val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
             dirUri,
@@ -148,6 +178,7 @@ class MergeJsonDatabaseUseCase(
                 val docId = cursor.getString(idIndex)
                 val mime = cursor.getString(mimeIndex)
 
+                // Проверка MIME-типа JSON
                 if (mime == "application/json" || mime == "text/json") {
                     return DocumentsContract.buildDocumentUriUsingTree(dirUri, docId)
                 }
@@ -157,6 +188,9 @@ class MergeJsonDatabaseUseCase(
         return null
     }
 
+    // ---------------------------------------------------------
+    // Поиск папки "images" в корневой директории
+    // ---------------------------------------------------------
     private fun findImagesFolder(resolver: android.content.ContentResolver, dirUri: Uri): Uri? {
         val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
             dirUri,
@@ -178,6 +212,7 @@ class MergeJsonDatabaseUseCase(
                 val name = cursor.getString(nameIndex)
                 val mime = cursor.getString(mimeIndex)
 
+                // Поиск директории с именем "images"
                 if (mime == DocumentsContract.Document.MIME_TYPE_DIR && name == "images") {
                     return DocumentsContract.buildDocumentUriUsingTree(dirUri, docId)
                 }
@@ -187,6 +222,9 @@ class MergeJsonDatabaseUseCase(
         return null
     }
 
+    // ---------------------------------------------------------
+    // Копирование изображений для конкретной записи
+    // ---------------------------------------------------------
     private fun copyImagesForEntry(
         context: Context,
         resolver: android.content.ContentResolver,
@@ -198,29 +236,38 @@ class MergeJsonDatabaseUseCase(
 
         val resultUris = mutableListOf<String>()
 
+        // Поиск папки со старым ID записи внутри images/
         val entryFolderUri = findEntryImageFolder(resolver, imagesFolderUri, oldEntryId)
             ?: return emptyList()
 
+        // Целевая директория в хранилище приложения
         val dstDir = File(context.filesDir, "images/$newEntryId")
         dstDir.mkdirs()
 
+        // Копирование каждого изображения
         imageNames.forEach { rawName ->
-            val cleanName = File(rawName).name
+            val cleanName = File(rawName).name  // Очистка имени файла (удаление пути)
 
+            // Поиск файла изображения в папке записи
             val srcUri = findImageFile(resolver, entryFolderUri, cleanName)
                 ?: return@forEach
 
+            // Целевой файл
             val dstFile = File(dstDir, cleanName)
 
+            // Копирование содержимого из SAF в локальный файл
             resolver.openInputStream(srcUri)?.use { input ->
                 dstFile.outputStream().use { output ->
                     input.copyTo(output)
                 }
             }
 
+            // ---------------------------------------------------------
+            // Создание content:// URI для доступа из других компонентов
+            // ---------------------------------------------------------
             val contentUri = androidx.core.content.FileProvider.getUriForFile(
                 context,
-                "${context.packageName}.provider",
+                "${context.packageName}.provider",  // Authority из AndroidManifest
                 dstFile
             )
 
@@ -230,6 +277,9 @@ class MergeJsonDatabaseUseCase(
         return resultUris
     }
 
+    // ---------------------------------------------------------
+    // Поиск папки записи внутри images/ (по старому ID)
+    // ---------------------------------------------------------
     private fun findEntryImageFolder(
         resolver: android.content.ContentResolver,
         imagesFolderUri: Uri,
@@ -256,6 +306,7 @@ class MergeJsonDatabaseUseCase(
                 val name = cursor.getString(nameIndex)
                 val mime = cursor.getString(mimeIndex)
 
+                // Поиск директории, имя которой совпадает со старым ID записи
                 if (mime == DocumentsContract.Document.MIME_TYPE_DIR && name == oldEntryId.toString()) {
                     return DocumentsContract.buildDocumentUriUsingTree(imagesFolderUri, docId)
                 }
@@ -265,6 +316,9 @@ class MergeJsonDatabaseUseCase(
         return null
     }
 
+    // ---------------------------------------------------------
+    // Поиск файла изображения по имени внутри папки записи
+    // ---------------------------------------------------------
     private fun findImageFile(
         resolver: android.content.ContentResolver,
         entryFolderUri: Uri,
@@ -288,6 +342,7 @@ class MergeJsonDatabaseUseCase(
                 val docId = cursor.getString(idIndex)
                 val name = cursor.getString(nameIndex)
 
+                // Сравнение имени файла
                 if (name == imageName) {
                     return DocumentsContract.buildDocumentUriUsingTree(entryFolderUri, docId)
                 }

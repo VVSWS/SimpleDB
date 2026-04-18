@@ -24,7 +24,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
-
+// ---------------------------------------------------------
+// Экран ввода метаданных для новой записи
+// ---------------------------------------------------------
+// Позволяет пользователю выбрать или добавить:
+// - год выпуска
+// - марку автомобиля
+// - модель автомобиля
+// - местоположение неисправности
+// - заголовок записи
+// После заполнения создаёт черновик записи и переходит к экрану редактирования описания
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewEntryMetadataScreen(navController: NavController) {
@@ -32,6 +41,9 @@ fun NewEntryMetadataScreen(navController: NavController) {
     val uiState by viewModel.uiState.collectAsState()
     var showHelpDialog by remember { mutableStateOf(false) }
 
+    // ---------------------------------------------------------
+    // Структура экрана: TopBar + контент
+    // ---------------------------------------------------------
     Scaffold(
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
@@ -44,6 +56,7 @@ fun NewEntryMetadataScreen(navController: NavController) {
                     )
                 },
                 navigationIcon = {
+                    // Кнопка возврата
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -51,9 +64,8 @@ fun NewEntryMetadataScreen(navController: NavController) {
                         )
                     }
                 },
-
                 actions = {
-                    // Help icon
+                    // Кнопка помощи (справка)
                     IconButton(onClick = { showHelpDialog = true }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Help,
@@ -65,16 +77,21 @@ fun NewEntryMetadataScreen(navController: NavController) {
         }
     ) { padding ->
 
+        // ---------------------------------------------------------
+        // Основной контент с прокруткой и учётом клавиатуры
+        // ---------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .imePadding()
+                .imePadding()                    // Учёт открытой клавиатуры
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // YEAR
+            // ---------------------------------------------------------
+            // Выбор/добавление года выпуска
+            // ---------------------------------------------------------
             EditableDropdownSelector(
                 items = uiState.years,
                 selectedItem = uiState.selectedYear,
@@ -92,7 +109,9 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(12.dp))
 
-            // BRAND
+            // ---------------------------------------------------------
+            // Выбор/добавление марки автомобиля
+            // ---------------------------------------------------------
             EditableDropdownSelector(
                 items = uiState.brands,
                 selectedItem = uiState.selectedBrand,
@@ -109,7 +128,9 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(12.dp))
 
-            // MODEL
+            // ---------------------------------------------------------
+            // Выбор/добавление модели автомобиля
+            // ---------------------------------------------------------
             EditableDropdownSelector(
                 items = uiState.models,
                 selectedItem = uiState.selectedModel,
@@ -126,7 +147,9 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(12.dp))
 
-            // LOCATION
+            // ---------------------------------------------------------
+            // Выбор/добавление местоположения
+            // ---------------------------------------------------------
             EditableDropdownSelector(
                 items = uiState.locations,
                 selectedItem = uiState.selectedLocation,
@@ -143,7 +166,9 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(16.dp))
 
-            // TITLE
+            // ---------------------------------------------------------
+            // Поле ввода заголовка
+            // ---------------------------------------------------------
             CompactTextField(
                 label = stringResource(R.string.label_title_brief),
                 value = uiState.title,
@@ -156,33 +181,36 @@ fun NewEntryMetadataScreen(navController: NavController) {
 
             Spacer(Modifier.height(24.dp))
 
-            // CONTINUE BUTTON
+            // ---------------------------------------------------------
+            // Кнопка "Продолжить" (создание черновика и переход)
+            // ---------------------------------------------------------
             Button(
                 onClick = {
-                    // Build the entry from UI state
+                    // Создание черновика записи из состояния UI
                     val entry = FaultEntry(
-                        year = uiState.selectedYear,              // ← pass Year? directly
-                        brand = uiState.selectedBrand,           // if brand is also a domain model
-                        model = uiState.selectedModel,           // same here
-                        location = uiState.selectedLocation,     // and here
+                        year = uiState.selectedYear,      // Год (доменная модель)
+                        brand = uiState.selectedBrand,    // Марка (доменная модель)
+                        model = uiState.selectedModel,    // Модель (доменная модель)
+                        location = uiState.selectedLocation,  // Локация (доменная модель)
                         title = uiState.title,
                         timestamp = System.currentTimeMillis()
                     )
-                    // Create entry and navigate
+                    // Создание записи и навигация на экран редактирования описания
                     viewModel.createEntry { newId ->
                         navController.navigate("edit_entry_description/$newId")
                     }
                 },
-                enabled = uiState.isContinueEnabled,
+                enabled = uiState.isContinueEnabled,  // Активна только при валидных данных
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.button_continue))
             }
-
         }
     }
 
-    // AlertDialog
+    // ---------------------------------------------------------
+    // Диалог справки (помощь по заполнению формы)
+    // ---------------------------------------------------------
     if (showHelpDialog) {
         AlertDialog(
             onDismissRequest = { showHelpDialog = false },

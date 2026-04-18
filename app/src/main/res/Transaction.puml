@@ -1,0 +1,45 @@
+@startuml Room_Transaction_StateDiagram
+title Состояния транзакции Room (@Transaction)
+skinparam state {
+  BackgroundColor<<active>> LightYellow
+  BackgroundColor<<critical>> LightSalmon
+}
+
+[*] --> Idle : Нет активных запросов
+
+Idle --> QueryStarted : Вызов suspend-функции DAO\n(например, insertEntry())
+
+state QueryStarted <<active>> {
+  [*] --> AcquiringConnection : Получение соединения из пула
+  AcquiringConnection --> BeginningTransaction : BEGIN TRANSACTION
+  BeginningTransaction --> ExecutingSQL : Выполнение SQL-запросов
+}
+
+ExecutingSQL --> Committing : Все запросы успешны
+ExecutingSQL --> RollingBack : Возникло исключение
+
+state Committing {
+  [*] --> Commit : COMMIT TRANSACTION
+  Commit --> ReleasingConnection : Возврат соединения в пул
+}
+
+state RollingBack <<critical>> {
+  [*] --> Rollback : ROLLBACK TRANSACTION
+  Rollback --> ReleasingConnection : Возврат соединения в пул
+}
+
+ReleasingConnection --> TransactionComplete : Транзакция завершена
+
+TransactionComplete --> Idle : Готов к следующему запросу
+TransactionComplete --> Error : Ошибка на уровне БД (disk full, corruption)
+
+Error --> [*] : Обработка через try/catch\nв ViewModel/UseCase
+
+note right of ExecutingSQL
+  Важно для вашей архитектуры:
+  • Все операции в @Transaction атомарны
+  • При ошибке — полный откат
+  • Flow-наблюдатели получат новые данные только после COMMIT
+end note
+
+@enduml

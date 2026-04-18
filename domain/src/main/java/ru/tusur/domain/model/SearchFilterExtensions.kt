@@ -1,10 +1,17 @@
 package ru.tusur.domain.model
 
+// ---------------------------------------------------------
+// Функция-расширение для преобразования SearchFilter в SearchQuery
+// ---------------------------------------------------------
+// Преобразует модель фильтра поиска в запрос для репозитория
+// В данном случае просто копирует все поля, так как структуры идентичны
+// Разделение Filter и Query позволяет использовать разные модели
+// для UI (Filter) и для слоя данных (Query) при необходимости
 fun SearchFilter.toQuery(): SearchQuery {
     return SearchQuery(
-        year = this.year,
-        brand = this.brand,
-        model = this.model,
-        location = this.location
+        year = this.year,        // Год выпуска
+        brand = this.brand,      // Марка автомобиля
+        model = this.model,      // Модель автомобиля
+        location = this.location // Местоположение
     )
 }

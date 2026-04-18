@@ -14,45 +14,59 @@ import ru.tusur.presentation.shared.AppEvent
 import ru.tusur.presentation.shared.SharedAppEventsViewModel
 import ru.tusur.presentation.util.StringProvider
 
+// ---------------------------------------------------------
+// ViewModel для экрана ввода метаданных новой записи
+// ---------------------------------------------------------
+// Управляет выбором и добавлением справочных данных (годы, марки, модели, локации)
+// Выполняет валидацию ввода и создаёт черновик записи
 class NewEntryMetadataViewModel(
-    private val getYears: GetYearsUseCase,
-    private val getBrands: GetBrandsUseCase,
-    private val getModelsForBrandAndYear: GetModelsForBrandAndYearUseCase,
-    private val getLocations: GetLocationsUseCase,
-    private val addYear: AddYearUseCase,
-    private val addBrand: AddBrandUseCase,
-    private val addModel: AddModelUseCase,
-    private val addLocation: AddLocationUseCase,
-    private val deleteYearUseCase: DeleteYearUseCase,
-    private val deleteBrandUseCase: DeleteBrandUseCase,
-    private val deleteModelUseCase: DeleteModelUseCase,
-    private val deleteLocationUseCase: DeleteLocationUseCase,
-    private val createEntryUseCase: CreateEntryUseCase,
-    private val sharedEvents: SharedAppEventsViewModel,
-    private val stringProvider: StringProvider
+    private val getYears: GetYearsUseCase,                              // Получение списка годов
+    private val getBrands: GetBrandsUseCase,                            // Получение списка марок
+    private val getModelsForBrandAndYear: GetModelsForBrandAndYearUseCase, // Получение моделей по марке и году
+    private val getLocations: GetLocationsUseCase,                      // Получение списка локаций
+    private val addYear: AddYearUseCase,                                // Добавление нового года
+    private val addBrand: AddBrandUseCase,                              // Добавление новой марки
+    private val addModel: AddModelUseCase,                              // Добавление новой модели
+    private val addLocation: AddLocationUseCase,                        // Добавление новой локации
+    private val deleteYearUseCase: DeleteYearUseCase,                   // Удаление года
+    private val deleteBrandUseCase: DeleteBrandUseCase,                 // Удаление марки
+    private val deleteModelUseCase: DeleteModelUseCase,                 // Удаление модели
+    private val deleteLocationUseCase: DeleteLocationUseCase,           // Удаление локации
+    private val createEntryUseCase: CreateEntryUseCase,                 // Создание записи
+    private val sharedEvents: SharedAppEventsViewModel,                 // Общие события для уведомлений
+    private val stringProvider: StringProvider                          // Провайдер строковых ресурсов
 ) : ViewModel() {
 
+    // ---------------------------------------------------------
+    // UI состояние экрана
+    // ---------------------------------------------------------
     data class UiState(
+        // Списки справочных данных
         val years: List<Year> = emptyList(),
         val brands: List<Brand> = emptyList(),
         val models: List<Model> = emptyList(),
         val locations: List<Location> = emptyList(),
 
+        // Выбранные значения
         val selectedYear: Year? = null,
         val selectedBrand: Brand? = null,
         val selectedModel: Model? = null,
         val selectedLocation: Location? = null,
 
+        // Заголовок записи и ID созданной записи
         val title: String = "",
         val entryId: Long? = null,
 
+        // Поля для ввода новых значений
         val newYearInput: String = "",
         val newBrandInput: String = "",
         val newModelInput: String = "",
         val newLocationInput: String = "",
 
+        // Ошибки валидации
         val yearErrorMessage: String? = null
     ) {
+        // Флаг активности кнопки "Продолжить"
         val isContinueEnabled: Boolean
             get() = selectedYear != null &&
                     selectedBrand != null &&
@@ -64,15 +78,18 @@ class NewEntryMetadataViewModel(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
+    // ---------------------------------------------------------
+    // Инициализация: загрузка справочных данных
+    // ---------------------------------------------------------
     init {
         loadInitialData()
     }
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            val years = getYears().first()
-            val brands = getBrands().first()
-            val locations = getLocations().first()
+            val years = getYears().first()      // Получение всех годов
+            val brands = getBrands().first()    // Получение всех марок
+            val locations = getLocations().first()  // Получение всех локаций
 
             _uiState.value = _uiState.value.copy(
                 years = years,
@@ -82,18 +99,20 @@ class NewEntryMetadataViewModel(
         }
     }
 
+    // ---------------------------------------------------------
+    // Обработчики выбора элементов
+    // ---------------------------------------------------------
     fun onYearSelected(year: Year?) {
         _uiState.value = _uiState.value.copy(
             selectedYear = year,
             yearErrorMessage = null
         )
-        reloadModels()
+        reloadModels()  // При смене года обновить список моделей
     }
-
 
     fun onBrandSelected(brand: Brand?) {
         _uiState.value = _uiState.value.copy(selectedBrand = brand)
-        reloadModels()
+        reloadModels()  // При смене марки обновить список моделей
     }
 
     fun onModelSelected(model: Model?) {
@@ -108,6 +127,9 @@ class NewEntryMetadataViewModel(
         _uiState.value = _uiState.value.copy(title = text)
     }
 
+    // ---------------------------------------------------------
+    // Обновление списка моделей на основе выбранной марки и года
+    // ---------------------------------------------------------
     private fun reloadModels() {
         val year = _uiState.value.selectedYear
         val brand = _uiState.value.selectedBrand
@@ -120,17 +142,19 @@ class NewEntryMetadataViewModel(
         }
     }
 
+    // ---------------------------------------------------------
+    // Валидация ввода нового года
+    // ---------------------------------------------------------
     fun onNewYearInputChanged(input: String) {
         val error = when {
-            input.any { !it.isDigit() } ->
+            input.any { !it.isDigit() } ->                      // Только цифры
                 stringProvider.get(R.string.error_only_digits)
 
-            input.length > 4 ->
+            input.length > 4 ->                                  // Не более 4 цифр
                 stringProvider.get(R.string.error_max_4_digits)
 
             else -> null
         }
-
 
         _uiState.value = _uiState.value.copy(
             newYearInput = input,
@@ -138,10 +162,9 @@ class NewEntryMetadataViewModel(
         )
     }
 
-
-
-
-
+    // ---------------------------------------------------------
+    // Обработчики ввода новых значений
+    // ---------------------------------------------------------
     fun onNewBrandInputChanged(value: String) {
         _uiState.value = _uiState.value.copy(newBrandInput = value)
     }
@@ -154,10 +177,14 @@ class NewEntryMetadataViewModel(
         _uiState.value = _uiState.value.copy(newLocationInput = value)
     }
 
+    // ---------------------------------------------------------
+    // Добавление нового года
+    // ---------------------------------------------------------
     fun addNewYear() {
         viewModelScope.launch {
             val input = _uiState.value.newYearInput
 
+            // Проверка длины: год должен быть из 4 цифр
             if (input.length != 4) {
                 _uiState.value = _uiState.value.copy(
                     yearErrorMessage = stringProvider.get(R.string.error_year_must_be_4)
@@ -165,6 +192,7 @@ class NewEntryMetadataViewModel(
                 return@launch
             }
 
+            // Преобразование в число
             val yearValue = input.toIntOrNull()
             if (yearValue == null) {
                 _uiState.value = _uiState.value.copy(
@@ -173,9 +201,11 @@ class NewEntryMetadataViewModel(
                 return@launch
             }
 
+            // Сохранение года в БД
             val year = Year(yearValue)
             addYear(year)
 
+            // Обновление списка годов
             val years = getYears().first()
 
             _uiState.value = _uiState.value.copy(
@@ -187,8 +217,9 @@ class NewEntryMetadataViewModel(
         }
     }
 
-
-
+    // ---------------------------------------------------------
+    // Добавление новой марки
+    // ---------------------------------------------------------
     fun addNewBrand() {
         viewModelScope.launch {
             val name = _uiState.value.newBrandInput
@@ -207,17 +238,22 @@ class NewEntryMetadataViewModel(
         }
     }
 
+    // ---------------------------------------------------------
+    // Добавление новой модели
+    // ---------------------------------------------------------
     fun addNewModel() {
         viewModelScope.launch {
             val name = _uiState.value.newModelInput
             if (name.isBlank()) return@launch
 
+            // Для добавления модели нужны выбранные год и марка
             val year = _uiState.value.selectedYear ?: return@launch
             val brand = _uiState.value.selectedBrand ?: return@launch
 
             val model = Model(name = name, brand = brand, year = year)
             addModel(model)
 
+            // Обновление списка моделей
             val models = getModelsForBrandAndYear(brand, year).first()
 
             _uiState.value = _uiState.value.copy(
@@ -228,6 +264,9 @@ class NewEntryMetadataViewModel(
         }
     }
 
+    // ---------------------------------------------------------
+    // Добавление новой локации
+    // ---------------------------------------------------------
     fun addNewLocation() {
         viewModelScope.launch {
             val name = _uiState.value.newLocationInput
@@ -246,6 +285,9 @@ class NewEntryMetadataViewModel(
         }
     }
 
+    // ---------------------------------------------------------
+    // Удаление справочных элементов
+    // ---------------------------------------------------------
     fun deleteYear(year: Year) {
         viewModelScope.launch {
             deleteYearUseCase(year)
@@ -263,7 +305,7 @@ class NewEntryMetadataViewModel(
     fun deleteModel(model: Model) {
         viewModelScope.launch {
             deleteModelUseCase(model)
-            reloadModels()
+            reloadModels()  // Обновление списка после удаления
         }
     }
 
@@ -275,12 +317,12 @@ class NewEntryMetadataViewModel(
     }
 
     // ---------------------------------------------------------
-    // Create entry and notify main screen
+    // Создание записи и уведомление об изменении
     // ---------------------------------------------------------
-
     fun createEntry(onCreated: (Long) -> Unit) {
         val state = _uiState.value
 
+        // Сборка черновика записи из выбранных данных
         val entry = FaultEntry(
             year = state.selectedYear,
             brand = state.selectedBrand,
@@ -291,13 +333,17 @@ class NewEntryMetadataViewModel(
         )
 
         viewModelScope.launch {
+            // Сохранение записи в БД
             val id = createEntryUseCase(entry)
 
+            // Обновление состояния
             _uiState.value = _uiState.value.copy(entryId = id)
 
+            // Уведомление главного экрана об изменении данных
             sharedEvents.emit(AppEvent.EntryChanged)
-            onCreated(id)
 
+            // Callback для навигации на следующий экран
+            onCreated(id)
         }
     }
 }

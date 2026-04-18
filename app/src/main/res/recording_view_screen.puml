@@ -1,0 +1,31 @@
+@startuml
+title RecordingViewScreen - Просмотр записи
+
+actor User as User
+participant "RecordingViewScreen" as UI
+participant "RecordingViewViewModel" as VM
+participant "GetEntryByIdUseCase" as UC
+participant "DefaultFaultRepository" as REPO
+participant "ImageStorage (core)" as IS
+participant "EntryDao" as DAO
+participant "AppDatabase" as DB
+
+User -> UI: выбирает запись
+UI -> VM: onEntrySelected(entryId)
+VM -> UC: invoke(entryId)
+UC -> REPO: getEntryWithImages(id)
+REPO -> DAO: queryEntryWithRelations(id)
+DAO -> DB: SELECT entries JOIN images\nON id = entry_id
+DB --> DAO: EntryWithImages
+DAO --> REPO: EntryWithRecording
+REPO --> UC: Result.Success(entry)
+UC --> VM: emit State.Success(entry)
+VM --> UI: render details + ImageThumbnail list
+
+User -> UI: нажимает на изображение
+UI -> VM: onImageClicked(imagePath)
+VM -> IS: loadImage(path)
+IS --> VM: File/Uri
+VM --> UI: open FullScreenImageViewer(image)
+
+@enduml

@@ -3,18 +3,30 @@ package ru.tusur.data.local.entity
 import androidx.room.Embedded
 import androidx.room.Relation
 
-/**
- * Room relation:
- * EntryEntity + all associated EntryImageEntity rows.
- *
- * Used for detail screens, export, import, and recording view.
- */
+// ---------------------------------------------------------
+// POJO-класс для связи "Запись + её изображения"
+// ---------------------------------------------------------
+// Используется Room для выполнения транзакционных запросов
+// Объединяет одну запись и список всех связанных с ней изображений
+// Применяется на экранах детального просмотра, экспорта, импорта и аудиозаписи
 data class EntryWithImages(
-    @Embedded val entry: EntryEntity,
 
+    // ---------------------------------------------------------
+    // Встраиваемая запись о неисправности
+    // ---------------------------------------------------------
+    // @Embedded означает, что поля EntryEntity будут развёрнуты
+    // в результирующем наборе запросов наравне с полями других классов
+    @Embedded
+    val entry: EntryEntity,
+
+    // ---------------------------------------------------------
+    // Связь "один-ко-многим" для изображений
+    // ---------------------------------------------------------
+    // @Relation автоматически загружает все EntryImageEntity,
+    // у которых поле entryId совпадает с id записи
     @Relation(
-        parentColumn = "id",
-        entityColumn = "entryId"
+        parentColumn = "id",        // Поле в EntryEntity (первичный ключ)
+        entityColumn = "entryId"    // Поле в EntryImageEntity (внешний ключ)
     )
     val images: List<EntryImageEntity>
 )

@@ -3,9 +3,19 @@ package ru.tusur.domain.usecase.reference
 import ru.tusur.domain.model.Brand
 import ru.tusur.domain.repository.ReferenceDataRepository
 
+// ---------------------------------------------------------
+// UseCase для удаления марки автомобиля из справочника
+// ---------------------------------------------------------
+// Инкапсулирует бизнес-логику удаления марки
+// Вызывает соответствующий метод репозитория
+// ВНИМАНИЕ: удаление марки может повлиять на существующие записи,
+// если они ссылаются на эту марку (зависит от настроек внешних ключей в БД)
 class DeleteBrandUseCase(
-    private val repository: ReferenceDataRepository
+    private val repository: ReferenceDataRepository   // Репозиторий для работы со справочниками
 ) {
+    // ---------------------------------------------------------
+    // Оператор invoke - выполнение удаления марки
+    // ---------------------------------------------------------
+    // brand: доменная модель марки для удаления
     suspend operator fun invoke(brand: Brand) = repository.deleteBrand(brand)
 }
-

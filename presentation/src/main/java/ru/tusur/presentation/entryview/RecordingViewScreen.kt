@@ -31,14 +31,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
-
-
+// ---------------------------------------------------------
+// Экран просмотра деталей записи (аудиозапись/текст/изображения)
+// ---------------------------------------------------------
+// Отображает полную информацию о неисправности:
+// - Заголовок
+// - Дата создания
+// - Справочные данные (год, марка, модель, локация)
+// - Описание проблемы
+// - Галерея изображений с возможностью просмотра в полноэкранном режиме
+// Позволяет редактировать или удалять запись
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordingViewScreen(
     navController: NavController,
-    entryId: Long
+    entryId: Long                           // ID отображаемой записи
 ) {
+    // Внедрение ViewModel с передачей ID записи через параметры Koin
     val viewModel: RecordingViewViewModel = koinViewModel(
         parameters = { parametersOf(entryId) }
     )
@@ -47,18 +56,21 @@ fun RecordingViewScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showHelpDialog by remember { mutableStateOf(false) }
 
-    // Refresh when returning to this screen
+    // Обновление данных при возврате на этот экран
     LaunchedEffect(entryId) {
         viewModel.refresh()
     }
 
-
+    // Если запись удалена - автоматический возврат на предыдущий экран
     if (uiState.isDeleted) {
         LaunchedEffect(Unit) {
             navController.popBackStack()
         }
     }
 
+    // ---------------------------------------------------------
+    // Структура экрана: TopBar + контент
+    // ---------------------------------------------------------
     Scaffold(
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
@@ -66,6 +78,7 @@ fun RecordingViewScreen(
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.title_entry_details)) },
                 navigationIcon = {
+                    // Кнопка возврата
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -74,6 +87,7 @@ fun RecordingViewScreen(
                     }
                 },
                 actions = {
+                    // Кнопка редактирования записи
                     IconButton(
                         onClick = {
                             uiState.entry?.id?.let { id ->
@@ -84,7 +98,7 @@ fun RecordingViewScreen(
                         Icon(Icons.Default.Edit, contentDescription = null)
                     }
 
-                    // Help icon
+                    // Кнопка помощи (справка)
                     IconButton(onClick = { showHelpDialog = true }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Help,
@@ -92,6 +106,7 @@ fun RecordingViewScreen(
                         )
                     }
 
+                    // Кнопка удаления записи
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(Icons.Default.Delete, contentDescription = null)
                     }
@@ -100,6 +115,9 @@ fun RecordingViewScreen(
         }
     ) { padding ->
 
+        // ---------------------------------------------------------
+        // Отображение состояния: загрузка, ошибка или контент
+        // ---------------------------------------------------------
         when {
             uiState.isLoading -> {
                 Box(
@@ -126,6 +144,9 @@ fun RecordingViewScreen(
             )
         }
 
+        // ---------------------------------------------------------
+        // Диалог подтверждения удаления записи
+        // ---------------------------------------------------------
         if (showDeleteDialog) {
             ConfirmDeleteDialog(
                 itemName = uiState.entry?.title ?: stringResource(R.string.fallback_this_entry),
@@ -137,7 +158,9 @@ fun RecordingViewScreen(
             )
         }
 
-        // AlertDialog
+        // ---------------------------------------------------------
+        // Диалог справки (информация о функциональности экрана)
+        // ---------------------------------------------------------
         if (showHelpDialog) {
             AlertDialog(
                 onDismissRequest = { showHelpDialog = false },
@@ -157,31 +180,41 @@ fun RecordingViewScreen(
     }
 }
 
+// ---------------------------------------------------------
+// Основное содержимое экрана просмотра записи
+// ---------------------------------------------------------
 @Composable
 fun RecordingViewContent(
     uiState: RecordingViewUiState,
     modifier: Modifier = Modifier
 ) {
     val entry = uiState.entry ?: return
-    var selectedImage by remember { mutableStateOf<String?>(null) }
+    var selectedImage by remember { mutableStateOf<String?>(null) }  // Выбранное для увеличения изображение
 
+    // Форматирование даты для отображения
     val formattedDate = remember(entry.timestamp) {
         SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
             .format(Date(entry.timestamp))
     }
 
+    // Описание: если пустое - отображается плейсхолдер
     val descriptionText = entry.description?.ifBlank { null }
         ?: stringResource(R.string.no_description_provided)
 
     val context = LocalContext.current
 
+    // ---------------------------------------------------------
+    // Вертикальный список с содержимым записи
+    // ---------------------------------------------------------
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-
+        // ---------------------------------------------------------
+        // Заголовок записи
+        // ---------------------------------------------------------
         item {
             Text(
                 text = entry.title.ifBlank { stringResource(R.string.untitled_entry) },
@@ -189,6 +222,9 @@ fun RecordingViewContent(
             )
         }
 
+        // ---------------------------------------------------------
+        // Метаданные: дата, год, марка, модель, локация
+        // ---------------------------------------------------------
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("${stringResource(id = R.string.show_date_sign)} $formattedDate")
@@ -199,6 +235,9 @@ fun RecordingViewContent(
             }
         }
 
+        // ---------------------------------------------------------
+        // Описание неисправности
+        // ---------------------------------------------------------
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
@@ -209,6 +248,9 @@ fun RecordingViewContent(
             }
         }
 
+        // ---------------------------------------------------------
+        // Заголовок секции изображений
+        // ---------------------------------------------------------
         item {
             Text(
                 text = stringResource(id = R.string.show_image_sign),
@@ -216,6 +258,9 @@ fun RecordingViewContent(
             )
         }
 
+        // ---------------------------------------------------------
+        // Галерея изображений (горизонтальный список)
+        // ---------------------------------------------------------
         if (entry.imageUris.isEmpty()) {
             item {
                 Text(stringResource(R.string.no_images))
@@ -227,6 +272,7 @@ fun RecordingViewContent(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     items(entry.imageUris, key = { it }) { uri ->
+                        // Преобразование URI в модель для Coil
                         val model = remember(uri) {
                             when {
                                 uri.startsWith("content://") -> uri.toUri()
@@ -253,6 +299,9 @@ fun RecordingViewContent(
         }
     }
 
+    // ---------------------------------------------------------
+    // Полноэкранный просмотр выбранного изображения (с зумом)
+    // ---------------------------------------------------------
     if (selectedImage != null) {
         ZoomableImage(
             uri = selectedImage!!,
